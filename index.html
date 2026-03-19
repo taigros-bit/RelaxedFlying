@@ -1035,8 +1035,14 @@ document.getElementById('modal-results').addEventListener('click', function(e) {
 });
 
 document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
-document.getElementById('field-f').addEventListener('click', function(){ openModal('f'); });
-document.getElementById('field-t').addEventListener('click', function(){ openModal('t'); });
+// iOS needs both click and touchend for reliable tap detection
+function addTap(id, fn) {
+  var el = document.getElementById(id);
+  el.addEventListener('click', fn);
+  el.addEventListener('touchend', function(e){ e.preventDefault(); fn(); });
+}
+addTap('field-f', function(){ openModal('f'); });
+addTap('field-t', function(){ openModal('t'); });
 document.getElementById('swap-btn').addEventListener('click', function(e) {
   e.stopPropagation();
   var tmp = selAP.f; selAP.f = selAP.t; selAP.t = tmp;
@@ -1118,8 +1124,12 @@ document.getElementById('dp-confirm-btn').addEventListener('click', function(){
 });
 document.getElementById('dp-cancel-btn').addEventListener('click', closeDatePicker);
 document.getElementById('date-row').addEventListener('click', openDatePicker);
+document.getElementById('date-row').addEventListener('touchend', function(e){ e.preventDefault(); openDatePicker(); });
 document.getElementById('today-btn').addEventListener('click', function(e){
   e.stopPropagation(); setToday();
+});
+document.getElementById('today-btn').addEventListener('touchend', function(e){
+  e.preventDefault(); e.stopPropagation(); setToday();
 });
 setToday();
 
@@ -1127,11 +1137,16 @@ setToday();
 var ACMAP = {
   '319':'A319','320':'A320','321':'A321','32A':'A320','32B':'A320','32N':'A320','32Q':'A321','32S':'A321',
   '737':'B737','738':'B738','73H':'B737','73W':'B737','7M8':'B738',
-  '772':'B772','77W':'B772','788':'B788','789':'B788',
-  '330':'A330','332':'A330','333':'A330','350':'A350','359':'A350',
-  'DH8':'DH8D','DH4':'DH8D','AT7':'AT72','AT5':'AT72',
-  'E90':'E190','E75':'E175','E70':'E170','CR9':'CRJ9','CR7':'CRJ7',
-  'E7W':'E195','E95':'E195','223':'A223','295':'E195'
+  '772':'B772','77W':'B772','77L':'B772',
+  '788':'B788','789':'B788','78J':'B788',
+  '330':'A330','332':'A330','333':'A330','338':'A330',
+  '350':'A350','359':'A350','351':'A350',
+  'DH8':'DH8D','DH4':'DH8D','DHC':'DH8D','DH3':'DH8D',
+  'AT7':'AT72','AT5':'AT72','AT4':'AT72','ATR':'AT72',
+  'E90':'E190','E95':'E195','E75':'E175','E70':'E170',
+  'CR9':'CRJ9','CR7':'CRJ7','CRJ':'CRJ9',
+  'E7W':'E195','223':'A223','221':'A223','BCS':'A223',
+  '300':'A300','310':'A310','380':'A388','388':'A388'
 };
 var ACNAMES = {
   A319:'Airbus A319',A320:'Airbus A320',A321:'Airbus A321',
@@ -1140,10 +1155,10 @@ var ACNAMES = {
   E190:'Embraer E190',E175:'Embraer E175',E170:'Embraer E170',
   CRJ9:'CRJ-900',CRJ7:'CRJ-700',E195:'Embraer E195',A223:'Airbus A220'
 };
-var ACROWS={A319:26,A320:30,A321:34,B737:32,B738:34,B772:42,B788:38,A330:38,A350:40,DH8D:14,AT72:18,E190:25,E175:20,E170:18,CRJ9:18,CRJ7:15,E195:26,A223:28};
-var ACCOLS={B772:['A','B','C','D','E','F','G','H','J'],B788:['A','B','C','D','E','F','G','H','J'],A330:['A','B','C','D','E','F','G','H','J'],A350:['A','B','C','D','E','F','G','H','J'],DH8D:['A','B','C','D'],AT72:['A','B','C','D'],E190:['A','B','C','D'],E175:['A','B','C','D'],E170:['A','B','C','D'],CRJ9:['A','B','C','D'],CRJ7:['A','B','C','D'],E195:['A','B','C','D'],A223:['A','B','C','D']};
+var ACROWS={A319:26,A320:30,A321:34,B737:32,B738:34,B772:42,B788:38,A330:38,A350:40,DH8D:19,AT72:18,E190:25,E175:20,E170:18,CRJ9:18,CRJ7:15,E195:26,A223:28};
+var ACCOLS={B772:['A','B','C','D','E','F','G','H','J'],B788:['A','B','C','D','E','F','G','H','J'],A330:['A','B','C','D','E','F','G','H','J'],A350:['A','B','C','D','E','F','G','H','J'],DH8D:['A','C','D','F'],AT72:['A','C','D','F'],E190:['A','B','C','D'],E175:['A','B','C','D'],E170:['A','B','C','D'],CRJ9:['A','B','C','D'],CRJ7:['A','B','C','D'],E195:['A','B','C','D'],A223:['A','B','C','D']};
 var ACBIZ={B772:6,B788:6,A330:6,A350:6,DH8D:0,AT72:0,E190:0,E175:0,E170:0,CRJ9:0,CRJ7:0};
-var ACWS={A319:{ws:10,we:17},A320:{ws:11,we:19},A321:{ws:13,we:22},B737:{ws:12,we:20},B738:{ws:12,we:21},B772:{ws:18,we:28},B788:{ws:20,we:32},A330:{ws:15,we:26},A350:{ws:17,we:30},DH8D:{ws:4,we:9},AT72:{ws:4,we:9},E190:{ws:8,we:15},E175:{ws:7,we:13},E170:{ws:6,we:12},CRJ9:{ws:8,we:15},CRJ7:{ws:7,we:13},E195:{ws:9,we:16},A223:{ws:9,we:17}};
+var ACWS={A319:{ws:10,we:17},A320:{ws:11,we:19},A321:{ws:13,we:22},B737:{ws:12,we:20},B738:{ws:12,we:21},B772:{ws:18,we:28},B788:{ws:20,we:32},A330:{ws:15,we:26},A350:{ws:17,we:30},DH8D:{ws:7,we:13},AT72:{ws:5,we:12},E190:{ws:8,we:15},E175:{ws:7,we:13},E170:{ws:6,we:12},CRJ9:{ws:8,we:15},CRJ7:{ws:7,we:13},E195:{ws:9,we:16},A223:{ws:9,we:17}};
 
 // Airline fleet database - fallback when API doesn't return aircraft
 var FLEET = {
