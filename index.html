@@ -4,15 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="theme-color" content="#000000">
-<title>RelaxedFlying — Find Your Smoothest Seat</title>
+<title>RelaxedFlying</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{background:#000!important;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-:root{--bg:#000;--bg1:#0d0d0d;--bg2:#141414;--bg3:#1c1c1c;--bg4:#242424;--line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.16);--blue:#4A90E2;--green:#34C759;--yellow:#FFD60A;--orange:#FF9F0A;--red:#FF453A}
-nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:#000;border-bottom:1px solid var(--line)}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:#000;border-bottom:1px solid rgba(255,255,255,.10)}
 .logo{font-size:17px;font-weight:700;letter-spacing:-.4px;display:flex;align-items:center;gap:9px;text-decoration:none;color:#fff}
-.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,255,255,.15);border-radius:8px;display:grid;place-items:center;flex-shrink:0}
+.logo-icon{width:28px;height:28px;background:#1a1a2e;border:1px solid rgba(255,255,255,.15);border-radius:8px;display:grid;place-items:center;flex-shrink:0}
 .nav-r{display:flex;align-items:center;gap:12px}
 .nav-a{font-size:13px;color:rgba(255,255,255,.3);text-decoration:none;font-weight:500}
 .nav-btn{font-size:13px;font-weight:600;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.85);padding:6px 14px;border-radius:100px;text-decoration:none}
@@ -37,9 +36,8 @@ h1{font-size:clamp(32px,8vw,52px);font-weight:900;letter-spacing:-2.5px;line-hei
 .ap-hint{color:rgba(255,255,255,.28);font-weight:400;font-size:14px}
 .swap-col{display:flex;align-items:center;justify-content:center}
 .swap-btn{width:30px;height:30px;background:#1c1c1c;border:1px solid rgba(255,255,255,.14);border-radius:50%;display:grid;place-items:center;cursor:pointer;font-size:13px;color:rgba(255,255,255,.5);-webkit-tap-highlight-color:transparent}
-.swap-btn:active{opacity:.6}
 .date-row{padding:13px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.10)}
-.ap-val2{font-size:15px;font-weight:700;letter-spacing:-.2px}
+.date-val{font-size:15px;font-weight:700;letter-spacing:-.2px;cursor:pointer}
 .today-btn{font-size:13px;font-weight:500;color:rgba(255,255,255,.3);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .go-btn{display:block;width:calc(100% - 24px);margin:12px;background:#fff;color:#000;border:none;border-radius:10px;padding:14px;font-family:Inter,sans-serif;font-size:15px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .go-btn:active{opacity:.85}
@@ -52,12 +50,11 @@ h1{font-size:clamp(32px,8vw,52px);font-weight:900;letter-spacing:-2.5px;line-hei
 .modal-inp-wrap{background:#141414;border:1px solid rgba(255,255,255,.16);border-radius:10px;display:flex;align-items:center;gap:10px;padding:0 13px}
 .modal-input{flex:1;background:transparent;border:none;color:#fff;font-family:Inter,sans-serif;font-size:16px;font-weight:500;outline:none;padding:12px 0}
 .modal-input::placeholder{color:rgba(255,255,255,.3)}
-.modal-status{padding:8px 16px;font-size:11px;color:rgba(255,255,255,.3)}
 .modal-results{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .mr-item{padding:13px 16px;cursor:pointer;display:flex;align-items:center;gap:13px;border-bottom:1px solid rgba(255,255,255,.06);-webkit-tap-highlight-color:transparent}
 .mr-item:active{background:rgba(255,255,255,.05)}
 .mr-flag{font-size:20px;flex-shrink:0;width:28px;text-align:center}
-.mr-code{font-family:"DM Mono",monospace;font-size:15px;font-weight:500;min-width:42px}
+.mr-code{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;min-width:42px}
 .mr-city{font-size:14px;font-weight:600}
 .mr-country{font-size:11px;color:rgba(255,255,255,.3)}
 .mr-name{font-size:11px;color:rgba(255,255,255,.3);margin-top:2px}
@@ -65,14 +62,14 @@ h1{font-size:clamp(32px,8vw,52px);font-weight:900;letter-spacing:-2.5px;line-hei
 .seclbl{font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:12px}
 .flist{display:flex;flex-direction:column;gap:1px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.10);border-radius:14px;overflow:hidden;margin-bottom:24px}
 .fc{background:#0d0d0d;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
-.fc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:#4A90E2;opacity:0}
+.fc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:#4A90E2;opacity:0}
 .fc.sel{background:rgba(74,144,226,.06)}.fc.sel::before{opacity:1}
 .fci{padding:15px}
 .fch{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
 .fcal{display:flex;align-items:center;gap:8px}
 .fclogo{width:26px;height:26px;background:#1c1c1c;border-radius:6px;display:grid;place-items:center;font-size:13px;flex-shrink:0}
 .fcan{font-size:13px;font-weight:600;color:rgba(255,255,255,.8)}
-.fcnum{font-family:"DM Mono",monospace;font-size:11px;color:rgba(255,255,255,.3)}
+.fcnum{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.3)}
 .fct{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px}
 .fctime{font-size:30px;font-weight:900;letter-spacing:-1.5px;line-height:1;margin-bottom:3px}
 .fcap{font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.5px}
@@ -93,32 +90,32 @@ h1{font-size:clamp(32px,8vw,52px);font-weight:900;letter-spacing:-2.5px;line-hei
 .mpanel{background:#0d0d0d}.mpanel+.mpanel{border-top:1px solid rgba(255,255,255,.10)}
 .ph{padding:13px 15px;border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between}
 .pht{font-size:14px;font-weight:700}.phs{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px}
-.phb{font-family:"DM Mono",monospace;font-size:11px;color:rgba(255,255,255,.35)}
+.phb{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.35)}
 .wing-info{display:flex;align-items:center;gap:7px;padding:9px 13px 0;font-size:11px;color:#4A90E2}
 .wing-dot{width:8px;height:8px;background:#4A90E2;border-radius:2px;flex-shrink:0}
 .ssrow{display:flex;gap:8px;padding:11px 13px 0}
 .ssiw{flex:1;position:relative}
 .ssico{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;color:rgba(255,255,255,.3);pointer-events:none}
-.ssinp{width:100%;background:#141414;border:1px solid rgba(255,255,255,.10);border-radius:8px;color:#fff;font-family:"DM Mono",monospace;font-size:14px;padding:10px 10px 10px 28px;outline:none;text-transform:uppercase}
+.ssinp{width:100%;background:#141414;border:1px solid rgba(255,255,255,.10);border-radius:8px;color:#fff;font-family:'DM Mono',monospace;font-size:14px;padding:10px 10px 10px 28px;outline:none;text-transform:uppercase}
 .ssinp::placeholder{color:rgba(255,255,255,.25);font-family:Inter,sans-serif;text-transform:none;font-size:13px}
 .ssinp:focus{border-color:rgba(74,144,226,.5)}
 .btnclear{background:transparent;border:1px solid rgba(255,255,255,.10);color:rgba(255,255,255,.5);border-radius:8px;padding:10px 13px;font-family:Inter,sans-serif;font-size:13px;font-weight:600;cursor:pointer}
 .pshell{display:flex;flex-direction:column;align-items:center;padding:14px 12px 14px;overflow-x:auto}
 .pnose{width:66px;height:33px;background:linear-gradient(180deg,#242424,#141414);border:1px solid rgba(255,255,255,.10);border-bottom:none;border-radius:33px 33px 0 0;display:grid;place-items:center;flex-shrink:0}
-.pnose span{font-size:13px;opacity:.18;transform:rotate(-90deg);display:block}
+.pnose-ico{font-size:13px;opacity:.2;transform:rotate(-90deg);display:block}
 .cabin{background:#141414;border:1px solid rgba(255,255,255,.10);border-top:none;border-radius:0 0 10px 10px;padding:7px 9px 14px;width:fit-content;min-width:245px}
 .csep{text-align:center;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);display:flex;align-items:center;gap:6px;margin:7px 0 8px}
-.csep::before,.csep::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.10)}
+.csep::before,.csep::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.10)}
 .wing-bar{display:flex;align-items:center;justify-content:center;gap:5px;padding:4px 0;margin:2px 0;font-size:7.5px;font-weight:700;color:#4A90E2;letter-spacing:1.5px;text-transform:uppercase;background:rgba(74,144,226,.12);border-top:1px solid rgba(74,144,226,.3);border-bottom:1px solid rgba(74,144,226,.3)}
 .srow{display:flex;align-items:center;justify-content:center;gap:3px;margin-bottom:3px}
-.rn{font-family:"DM Mono",monospace;font-size:7px;color:rgba(255,255,255,.25);width:13px;text-align:right;flex-shrink:0}
+.rn{font-family:'DM Mono',monospace;font-size:7px;color:rgba(255,255,255,.25);width:13px;text-align:right;flex-shrink:0}
 .rn.wr{color:#4A90E2;font-weight:700}
 .aisle{width:9px;flex-shrink:0}
-.seat{width:24px;height:22px;border-radius:4px 4px 3px 3px;border:1px solid transparent;cursor:pointer;display:grid;place-items:center;font-family:"DM Mono",monospace;font-size:7px;font-weight:500;transition:transform .1s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.seat{width:24px;height:22px;border-radius:4px 4px 3px 3px;border:1px solid transparent;cursor:pointer;display:grid;place-items:center;font-family:'DM Mono',monospace;font-size:7px;font-weight:500;transition:transform .1s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
 .seat:active{transform:scale(1.18);position:relative;z-index:2}
 .seat.sel{box-shadow:0 0 0 2px #fff,0 0 8px rgba(255,255,255,.15);transform:scale(1.18);position:relative;z-index:3}
 .seat.hl{box-shadow:0 0 0 2px #4A90E2,0 0 10px rgba(74,144,226,.4);transform:scale(1.2);position:relative;z-index:4}
-.seat.ws{border-color:rgba(74,144,226,.5)!important;box-shadow:0 0 0 1px rgba(74,144,226,.18)}
+.seat.ws{border-color:rgba(74,144,226,.5)!important}
 .s0{background:rgba(52,199,89,.85);border-color:rgba(52,199,89,.95);color:rgba(0,26,8,.8)}
 .s1{background:rgba(70,208,92,.70);border-color:rgba(70,208,92,.88);color:rgba(0,24,6,.75)}
 .s2{background:rgba(118,208,68,.66);border-color:rgba(118,208,68,.86);color:rgba(6,20,0,.72)}
@@ -132,11 +129,9 @@ h1{font-size:clamp(32px,8vw,52px);font-weight:900;letter-spacing:-2.5px;line-hei
 .legg{flex:1;height:4px;border-radius:2px;background:linear-gradient(90deg,#34C759,#FFD60A,#FF453A)}
 .fcastw{padding:11px 13px}
 .fscroll{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px}
-.fscroll::-webkit-scrollbar{height:2px}
-.fscroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
 .fp{flex-shrink:0;background:#141414;border:1px solid rgba(255,255,255,.10);border-radius:8px;padding:9px 9px 7px;min-width:50px;text-align:center;cursor:pointer}
 .fp.on{border-color:rgba(74,144,226,.4);background:rgba(74,144,226,.07)}
-.fpt{font-family:"DM Mono",monospace;font-size:8px;color:rgba(255,255,255,.3);margin-bottom:5px}
+.fpt{font-family:'DM Mono',monospace;font-size:8px;color:rgba(255,255,255,.3);margin-bottom:5px}
 .fpbar{height:26px;display:flex;align-items:flex-end;justify-content:center}
 .fpfill{width:7px;border-radius:2px}
 .fpw{font-size:8px;font-weight:700;margin-top:4px}
@@ -198,6 +193,8 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
 .hidden{display:none!important}
 .fi{animation:fi .2s ease both}
 @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* date picker */
+.dp-day{text-align:center;padding:10px 2px;font-size:14px;font-weight:500;border-radius:50%;-webkit-tap-highlight-color:transparent}
 </style>
 </head>
 <body>
@@ -217,6 +214,7 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
   </div>
 </nav>
 
+<!-- AIRPORT MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal-header">
     <div class="modal-top">
@@ -228,14 +226,41 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
       <input class="modal-input" id="modal-inp" type="text" placeholder="City, airport or IATA code" autocomplete="off" autocorrect="off" spellcheck="false" oninput="modalSearch(this.value)">
     </div>
   </div>
-  <div class="modal-status" id="modal-status">578 airports worldwide</div>
+  <div style="padding:8px 16px;font-size:11px;color:rgba(255,255,255,.3)">578 airports worldwide</div>
   <div class="modal-results" id="modal-results">
-    <div class="mr-empty">Start typing to search 578 airports worldwide</div>
+    <div class="mr-empty">Start typing to search airports</div>
   </div>
 </div>
 
+<!-- DATE PICKER MODAL -->
+<div class="modal-overlay" id="date-modal" style="z-index:1001">
+  <div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:15px;font-weight:700">Select date</div>
+    <span style="font-size:14px;color:rgba(255,255,255,.4);cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="closeDatePicker()">Cancel</span>
+  </div>
+  <div style="padding:16px 20px 8px;display:flex;align-items:center;justify-content:space-between">
+    <div onclick="dpChangeMonth(-1)" style="font-size:28px;cursor:pointer;padding:4px 12px;color:rgba(255,255,255,.6);-webkit-tap-highlight-color:transparent;user-select:none">&#8249;</div>
+    <div id="dp-month-label" style="font-size:16px;font-weight:700;letter-spacing:-.3px"></div>
+    <div onclick="dpChangeMonth(1)" style="font-size:28px;cursor:pointer;padding:4px 12px;color:rgba(255,255,255,.6);-webkit-tap-highlight-color:transparent;user-select:none">&#8250;</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);padding:0 12px 4px">
+    <div style="text-align:center;font-size:10px;font-weight:600;color:rgba(255,255,255,.3);padding:6px 0">Mo</div>
+    <div style="text-align:center;font-size:10px;font-weight:600;color:rgba(255,255,255,.3);padding:6px 0">Tu</div>
+    <div style="text-align:center;font-size:10px;font-weight:600;color:rgba(255,255,255,.3);padding:6px 0">We</div>
+    <div style="text-align:center;font-size:10px;font-weight:600;color:rgba(255,255,255,.3);padding:6px 0">Th</div>
+    <div style="text-align:center;font-size:10px;font-weight:600;color:rgba(255,255,255,.3);padding:6px 0">Fr</div>
+    <div style="text-align:center;font-size:10px;font-weight:600;color:rgba(255,255,255,.3);padding:6px 0">Sa</div>
+    <div style="text-align:center;font-size:10px;font-weight:600;color:rgba(255,255,255,.3);padding:6px 0">Su</div>
+  </div>
+  <div id="dp-grid" style="display:grid;grid-template-columns:repeat(7,1fr);padding:0 12px;gap:2px"></div>
+  <div style="padding:20px 20px 40px">
+    <button onclick="confirmDate()" style="width:100%;background:#fff;color:#000;border:none;border-radius:10px;padding:14px;font-family:Inter,sans-serif;font-size:15px;font-weight:800;cursor:pointer">Confirm</button>
+  </div>
+</div>
+
+<!-- HERO -->
 <div class="hero">
-  <div class="badge"><div class="bdot"></div><span class="btxt">Free · No signup</span></div>
+  <div class="badge"><div class="bdot"></div><span class="btxt">Free &middot; No signup</span></div>
   <h1>Fly smoother.<br>Sit smarter.</h1>
   <p class="hsub">Pick the calmest seat on your flight before you board. Real turbulence data, seat by seat.</p>
 </div>
@@ -243,7 +268,7 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
 <div class="wrap">
   <div class="stats">
     <div class="sc"><div class="sn" style="color:#34C759">73%</div><div class="sl">of nervous flyers feel calmer choosing their seat</div></div>
-    <div class="sc"><div class="sn">2–3×</div><div class="sl">more turbulence rear vs. wing seats</div></div>
+    <div class="sc"><div class="sn">2&ndash;3&times;</div><div class="sl">more turbulence rear vs. wing seats</div></div>
     <div class="sc"><div class="sn" style="color:#4A90E2">1 in 3</div><div class="sl">passengers have turbulence anxiety</div></div>
   </div>
 </div>
@@ -252,25 +277,23 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
   <div class="sec-lbl">Find your flight</div>
   <div class="scard">
     <div class="ap-row">
-      <div class="ap-field" onclick="openModal('f')">
+      <div class="ap-field" id="field-f" onclick="openModal('f')">
         <div class="ap-lbl">From</div>
         <div class="ap-val" id="val-f"><span class="ap-hint">City or airport</span></div>
       </div>
       <div class="swap-col"><div class="swap-btn" onclick="swapAP(event)">&#8652;</div></div>
-      <div class="ap-field" onclick="openModal('t')">
+      <div class="ap-field" id="field-t" onclick="openModal('t')">
         <div class="ap-lbl">To</div>
         <div class="ap-val" id="val-t"><span class="ap-hint">City or airport</span></div>
       </div>
     </div>
     <div class="date-row">
-      <div>
+      <div onclick="openDatePicker()" style="cursor:pointer;flex:1">
         <div class="ap-lbl">Date</div>
-        <div class="ap-val2" id="date-display">&#8212;</div>
-        <input type="date" id="idate" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px" onchange="updateDate()">
+        <div class="date-val" id="date-display">&mdash;</div>
       </div>
       <div style="display:flex;gap:14px;align-items:center">
         <span class="today-btn" onclick="setToday()">Today</span>
-        <span class="today-btn" onclick="pickDate()" style="font-size:18px">&#128197;</span>
       </div>
     </div>
     <button class="go-btn" onclick="doSearch()">
@@ -295,10 +318,13 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
       </div>
       <div class="wing-info"><div class="wing-dot"></div><span>Blue outline = wing seats (smoothest)</span></div>
       <div class="ssrow">
-        <div class="ssiw"><span class="ssico">&#8981;</span><input class="ssinp" type="text" id="sinp" placeholder="Find seat  e.g. 14A" oninput="jumpSeat(this.value)"></div>
+        <div class="ssiw"><span class="ssico">&#8981;</span><input class="ssinp" type="text" id="sinp" placeholder="Find seat e.g. 14A" oninput="jumpSeat(this.value)"></div>
         <button class="btnclear" onclick="clearJ()">Clear</button>
       </div>
-      <div class="pshell"><div class="pnose"><span>&#9992;</span></div><div class="cabin" id="cabin"></div></div>
+      <div class="pshell">
+        <div class="pnose"><span class="pnose-ico">&#9992;</span></div>
+        <div class="cabin" id="cabin"></div>
+      </div>
       <div class="legrow"><span class="legt">Smooth</span><div class="legg"></div><span class="legt">Turbulent</span></div>
     </div>
     <div class="mpanel">
@@ -317,25 +343,16 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
 <div class="wrap"><div class="sec">
   <div class="sec-lbl">How it works</div>
   <div class="steps">
-    <div class="step"><div class="stepn">1</div><div><div class="stept">Enter your route</div><div class="stepd">Tap From or To &#8212; search 578 airports worldwide by city, country or IATA code.</div></div></div>
+    <div class="step"><div class="stepn">1</div><div><div class="stept">Enter your route</div><div class="stepd">Tap From or To &mdash; search 578 airports worldwide by city, country or code.</div></div></div>
     <div class="step"><div class="stepn">2</div><div><div class="stept">Pick your flight</div><div class="stepd">Every flight shows a turbulence forecast for that route and day.</div></div></div>
-    <div class="step"><div class="stepn">3</div><div><div class="stept">Read the seat map</div><div class="stepd">Green to red &#8212; every seat scored. Blue outline = wing zone, always calmest.</div></div></div>
-    <div class="step"><div class="stepn">4</div><div><div class="stept">Board with confidence</div><div class="stepd">You already know your smoothest seat. Sit down and actually relax.</div></div></div>
+    <div class="step"><div class="stepn">3</div><div><div class="stept">Read the seat map</div><div class="stepd">Green to red &mdash; every seat scored. Blue = wing zone, always calmest.</div></div></div>
+    <div class="step"><div class="stepn">4</div><div><div class="stept">Board with confidence</div><div class="stepd">You already know your smoothest seat. Sit down and relax.</div></div></div>
   </div>
 </div></div>
 
 <div class="wrap"><div class="sec">
   <div class="sec-lbl">The science</div>
-  <div class="icard">
-    <span class="itag">&#9992; Aircraft physics</span>
-    <div class="ititle">Where you sit changes everything.</div>
-    <div class="ibody">An aircraft behaves like a seesaw. The further from the center of gravity, the more you feel turbulence. Wing seats are right at that center &#8212; calmest. Rear seats amplify every bump 2&#8211;3&#215;.</div>
-    <div class="pdiag">
-      <div class="pzone zf"><div class="pzl">Front</div><div class="pzs">&#8679; 2&#215;</div><div class="pzb">Smooth</div></div>
-      <div class="pzone zw"><div class="pzl">Wing &#9733;</div><div class="pzs">Best</div><div class="pzb">Calmest</div></div>
-      <div class="pzone zr"><div class="pzl">Rear</div><div class="pzs">&#8679; 3&#215;</div><div class="pzb">Roughest</div></div>
-    </div>
-  </div>
+  <div class="icard"><span class="itag">&#9992; Aircraft physics</span><div class="ititle">Where you sit changes everything.</div><div class="ibody">An aircraft behaves like a seesaw. The further from the center of gravity, the more you feel turbulence. Wing seats are right at that center &mdash; calmest. Rear seats amplify every bump 2&ndash;3&times;.</div><div class="pdiag"><div class="pzone zf"><div class="pzl">Front</div><div class="pzs">2&times;</div><div class="pzb">Smooth</div></div><div class="pzone zw"><div class="pzl">Wing</div><div class="pzs">Best</div><div class="pzb">Calmest</div></div><div class="pzone zr"><div class="pzl">Rear</div><div class="pzs">3&times;</div><div class="pzb">Roughest</div></div></div></div>
   <div class="icard"><span class="itag">&#127780; Turbulence increasing</span><div class="ititle">Climate change is making flights bumpier.</div><div class="ibody">Clear-air turbulence over the North Atlantic has increased 55%+ since the 1970s. Knowing where to sit matters more every year.</div></div>
   <div class="icard"><span class="itag">&#128161; Pro tip</span><div class="ititle">Morning flights are smoother.</div><div class="ibody">Air is denser in early morning. Afternoon solar heating creates thermal turbulence. Go early whenever possible.</div></div>
 </div></div>
@@ -343,9 +360,9 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
 <div class="wrap"><div class="sec">
   <div class="sec-lbl">What people say</div>
   <div class="tcards">
-    <div class="tcard"><div class="ttop"><div class="tav">&#129489;&#8205;&#128188;</div><div><div class="tname">Maja K.</div><div class="thandle">Frequent flyer, Ljubljana</div></div></div><div class="ttext">"I used to take a Xanax before every flight. Now I just pick a wing seat and it&#39;s honestly fine. Knowing in advance makes all the difference."</div><div class="tstars">&#11088;&#11088;&#11088;&#11088;&#11088;</div></div>
-    <div class="tcard"><div class="ttop"><div class="tav">&#128105;&#8205;&#128103;</div><div><div class="tname">Sarah M.</div><div class="thandle">Travels with kids, London</div></div></div><div class="ttext">"My daughter cries every time there&#39;s turbulence. Booked wing seats &#8212; calmest flight we&#39;ve ever had together."</div><div class="tstars">&#11088;&#11088;&#11088;&#11088;&#11088;</div></div>
-    <div class="tcard"><div class="ttop"><div class="tav">&#128104;&#8205;&#128187;</div><div><div class="tname">Luca B.</div><div class="thandle">Business traveler, Milan</div></div></div><div class="ttext">"I fly 3&#8211;4&#215; a month. I always use this to find the smoothest seat so I can actually work on my laptop mid-flight."</div><div class="tstars">&#11088;&#11088;&#11088;&#11088;&#11088;</div></div>
+    <div class="tcard"><div class="ttop"><div class="tav">&#129489;&#8205;&#128188;</div><div><div class="tname">Maja K.</div><div class="thandle">Frequent flyer, Ljubljana</div></div></div><div class="ttext">"I used to take a Xanax before every flight. Now I just pick a wing seat and it's fine. Knowing in advance makes all the difference."</div><div class="tstars">&#11088;&#11088;&#11088;&#11088;&#11088;</div></div>
+    <div class="tcard"><div class="ttop"><div class="tav">&#128105;&#8205;&#128103;</div><div><div class="tname">Sarah M.</div><div class="thandle">Travels with kids, London</div></div></div><div class="ttext">"My daughter cries every time there's turbulence. Booked wing seats &mdash; calmest flight we've ever had."</div><div class="tstars">&#11088;&#11088;&#11088;&#11088;&#11088;</div></div>
+    <div class="tcard"><div class="ttop"><div class="tav">&#128104;&#8205;&#128187;</div><div><div class="tname">Luca B.</div><div class="thandle">Business traveler, Milan</div></div></div><div class="ttext">"I fly 3&ndash;4&times; a month. I always use this to find the smoothest seat so I can actually work mid-flight."</div><div class="tstars">&#11088;&#11088;&#11088;&#11088;&#11088;</div></div>
   </div>
 </div></div>
 
@@ -357,7 +374,7 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
       <input type="email" class="ctainp" id="wlemail" placeholder="your@email.com">
       <button class="ctasub" onclick="joinWL()">Join</button>
     </div>
-    <div class="ctaok" id="ctaok">&#10003; You&#39;re on the list!</div>
+    <div class="ctaok" id="ctaok">You are on the list!</div>
     <div class="ctanote" id="ctanote">No spam. Launch notification only.</div>
   </div>
 </div></div>
@@ -951,193 +968,381 @@ const AIRPORTS = [
   {c:'GUM',city:'Guam',country:'Guam',cc:'GU',n:'Antonio B. Won Pat International Airport',f:'🇬🇺'},
   {c:'SPN',city:'Saipan',country:'N. Mariana Islands',cc:'MP',n:'Francisco C. Ada/Saipan International Airport',f:'🇲🇵'},
 ];
-
-function searchAP(q){
-  if(!q||q.length<1)return[];
-  q=q.toLowerCase().trim();
-  const exact=[],byCode=[],byCity=[],rest=[];
-  for(const a of AIRPORTS){
-    const code=a.c.toLowerCase(),city=(a.city||'').toLowerCase(),country=(a.country||'').toLowerCase(),name=(a.n||'').toLowerCase();
-    if(code===q){exact.push(a);continue;}
-    if(code.startsWith(q)){byCode.push(a);continue;}
-    if(city.startsWith(q)){byCity.push(a);continue;}
-    if(city.includes(q)||country.startsWith(q)||country.includes(q)||name.includes(q))rest.push(a);
+// AIRPORT SEARCH
+function searchAP(q) {
+  if (!q || q.length < 1) return [];
+  q = q.toLowerCase().trim();
+  var exact=[], byCode=[], byCity=[], rest=[];
+  for (var i=0; i<AIRPORTS.length; i++) {
+    var a = AIRPORTS[i];
+    var code = a.c.toLowerCase();
+    var city = (a.city||'').toLowerCase();
+    var country = (a.country||'').toLowerCase();
+    var name = (a.n||'').toLowerCase();
+    if (code === q) { exact.push(a); continue; }
+    if (code.startsWith(q)) { byCode.push(a); continue; }
+    if (city.startsWith(q)) { byCity.push(a); continue; }
+    if (city.includes(q) || country.startsWith(q) || country.includes(q) || name.includes(q)) rest.push(a);
   }
-  return[...exact,...byCode,...byCity,...rest].slice(0,12);
+  return exact.concat(byCode).concat(byCity).concat(rest).slice(0,12);
 }
 
-let modalSide=null,selAP={f:null,t:null};
+// AIRPORT MODAL
+var modalSide = null;
+var selAP = {f:null, t:null};
 
-function openModal(side){
-  modalSide=side;
-  document.getElementById('modal-title').textContent=side==='f'?'Select departure airport':'Select arrival airport';
-  document.getElementById('modal-inp').value='';
-  document.getElementById('modal-results').innerHTML='<div class="mr-empty">Start typing \u2014 search by city, country or IATA code</div>';
+function openModal(side) {
+  modalSide = side;
+  document.getElementById('modal-title').textContent = (side==='f') ? 'Select departure airport' : 'Select arrival airport';
+  document.getElementById('modal-inp').value = '';
+  document.getElementById('modal-results').innerHTML = '<div class="mr-empty">Start typing to search airports</div>';
   document.getElementById('modal').classList.add('open');
-  setTimeout(()=>document.getElementById('modal-inp').focus(),300);
+  setTimeout(function(){ document.getElementById('modal-inp').focus(); }, 300);
 }
-function closeModal(){
+function closeModal() {
   document.getElementById('modal').classList.remove('open');
   document.getElementById('modal-inp').blur();
-  modalSide=null;
+  modalSide = null;
 }
-function modalSearch(q){
-  const res=document.getElementById('modal-results');
-  if(!q.trim()){res.innerHTML='<div class="mr-empty">Start typing \u2014 search by city, country or IATA code</div>';return;}
-  const found=searchAP(q);
-  if(!found.length){res.innerHTML='<div class="mr-empty">No airports found for <strong>'+q+'</strong><br><span style="font-size:12px;opacity:.6">Try a city name, country or IATA code</span></div>';return;}
-  res.innerHTML=found.map(a=>'<div class="mr-item" onclick="selectAP(\''+a.c+'\')"><span class="mr-flag">'+a.f+'</span><div><div style="display:flex;align-items:center;gap:10px"><span class="mr-code">'+a.c+'</span><span class="mr-city">'+a.city+'</span><span class="mr-country">'+a.country+'</span></div><div class="mr-name">'+a.n+'</div></div></div>').join('');
+function modalSearch(q) {
+  var res = document.getElementById('modal-results');
+  if (!q.trim()) { res.innerHTML = '<div class="mr-empty">Start typing to search airports</div>'; return; }
+  var found = searchAP(q);
+  if (!found.length) { res.innerHTML = '<div class="mr-empty">No airports found for <strong>' + q + '</strong></div>'; return; }
+  var html = '';
+  for (var i=0; i<found.length; i++) {
+    var a = found[i];
+    html += '<div class="mr-item" onclick="selectAP(\'' + a.c + '\')">';
+    html += '<span class="mr-flag">' + a.f + '</span>';
+    html += '<div><div style="display:flex;align-items:center;gap:10px">';
+    html += '<span class="mr-code">' + a.c + '</span>';
+    html += '<span class="mr-city">' + a.city + '</span>';
+    html += '<span class="mr-country">' + a.country + '</span>';
+    html += '</div><div class="mr-name">' + a.n + '</div></div></div>';
+  }
+  res.innerHTML = html;
 }
-function selectAP(code){
-  const a=AIRPORTS.find(x=>x.c===code);if(!a)return;
-  selAP[modalSide]=a;
-  document.getElementById('val-'+modalSide).innerHTML='<span style="font-weight:800;letter-spacing:-.3px">'+a.c+'</span> <span style="color:rgba(255,255,255,.35);font-size:13px;font-weight:400">'+a.city+'</span>';
+function selectAP(code) {
+  var a = null;
+  for (var i=0; i<AIRPORTS.length; i++) { if (AIRPORTS[i].c===code) { a=AIRPORTS[i]; break; } }
+  if (!a) return;
+  selAP[modalSide] = a;
+  document.getElementById('val-'+modalSide).innerHTML = '<span style="font-weight:800;letter-spacing:-.3px">' + a.c + '</span> <span style="color:rgba(255,255,255,.35);font-size:13px;font-weight:400">' + a.city + '</span>';
   closeModal();
 }
-function swapAP(e){
+function swapAP(e) {
   e.stopPropagation();
-  const tmp=selAP.f;selAP.f=selAP.t;selAP.t=tmp;
-  ['f','t'].forEach(s=>{
-    const a=selAP[s];
-    document.getElementById('val-'+s).innerHTML=a?'<span style="font-weight:800;letter-spacing:-.3px">'+a.c+'</span> <span style="color:rgba(255,255,255,.35);font-size:13px;font-weight:400">'+a.city+'</span>':'<span class="ap-hint">City or airport</span>';
+  var tmp = selAP.f; selAP.f = selAP.t; selAP.t = tmp;
+  ['f','t'].forEach(function(s) {
+    var a = selAP[s];
+    document.getElementById('val-'+s).innerHTML = a
+      ? '<span style="font-weight:800;letter-spacing:-.3px">' + a.c + '</span> <span style="color:rgba(255,255,255,.35);font-size:13px;font-weight:400">' + a.city + '</span>'
+      : '<span class="ap-hint">City or airport</span>';
   });
 }
-function fmt(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
-function setToday(){const d=new Date();document.getElementById('idate').valueAsDate=d;document.getElementById('date-display').textContent=fmt(d);}
-function updateDate(){const v=document.getElementById('idate').value;if(v)document.getElementById('date-display').textContent=fmt(new Date(v+'T12:00:00'));}
-function pickDate(){const inp=document.getElementById('idate');try{inp.showPicker();}catch(e){inp.click();}}
-setToday();
 
-const TURB=[{l:'Very Smooth',col:'#34C759',p:'tbs'},{l:'Smooth',col:'#52D068',p:'tbs'},{l:'Light Chop',col:'#A8D938',p:'tbl'},{l:'Light Chop',col:'#FFD60A',p:'tbl'},{l:'Moderate',col:'#FF9F0A',p:'tbm'},{l:'Bumpy',col:'#FF6B30',p:'tbm'},{l:'Rough',col:'#FF453A',p:'tbr'},{l:'Very Rough',col:'#FF2D20',p:'tbr'}];
-const AC={A319:{rows:26,cols:['A','B','C','D','E','F'],biz:4,name:'Airbus A319',ws:10,we:17},A320:{rows:30,cols:['A','B','C','D','E','F'],biz:4,name:'Airbus A320',ws:11,we:19},A321:{rows:34,cols:['A','B','C','D','E','F'],biz:4,name:'Airbus A321',ws:13,we:22},B737:{rows:32,cols:['A','B','C','D','E','F'],biz:4,name:'Boeing 737-800',ws:12,we:20},B738:{rows:34,cols:['A','B','C','D','E','F'],biz:4,name:'Boeing 737 MAX 8',ws:12,we:21}};
-const AL=[{name:'Croatia Airlines',iata:'OU',f:'\uD83C\uDDED\uD83C\uDDF7',ac:'A320'},{name:'Adria Airways',iata:'JP',f:'\uD83C\uDDF8\uD83C\uDDEE',ac:'A319'},{name:'Austrian Airlines',iata:'OS',f:'\uD83C\uDDE6\uD83C\uDDF9',ac:'A321'},{name:'Lufthansa',iata:'LH',f:'\uD83C\uDDE9\uD83C\uDDEA',ac:'A320'},{name:'easyJet',iata:'U2',f:'\uD83D\uDFE0',ac:'A320'},{name:'Ryanair',iata:'FR',f:'\uD83D\uDFE1',ac:'B738'},{name:'Wizz Air',iata:'W6',f:'\uD83D\uDFE3',ac:'A321'},{name:'Swiss',iata:'LX',f:'\uD83C\uDDE8\uD83C\uDDED',ac:'A320'}];
-const DEPS=['06:10','07:40','09:25','11:50','13:30','15:10','17:45','19:55'];
-let flights=[],active=null,sdata={},ssel=null;
+// DATE PICKER
+var dpYear = new Date().getFullYear();
+var dpMonth = new Date().getMonth();
+var dpSelected = new Date();
+dpSelected.setHours(0,0,0,0);
 
-function doSearch(){
-  if(!selAP.f||!selAP.t){openModal(!selAP.f?'f':'t');return;}
-  document.getElementById('btxt').classList.add('hidden');
-  document.getElementById('bsp').classList.remove('hidden');
-  setTimeout(()=>{
-    document.getElementById('btxt').classList.remove('hidden');
-    document.getElementById('bsp').classList.add('hidden');
-    const sh=[...AL].sort(()=>Math.random()-.5).slice(0,4);
-    const dp=[...DEPS].sort(()=>Math.random()-.5).slice(0,4).sort();
-    flights=sh.map((al,i)=>{
-      const[dh,dm]=dp[i].split(':').map(Number);
-      const dur=75+Math.floor(Math.random()*200);
-      const at=dh*60+dm+dur;
-      const ah=Math.floor(at/60)%24,am=at%60;
-      return{id:al.iata+(100+Math.floor(Math.random()*899)),airline:al.name,f:al.f,ac:al.ac,dep:dp[i],arr:String(ah).padStart(2,'0')+':'+String(am).padStart(2,'0'),dur:Math.floor(dur/60)+'h'+(dur%60?' '+dur%60+'m':''),tlv:Math.floor(Math.random()*4),from:selAP.f.c,fromCity:selAP.f.city,to:selAP.t.c,toCity:selAP.t.city};
-    });
-    renderF();
-  },680);
+function fmtDate(d) {
+  return d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+}
+function setToday() {
+  dpSelected = new Date();
+  dpSelected.setHours(0,0,0,0);
+  document.getElementById('date-display').textContent = fmtDate(dpSelected);
+}
+function openDatePicker() {
+  var now = new Date();
+  dpYear = dpSelected ? dpSelected.getFullYear() : now.getFullYear();
+  dpMonth = dpSelected ? dpSelected.getMonth() : now.getMonth();
+  renderDPGrid();
+  document.getElementById('date-modal').classList.add('open');
+}
+function closeDatePicker() {
+  document.getElementById('date-modal').classList.remove('open');
+}
+function dpChangeMonth(dir) {
+  dpMonth += dir;
+  if (dpMonth > 11) { dpMonth = 0; dpYear++; }
+  if (dpMonth < 0) { dpMonth = 11; dpYear--; }
+  renderDPGrid();
+}
+function renderDPGrid() {
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('dp-month-label').textContent = months[dpMonth] + ' ' + dpYear;
+  var grid = document.getElementById('dp-grid');
+  grid.innerHTML = '';
+  var firstDay = new Date(dpYear, dpMonth, 1).getDay();
+  var offset = (firstDay === 0) ? 6 : firstDay - 1;
+  var daysInMonth = new Date(dpYear, dpMonth+1, 0).getDate();
+  var today = new Date(); today.setHours(0,0,0,0);
+  for (var i=0; i<offset; i++) {
+    var empty = document.createElement('div');
+    grid.appendChild(empty);
+  }
+  for (var d=1; d<=daysInMonth; d++) {
+    var date = new Date(dpYear, dpMonth, d);
+    var isPast = date < today;
+    var isSel = dpSelected && date.toDateString() === dpSelected.toDateString();
+    var isToday = date.toDateString() === today.toDateString();
+    var cell = document.createElement('div');
+    cell.textContent = d;
+    cell.className = 'dp-day';
+    cell.style.cursor = isPast ? 'default' : 'pointer';
+    if (isSel) {
+      cell.style.background = '#fff';
+      cell.style.color = '#000';
+      cell.style.fontWeight = '800';
+    } else if (isToday) {
+      cell.style.border = '1px solid rgba(255,255,255,.4)';
+      cell.style.color = '#fff';
+    } else if (isPast) {
+      cell.style.color = 'rgba(255,255,255,.2)';
+    } else {
+      cell.style.color = '#fff';
+    }
+    if (!isPast) {
+      (function(y,m,day) {
+        cell.addEventListener('click', function() {
+          dpSelected = new Date(y, m, day);
+          dpSelected.setHours(0,0,0,0);
+          renderDPGrid();
+        });
+      })(dpYear, dpMonth, d);
+    }
+    grid.appendChild(cell);
+  }
+}
+function confirmDate() {
+  if (dpSelected) {
+    document.getElementById('date-display').textContent = fmtDate(dpSelected);
+  }
+  closeDatePicker();
 }
 
-function renderF(){
-  const dd=document.getElementById('date-display').textContent;
-  document.getElementById('rlbl').textContent=flights.length+' flights \u00B7 '+dd+' \u00B7 '+selAP.f.city+' \u2192 '+selAP.t.city;
-  document.getElementById('flist').innerHTML=flights.map(f=>{
-    const t=TURB[f.tlv];const ac=AC[f.ac];
-    return '<div class="fc fi" id="fc-'+f.id+'" onclick="pickF(\''+f.id+'\')"><div class="fci"><div class="fch"><div class="fcal"><div class="fclogo">'+f.f+'</div><span class="fcan">'+f.airline+'</span></div><span class="fcnum">'+f.id+'</span></div><div class="fct"><div><div class="fctime">'+f.dep+'</div><div class="fcap">'+f.from+'</div><div class="fccity">'+f.fromCity+'</div></div><div class="fcmid"><div class="fcdur">'+f.dur+'</div><div class="fcrline"><div class="fcrl"></div><span class="fcpl">\u2708</span><div class="fcrl"></div></div></div><div style="text-align:right"><div class="fctime">'+f.arr+'</div><div class="fcap">'+f.to+'</div><div class="fccity">'+f.toCity+'</div></div></div><div class="fcfoot"><span class="fcacft">'+ac.name+'</span><span class="tb '+t.p+'"><span style="font-size:7px">\u25CF</span> '+t.l+'</span></div></div></div>';
-  }).join('');
+// FLIGHTS
+var TURB = [
+  {l:'Very Smooth',col:'#34C759',p:'tbs'},
+  {l:'Smooth',col:'#52D068',p:'tbs'},
+  {l:'Light Chop',col:'#A8D938',p:'tbl'},
+  {l:'Light Chop',col:'#FFD60A',p:'tbl'},
+  {l:'Moderate',col:'#FF9F0A',p:'tbm'},
+  {l:'Bumpy',col:'#FF6B30',p:'tbm'},
+  {l:'Rough',col:'#FF453A',p:'tbr'},
+  {l:'Very Rough',col:'#FF2D20',p:'tbr'}
+];
+var AC = {
+  A319:{rows:26,cols:['A','B','C','D','E','F'],biz:4,name:'Airbus A319',ws:10,we:17},
+  A320:{rows:30,cols:['A','B','C','D','E','F'],biz:4,name:'Airbus A320',ws:11,we:19},
+  A321:{rows:34,cols:['A','B','C','D','E','F'],biz:4,name:'Airbus A321',ws:13,we:22},
+  B737:{rows:32,cols:['A','B','C','D','E','F'],biz:4,name:'Boeing 737-800',ws:12,we:20},
+  B738:{rows:34,cols:['A','B','C','D','E','F'],biz:4,name:'Boeing 737 MAX 8',ws:12,we:21}
+};
+var AL = [
+  {name:'Croatia Airlines',iata:'OU',f:'\uD83C\uDDED\uD83C\uDDF7',ac:'A320'},
+  {name:'Adria Airways',iata:'JP',f:'\uD83C\uDDF8\uD83C\uDDEE',ac:'A319'},
+  {name:'Austrian Airlines',iata:'OS',f:'\uD83C\uDDE6\uD83C\uDDF9',ac:'A321'},
+  {name:'Lufthansa',iata:'LH',f:'\uD83C\uDDE9\uD83C\uDDEA',ac:'A320'},
+  {name:'easyJet',iata:'U2',f:'\uD83D\uDFE0',ac:'A320'},
+  {name:'Ryanair',iata:'FR',f:'\uD83D\uDFE1',ac:'B738'},
+  {name:'Wizz Air',iata:'W6',f:'\uD83D\uDFE3',ac:'A321'},
+  {name:'Swiss',iata:'LX',f:'\uD83C\uDDE8\uD83C\uDDED',ac:'A320'}
+];
+var DEPS = ['06:10','07:40','09:25','11:50','13:30','15:10','17:45','19:55'];
+var flights=[], active=null, sdata={}, ssel=null;
+
+function doSearch() {
+  if (!selAP.f || !selAP.t) { openModal(!selAP.f ? 'f' : 't'); return; }
+  document.getElementById('btxt').classList.add('hidden');
+  document.getElementById('bsp').classList.remove('hidden');
+  setTimeout(function() {
+    document.getElementById('btxt').classList.remove('hidden');
+    document.getElementById('bsp').classList.add('hidden');
+    var sh = AL.slice().sort(function(){return Math.random()-.5;}).slice(0,4);
+    var dp = DEPS.slice().sort(function(){return Math.random()-.5;}).slice(0,4).sort();
+    flights = sh.map(function(al,i) {
+      var parts = dp[i].split(':');
+      var dh=parseInt(parts[0]), dm=parseInt(parts[1]);
+      var dur = 75 + Math.floor(Math.random()*200);
+      var at = dh*60+dm+dur;
+      var ah = Math.floor(at/60)%24, am = at%60;
+      return {
+        id: al.iata+(100+Math.floor(Math.random()*899)),
+        airline:al.name, f:al.f, ac:al.ac,
+        dep:dp[i],
+        arr:(ah<10?'0':'')+ah+':'+(am<10?'0':'')+am,
+        dur:Math.floor(dur/60)+'h'+(dur%60?' '+dur%60+'m':''),
+        tlv:Math.floor(Math.random()*4),
+        from:selAP.f.c, fromCity:selAP.f.city,
+        to:selAP.t.c, toCity:selAP.t.city
+      };
+    });
+    renderF();
+  }, 680);
+}
+
+function renderF() {
+  var dd = document.getElementById('date-display').textContent;
+  document.getElementById('rlbl').textContent = flights.length + ' flights \u00B7 ' + dd + ' \u00B7 ' + selAP.f.city + ' \u2192 ' + selAP.t.city;
+  var html = '';
+  for (var i=0; i<flights.length; i++) {
+    var f = flights[i];
+    var t = TURB[f.tlv];
+    var ac = AC[f.ac];
+    html += '<div class="fc fi" id="fc-'+f.id+'" onclick="pickF(\''+f.id+'\')">';
+    html += '<div class="fci"><div class="fch"><div class="fcal"><div class="fclogo">'+f.f+'</div><span class="fcan">'+f.airline+'</span></div><span class="fcnum">'+f.id+'</span></div>';
+    html += '<div class="fct">';
+    html += '<div><div class="fctime">'+f.dep+'</div><div class="fcap">'+f.from+'</div><div class="fccity">'+f.fromCity+'</div></div>';
+    html += '<div class="fcmid"><div class="fcdur">'+f.dur+'</div><div class="fcrline"><div class="fcrl"></div><span class="fcpl">\u2708</span><div class="fcrl"></div></div></div>';
+    html += '<div style="text-align:right"><div class="fctime">'+f.arr+'</div><div class="fcap">'+f.to+'</div><div class="fccity">'+f.toCity+'</div></div>';
+    html += '</div>';
+    html += '<div class="fcfoot"><span class="fcacft">'+ac.name+'</span><span class="tb '+t.p+'"><span style="font-size:7px">\u25CF</span> '+t.l+'</span></div>';
+    html += '</div></div>';
+  }
+  document.getElementById('flist').innerHTML = html;
   document.getElementById('rsec').classList.remove('hidden');
   document.getElementById('msec').classList.add('hidden');
   document.getElementById('rsec').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function pickF(id){
-  document.querySelectorAll('.fc').forEach(c=>c.classList.remove('sel'));
+function pickF(id) {
+  document.querySelectorAll('.fc').forEach(function(c){c.classList.remove('sel');});
   document.getElementById('fc-'+id).classList.add('sel');
-  active=flights.find(f=>f.id===id);
-  buildMap(active);buildFcast(active);
-  document.getElementById('maptitle').textContent=active.from+' \u2192 '+active.to;
-  document.getElementById('mapsub').textContent=AC[active.ac].name+' \u00B7 '+active.dep+'\u2013'+active.arr;
-  document.getElementById('mapbadge').textContent=active.id;
-  document.getElementById('routesub').textContent=active.airline+' \u00B7 '+active.dur;
-  document.getElementById('maplbl').textContent='Seat Map \u00B7 '+active.from+' \u2192 '+active.to;
-  ssel=null;
-  document.getElementById('detbody').innerHTML='<div class="empts"><div class="ei">\uD83D\uDEBA</div><div class="et">No seat selected</div><div class="ess">Tap any seat above.</div></div>';
-  document.getElementById('detsub').textContent='Select a seat';
+  for (var i=0;i<flights.length;i++){if(flights[i].id===id){active=flights[i];break;}}
+  buildMap(active); buildFcast(active);
+  document.getElementById('maptitle').textContent = active.from + ' \u2192 ' + active.to;
+  document.getElementById('mapsub').textContent = AC[active.ac].name + ' \u00B7 ' + active.dep + '\u2013' + active.arr;
+  document.getElementById('mapbadge').textContent = active.id;
+  document.getElementById('routesub').textContent = active.airline + ' \u00B7 ' + active.dur;
+  document.getElementById('maplbl').textContent = 'Seat Map \u00B7 ' + active.from + ' \u2192 ' + active.to;
+  ssel = null;
+  document.getElementById('detbody').innerHTML = '<div class="empts"><div class="ei">\uD83D\uDEBA</div><div class="et">No seat selected</div><div class="ess">Tap any seat above.</div></div>';
+  document.getElementById('detsub').textContent = 'Select a seat';
   document.getElementById('msec').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('msec').scrollIntoView({behavior:'smooth',block:'start'}),80);
+  setTimeout(function(){ document.getElementById('msec').scrollIntoView({behavior:'smooth',block:'start'}); }, 80);
 }
 
-function sc(r,cfg,tlv){
-  let p;
-  if(cfg.biz>0&&r<=cfg.biz)p=.15;
-  else if(r>=cfg.ws&&r<=cfg.we)p=0;
-  else if(r<cfg.ws)p=(cfg.ws-r)*.22;
-  else p=(r-cfg.we)*.40;
-  return Math.max(0,Math.min(7,Math.round(tlv+p+(Math.random()*.9-.45))));
+function calcScore(r, cfg, tlv) {
+  var p;
+  if (cfg.biz > 0 && r <= cfg.biz) p = 0.15;
+  else if (r >= cfg.ws && r <= cfg.we) p = 0;
+  else if (r < cfg.ws) p = (cfg.ws - r) * 0.22;
+  else p = (r - cfg.we) * 0.40;
+  var s = Math.round(tlv + p + (Math.random()*0.9-0.45));
+  return Math.max(0, Math.min(7, s));
 }
 
-function buildMap(fl){
-  const cfg=AC[fl.ac];const cabin=document.getElementById('cabin');cabin.innerHTML='';sdata={};let wo=false;
-  if(cfg.biz>0){cabin.innerHTML+='<div class="csep">Business</div>';for(let r=1;r<=cfg.biz;r++)cabin.innerHTML+=mkRow(r,['A','C','D','F'],cfg,fl.tlv,true);}
-  cabin.innerHTML+='<div class="csep">Economy</div>';
-  for(let r=cfg.biz+1;r<=cfg.rows;r++){
-    if(r===cfg.ws){cabin.innerHTML+='<div class="wing-bar">\u2708 Wing zone \u00B7 smoothest seats</div>';wo=true;}
-    if(r===cfg.we+1&&wo){cabin.innerHTML+='<div class="wing-bar" style="background:transparent;border-color:rgba(255,255,255,.06);color:rgba(255,255,255,.2)">end of wing zone</div>';wo=false;}
-    cabin.innerHTML+=mkRow(r,cfg.cols,cfg,fl.tlv,false);
+function buildMap(fl) {
+  var cfg = AC[fl.ac];
+  var cabin = document.getElementById('cabin');
+  cabin.innerHTML = ''; sdata = {};
+  var wo = false;
+  if (cfg.biz > 0) {
+    cabin.innerHTML += '<div class="csep">Business</div>';
+    for (var r=1; r<=cfg.biz; r++) cabin.innerHTML += mkRow(r, ['A','C','D','F'], cfg, fl.tlv, true);
+  }
+  cabin.innerHTML += '<div class="csep">Economy</div>';
+  for (var r=cfg.biz+1; r<=cfg.rows; r++) {
+    if (r === cfg.ws) { cabin.innerHTML += '<div class="wing-bar">\u2708 Wing zone \u00B7 smoothest seats</div>'; wo=true; }
+    if (r === cfg.we+1 && wo) { cabin.innerHTML += '<div class="wing-bar" style="background:transparent;border-color:rgba(255,255,255,.06);color:rgba(255,255,255,.2)">end of wing zone</div>'; wo=false; }
+    cabin.innerHTML += mkRow(r, cfg.cols, cfg, fl.tlv, false);
   }
 }
 
-function mkRow(r,cols,cfg,tlv,ib){
-  const half=Math.ceil(cols.length/2);const isW=r>=cfg.ws&&r<=cfg.we;
-  let h='<div class="srow"><span class="rn'+(isW?' wr':'')+'">'+r+'</span>';
-  cols.forEach((c,i)=>{
-    if(i===half)h+='<div class="aisle"></div>';
-    const s=sc(r,cfg,tlv);const id=r+c;
-    sdata[id]={r,c,s,isW,isBiz:cfg.biz>0&&r<=cfg.biz};
-    h+='<div class="seat s'+s+(isW?' ws':'')+'" id="s-'+id+'"'+(ib?' style="width:28px;height:25px"':'')+' onclick="tapSeat(\''+id+'\')">'+id+'</div>';
-  });
-  return h+'</div>';
+function mkRow(r, cols, cfg, tlv, ib) {
+  var half = Math.ceil(cols.length/2);
+  var isW = r >= cfg.ws && r <= cfg.we;
+  var h = '<div class="srow"><span class="rn' + (isW?' wr':'') + '">' + r + '</span>';
+  for (var i=0; i<cols.length; i++) {
+    var c = cols[i];
+    if (i === half) h += '<div class="aisle"></div>';
+    var s = calcScore(r, cfg, tlv);
+    var id = r + c;
+    sdata[id] = {r:r, c:c, s:s, isW:isW, isBiz:(cfg.biz>0&&r<=cfg.biz)};
+    h += '<div class="seat s'+s+(isW?' ws':'')+'" id="s-'+id+'"';
+    if (ib) h += ' style="width:28px;height:25px"';
+    h += ' onclick="tapSeat(\''+id+'\')">'+id+'</div>';
+  }
+  return h + '</div>';
 }
 
-function tapSeat(id){
-  if(ssel){const p=document.getElementById('s-'+ssel);if(p)p.classList.remove('sel');}
-  ssel=id;const el=document.getElementById('s-'+id);if(el)el.classList.add('sel');
+function tapSeat(id) {
+  if (ssel) { var p=document.getElementById('s-'+ssel); if(p) p.classList.remove('sel'); }
+  ssel = id;
+  var el = document.getElementById('s-'+id);
+  if (el) el.classList.add('sel');
   showDet(id);
 }
 
-function showDet(id){
-  const d=sdata[id];if(!d)return;
-  const t=TURB[d.s];const cfg=AC[active.ac];
-  const zone=d.isBiz?'Business Class':d.isW?'Over Wing \u2605':d.r<cfg.ws?'Forward Cabin':'Rear Cabin';
-  const ct=['A','F'].includes(d.c)?'Window':['C','D'].includes(d.c)?'Aisle':'Middle';
-  const pct=Math.round((d.s/7)*100);
-  const tip=d.isW?'<strong>Wing seat:</strong> Center of gravity \u2014 calmest on the plane. Minimal pitch and roll.':d.isBiz?'<strong>Business class:</strong> Near the nose \u2014 significantly smoother than rear.':d.r>cfg.we+6?'<strong>Rear cabin:</strong> Tail amplifies turbulence. Moving toward the wing zone would help.':'<strong>Mid cabin:</strong> Decent. A few rows toward the wing would be smoother.';
-  document.getElementById('detsub').textContent='Seat '+id;
-  document.getElementById('detbody').innerHTML='<div class="shero"><div class="shn" style="color:'+t.col+'">'+id+'</div><div class="shs">'+zone+' \u00B7 '+ct+' \u00B7 Row '+d.r+'</div></div><div class="mw"><div class="mt"><span>Turbulence score</span><span style="color:'+t.col+';font-weight:700">'+t.l+'</span></div><div class="mbar"><div class="mfill" style="width:'+pct+'%;background:'+t.col+'"></div></div></div><div class="sg"><div class="st"><div class="stl">Score</div><div class="stv" style="color:'+t.col+'">'+d.s+'/7</div></div><div class="st"><div class="stl">Zone</div><div class="stv" style="font-size:11px">'+zone+'</div></div><div class="st"><div class="stl">Type</div><div class="stv" style="font-size:12px">'+ct+'</div></div><div class="st"><div class="stl">Row</div><div class="stv">'+d.r+'</div></div></div><div class="tip">'+tip+'</div>';
+function showDet(id) {
+  var d = sdata[id]; if (!d) return;
+  var t = TURB[d.s]; var cfg = AC[active.ac];
+  var zone = d.isBiz ? 'Business Class' : d.isW ? 'Over Wing' : d.r < cfg.ws ? 'Forward Cabin' : 'Rear Cabin';
+  var ct = (d.c==='A'||d.c==='F') ? 'Window' : (d.c==='C'||d.c==='D') ? 'Aisle' : 'Middle';
+  var pct = Math.round((d.s/7)*100);
+  var tip = d.isW ? '<strong>Wing seat:</strong> Center of gravity \u2014 calmest on the plane. Minimal pitch and roll.'
+    : d.isBiz ? '<strong>Business class:</strong> Near the nose \u2014 significantly smoother than rear.'
+    : d.r > cfg.we+6 ? '<strong>Rear cabin:</strong> Tail amplifies turbulence. Moving toward the wing zone would help.'
+    : '<strong>Mid cabin:</strong> Decent. A few rows toward the wing would be smoother.';
+  document.getElementById('detsub').textContent = 'Seat ' + id;
+  document.getElementById('detbody').innerHTML =
+    '<div class="shero"><div class="shn" style="color:'+t.col+'">'+id+'</div><div class="shs">'+zone+' \u00B7 '+ct+' \u00B7 Row '+d.r+'</div></div>'
+    +'<div class="mw"><div class="mt"><span>Turbulence score</span><span style="color:'+t.col+';font-weight:700">'+t.l+'</span></div><div class="mbar"><div class="mfill" style="width:'+pct+'%;background:'+t.col+'"></div></div></div>'
+    +'<div class="sg"><div class="st"><div class="stl">Score</div><div class="stv" style="color:'+t.col+'">'+d.s+'/7</div></div><div class="st"><div class="stl">Zone</div><div class="stv" style="font-size:11px">'+zone+'</div></div><div class="st"><div class="stl">Type</div><div class="stv" style="font-size:12px">'+ct+'</div></div><div class="st"><div class="stl">Row</div><div class="stv">'+d.r+'</div></div></div>'
+    +'<div class="tip">'+tip+'</div>';
 }
 
-function jumpSeat(v){
-  document.querySelectorAll('.seat').forEach(s=>s.classList.remove('hl'));
-  if(!v||v.length<2)return;
-  const id=v.toUpperCase().replace(/\s/g,'');
-  const el=document.getElementById('s-'+id);
-  if(el){el.classList.add('hl');el.scrollIntoView({behavior:'smooth',block:'center'});}
+function jumpSeat(v) {
+  document.querySelectorAll('.seat').forEach(function(s){s.classList.remove('hl');});
+  if (!v || v.length < 2) return;
+  var id = v.toUpperCase().replace(/\s/g,'');
+  var el = document.getElementById('s-'+id);
+  if (el) { el.classList.add('hl'); el.scrollIntoView({behavior:'smooth',block:'center'}); }
 }
-function clearJ(){document.getElementById('sinp').value='';document.querySelectorAll('.seat').forEach(s=>s.classList.remove('hl'));}
+function clearJ() {
+  document.getElementById('sinp').value='';
+  document.querySelectorAll('.seat').forEach(function(s){s.classList.remove('hl');});
+}
 
-function buildFcast(fl){
-  const base={0:[0,0,1,1,0,1,0],1:[1,2,2,3,2,2,1],2:[2,3,4,4,3,3,2],3:[3,4,5,6,5,4,3]};
-  const scores=base[fl.tlv];const ph=['Dep','+20m','+45m','+1h','+80m','+100m','Arr'];
-  document.getElementById('fcast').innerHTML=ph.map((p,i)=>{
-    const s=scores[i];const t=TURB[s];const h=Math.max(3,Math.round((s/7)*26));
-    return '<div class="fp '+(i===0?'on':'')+'" onclick="setFP(this)"><div class="fpt">'+p+'</div><div class="fpbar"><div class="fpfill" style="height:'+h+'px;background:'+t.col+'"></div></div><div class="fpw" style="color:'+t.col+'">'+(s<=1?'Calm':s<=3?'Light':s<=5?'Mod':'Rough')+'</div></div>';
-  }).join('');
+function buildFcast(fl) {
+  var base = {0:[0,0,1,1,0,1,0],1:[1,2,2,3,2,2,1],2:[2,3,4,4,3,3,2],3:[3,4,5,6,5,4,3]};
+  var scores = base[fl.tlv];
+  var ph = ['Dep','+20m','+45m','+1h','+80m','+100m','Arr'];
+  var html = '';
+  for (var i=0; i<ph.length; i++) {
+    var s = scores[i]; var t = TURB[s];
+    var h = Math.max(3, Math.round((s/7)*26));
+    html += '<div class="fp '+(i===0?'on':'')+'" onclick="setFP(this)">';
+    html += '<div class="fpt">'+ph[i]+'</div>';
+    html += '<div class="fpbar"><div class="fpfill" style="height:'+h+'px;background:'+t.col+'"></div></div>';
+    html += '<div class="fpw" style="color:'+t.col+'">'+(s<=1?'Calm':s<=3?'Light':s<=5?'Mod':'Rough')+'</div>';
+    html += '</div>';
+  }
+  document.getElementById('fcast').innerHTML = html;
 }
-function setFP(el){document.querySelectorAll('.fp').forEach(f=>f.classList.remove('on'));el.classList.add('on');}
+function setFP(el) {
+  document.querySelectorAll('.fp').forEach(function(f){f.classList.remove('on');});
+  el.classList.add('on');
+}
 
-function joinWL(){
-  const email=document.getElementById('wlemail').value.trim();
-  if(!email||!email.includes('@')){document.getElementById('wlemail').style.borderColor='rgba(255,69,58,.6)';setTimeout(()=>document.getElementById('wlemail').style.borderColor='',1400);return;}
-  document.getElementById('ctarow').style.display='none';
-  document.getElementById('ctaok').style.display='block';
-  document.getElementById('ctanote').style.display='none';
+function joinWL() {
+  var email = document.getElementById('wlemail').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('wlemail').style.borderColor = 'rgba(255,69,58,.6)';
+    setTimeout(function(){document.getElementById('wlemail').style.borderColor='';}, 1400);
+    return;
+  }
+  document.getElementById('ctarow').style.display = 'none';
+  document.getElementById('ctaok').style.display = 'block';
+  document.getElementById('ctanote').style.display = 'none';
 }
+
+// INIT
+setToday();
 </script>
 </body>
 </html>
