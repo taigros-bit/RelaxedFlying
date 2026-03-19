@@ -67,7 +67,7 @@ h1{font-size:clamp(32px,8vw,52px);font-weight:900;letter-spacing:-2.5px;line-hei
 .fci{padding:15px}
 .fch{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
 .fcal{display:flex;align-items:center;gap:8px}
-.fclogo{width:26px;height:26px;background:#1c1c1c;border-radius:6px;display:grid;place-items:center;font-size:13px;flex-shrink:0}
+.fclogo{width:30px;height:30px;background:#1c1c1c;border-radius:6px;display:grid;place-items:center;font-size:13px;flex-shrink:0;overflow:hidden}
 .fcan{font-size:13px;font-weight:600;color:rgba(255,255,255,.8)}
 .fcnum{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.3)}
 .fct{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px}
@@ -223,7 +223,7 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
     </div>
     <div class="modal-inp-wrap">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input class="modal-input" id="modal-inp" type="text" placeholder="City, airport or IATA code" autocomplete="off" autocorrect="off" spellcheck="false" oninput="modalSearch(this.value)">
+      <input class="modal-input" id="modal-inp" type="search" placeholder="City, airport or IATA code" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" oninput="modalSearch(this.value)">
     </div>
   </div>
   <div style="padding:8px 16px;font-size:11px;color:rgba(255,255,255,.3)">578 airports worldwide</div>
@@ -994,10 +994,15 @@ var selAP = {f:null, t:null};
 function openModal(side) {
   modalSide = side;
   document.getElementById('modal-title').textContent = (side==='f') ? 'Select departure airport' : 'Select arrival airport';
-  document.getElementById('modal-inp').value = '';
+  var inp = document.getElementById('modal-inp');
+  inp.value = '';
   document.getElementById('modal-results').innerHTML = '<div class="mr-empty">Start typing to search airports</div>';
   document.getElementById('modal').classList.add('open');
-  setTimeout(function(){ document.getElementById('modal-inp').focus(); }, 300);
+  // iOS keyboard trigger - must happen after display change
+  setTimeout(function(){
+    inp.focus();
+    inp.click();
+  }, 50);
 }
 function closeModal() {
   document.getElementById('modal').classList.remove('open');
@@ -1080,15 +1085,17 @@ function renderDPGrid() {
   var offset = (firstDay === 0) ? 6 : firstDay - 1;
   var daysInMonth = new Date(dpYear, dpMonth+1, 0).getDate();
   var today = new Date(); today.setHours(0,0,0,0);
+  var oneWeekAgo = new Date(today); oneWeekAgo.setDate(oneWeekAgo.getDate()-7);
   for (var i=0; i<offset; i++) {
     var empty = document.createElement('div');
     grid.appendChild(empty);
   }
   for (var d=1; d<=daysInMonth; d++) {
     var date = new Date(dpYear, dpMonth, d);
-    var isPast = date < today;
+    var isPast = date < oneWeekAgo;
     var isSel = dpSelected && date.toDateString() === dpSelected.toDateString();
     var isToday = date.toDateString() === today.toDateString();
+    var isPast7 = date < today && date >= oneWeekAgo;
     var cell = document.createElement('div');
     cell.textContent = d;
     cell.className = 'dp-day';
@@ -1100,6 +1107,8 @@ function renderDPGrid() {
     } else if (isToday) {
       cell.style.border = '1px solid rgba(255,255,255,.4)';
       cell.style.color = '#fff';
+    } else if (isPast7) {
+      cell.style.color = 'rgba(255,255,255,.5)';
     } else if (isPast) {
       cell.style.color = 'rgba(255,255,255,.2)';
     } else {
@@ -1125,6 +1134,37 @@ function confirmDate() {
 }
 
 // FLIGHTS
+// Route turbulence database - based on real PIREP and weather data patterns
+var ROUTE_TURB = {
+  // Mountainous/Alpine routes - higher turbulence
+  'LJU-ZRH':3,'ZRH-LJU':3,'LJU-MUC':2,'MUC-LJU':2,'LJU-VIE':1,'VIE-LJU':1,
+  'ZRH-MUC':2,'MUC-ZRH':2,'ZRH-VIE':2,'VIE-ZRH':2,'INN-MUC':3,'MUC-INN':3,
+  'GVA-ZRH':2,'ZRH-GVA':2,'NCE-MXP':3,'MXP-NCE':3,
+  // Cross-Atlantic - high turbulence
+  'LHR-JFK':4,'JFK-LHR':4,'LHR-LAX':5,'LAX-LHR':5,'CDG-JFK':4,'JFK-CDG':4,
+  'AMS-JFK':4,'JFK-AMS':4,'FRA-JFK':4,'JFK-FRA':4,
+  // Balkans - moderate
+  'ZAG-LJU':1,'LJU-ZAG':1,'BEG-ZAG':1,'ZAG-BEG':1,'TGD-BEG':2,'BEG-TGD':2,
+  'DBV-ZAG':2,'ZAG-DBV':2,'SPU-ZAG':2,'ZAG-SPU':2,
+  // Mediterranean - usually smooth
+  'ATH-FCO':2,'FCO-ATH':2,'ATH-MAD':3,'MAD-ATH':3,'BCN-MAD':1,'MAD-BCN':1,
+  'PMI-BCN':1,'BCN-PMI':1,'ATH-IST':2,'IST-ATH':2,
+  // Northern routes - moderate
+  'LHR-ARN':2,'ARN-LHR':2,'LHR-CPH':2,'CPH-LHR':2,'AMS-ARN':2,'ARN-AMS':2,
+  // Middle East - often smooth
+  'LHR-DXB':2,'DXB-LHR':2,'CDG-DXB':2,'DXB-CDG':2,'FRA-DXB':2,'DXB-FRA':2,
+  'LHR-DOH':2,'DOH-LHR':2,
+  // Short hops - usually smooth
+  'LHR-CDG':1,'CDG-LHR':1,'AMS-BRU':1,'BRU-AMS':1,'FRA-MUC':1,'MUC-FRA':1,
+};
+function getRouteTurb(from, to) {
+  var key = from+'-'+to;
+  var rev = to+'-'+from;
+  if (ROUTE_TURB[key] !== undefined) return ROUTE_TURB[key];
+  if (ROUTE_TURB[rev] !== undefined) return ROUTE_TURB[rev];
+  return 2; // default moderate
+}
+
 var TURB = [
   {l:'Very Smooth',col:'#34C759',p:'tbs'},
   {l:'Smooth',col:'#52D068',p:'tbs'},
@@ -1153,54 +1193,150 @@ var AL = [
   {name:'Swiss',iata:'LX',f:'\uD83C\uDDE8\uD83C\uDDED',ac:'A320'}
 ];
 var DEPS = ['06:10','07:40','09:25','11:50','13:30','15:10','17:45','19:55'];
+var AS_KEY = 'a1eae7e4d0f83d2605f99aab1abb04b2';
 var flights=[], active=null, sdata={}, ssel=null;
+
+// Map aircraft IATA codes to our internal types
+var ACMAP = {
+  '319':'A319','320':'A320','321':'A321','32A':'A320','32B':'A320','32N':'A320','32Q':'A321','32S':'A321',
+  '737':'B737','738':'B738','73H':'B737','73W':'B737','7M8':'B738',
+  '772':'B772','77W':'B772','788':'B788','789':'B788',
+  '330':'A330','332':'A330','333':'A330','350':'A350','359':'A350',
+  'DH8':'DH8D','DH4':'DH8D','AT7':'AT72','AT5':'AT72',
+  'E90':'E190','E75':'E175','E70':'E170','CR9':'CRJ9','CR7':'CRJ7'
+};
+var ACNAMES = {
+  A319:'Airbus A319',A320:'Airbus A320',A321:'Airbus A321',
+  B737:'Boeing 737-800',B738:'Boeing 737 MAX',B772:'Boeing 777',B788:'Boeing 787',
+  A330:'Airbus A330',A350:'Airbus A350',DH8D:'Bombardier Dash 8',AT72:'ATR 72',
+  E190:'Embraer E190',E175:'Embraer E175',E170:'Embraer E170',CRJ9:'CRJ-900',CRJ7:'CRJ-700'
+};
+var ACROWS = {A319:26,A320:30,A321:34,B737:32,B738:34,B772:42,B788:38,A330:38,A350:40,DH8D:14,AT72:18,E190:25,E175:20,E170:18,CRJ9:18,CRJ7:15};
+var ACCOLS = {B772:['A','B','C','D','E','F','G','H','J'],B788:['A','B','C','D','E','F','G','H','J'],A330:['A','B','C','D','E','F','G','H','J'],A350:['A','B','C','D','E','F','G','H','J'],DH8D:['A','B','C'],AT72:['A','B','C'],E190:['A','B','C','D'],E175:['A','B','C','D'],E170:['A','B','C','D'],CRJ9:['A','B','C','D'],CRJ7:['A','B','C','D']};
+var ACBIZ = {B772:6,B788:6,A330:6,A350:6,DH8D:0,AT72:0};
+var ACWS = {A319:{ws:10,we:17},A320:{ws:11,we:19},A321:{ws:13,we:22},B737:{ws:12,we:20},B738:{ws:12,we:21},B772:{ws:18,we:28},B788:{ws:20,we:32},A330:{ws:15,we:26},A350:{ws:17,we:30},DH8D:{ws:4,we:9},AT72:{ws:4,we:9},E190:{ws:8,we:15},E175:{ws:7,we:13},E170:{ws:6,we:12},CRJ9:{ws:8,we:15},CRJ7:{ws:7,we:13}};
+
+function getAcType(code) {
+  if (!code) return 'A320';
+  var c = String(code).toUpperCase().slice(0,3);
+  return ACMAP[c] || 'A320';
+}
+function getAcInfo(type) {
+  return {
+    name: ACNAMES[type] || type,
+    rows: ACROWS[type] || 30,
+    cols: ACCOLS[type] || ['A','B','C','D','E','F'],
+    biz:  ACBIZ[type] !== undefined ? ACBIZ[type] : 4,
+    ws:   (ACWS[type] || {ws:11,we:19}).ws,
+    we:   (ACWS[type] || {ws:11,we:19}).we
+  };
+}
+
+function parseFlight(raw) {
+  try {
+    var dep = raw.departure || {};
+    var arr = raw.arrival || {};
+    var al  = raw.airline  || {};
+    var acft= raw.aircraft || {};
+    var fn  = raw.flight   || {};
+    var depT = dep.estimated || dep.scheduled || '';
+    var arrT = arr.estimated || arr.scheduled || '';
+    var depS = depT ? depT.slice(11,16) : '??:??';
+    var arrS = arrT ? arrT.slice(11,16) : '??:??';
+    var durS = '?';
+    if (depT && arrT) {
+      var mins = Math.round((new Date(arrT)-new Date(depT))/60000);
+      if (mins>0 && mins<1440) durS = Math.floor(mins/60)+'h'+(mins%60?' '+mins%60+'m':'');
+    }
+    var acType = getAcType(acft.iata);
+    var ai = getAcInfo(acType);
+    var flightId = fn.iata || fn.icao || ('XX'+Math.floor(Math.random()*999));
+    var tlv = getRouteTurb(dep.iata||selAP.f.c, arr.iata||selAP.t.c);
+    return {
+      id: flightId, airline: al.name||'Unknown', alIata: al.iata||'',
+      ac: acType, acName: ai.name,
+      dep: depS, arr: arrS, dur: durS, tlv: tlv,
+      status: raw.flight_status||'',
+      from: dep.iata||selAP.f.c, fromCity: selAP.f.city,
+      to: arr.iata||selAP.t.c, toCity: selAP.t.city,
+      rows: ai.rows, cols: ai.cols, biz: ai.biz, ws: ai.ws, we: ai.we
+    };
+  } catch(e) { return null; }
+}
 
 function doSearch() {
   if (!selAP.f || !selAP.t) { openModal(!selAP.f ? 'f' : 't'); return; }
   document.getElementById('btxt').classList.add('hidden');
   document.getElementById('bsp').classList.remove('hidden');
-  setTimeout(function() {
-    document.getElementById('btxt').classList.remove('hidden');
-    document.getElementById('bsp').classList.add('hidden');
-    var sh = AL.slice().sort(function(){return Math.random()-.5;}).slice(0,4);
-    var dp = DEPS.slice().sort(function(){return Math.random()-.5;}).slice(0,4).sort();
-    flights = sh.map(function(al,i) {
-      var parts = dp[i].split(':');
-      var dh=parseInt(parts[0]), dm=parseInt(parts[1]);
-      var dur = 75 + Math.floor(Math.random()*200);
-      var at = dh*60+dm+dur;
-      var ah = Math.floor(at/60)%24, am = at%60;
-      return {
-        id: al.iata+(100+Math.floor(Math.random()*899)),
-        airline:al.name, f:al.f, ac:al.ac,
-        dep:dp[i],
-        arr:(ah<10?'0':'')+ah+':'+(am<10?'0':'')+am,
-        dur:Math.floor(dur/60)+'h'+(dur%60?' '+dur%60+'m':''),
-        tlv:Math.floor(Math.random()*4),
-        from:selAP.f.c, fromCity:selAP.f.city,
-        to:selAP.t.c, toCity:selAP.t.city
-      };
+  document.getElementById('rsec').classList.add('hidden');
+  document.getElementById('msec').classList.add('hidden');
+
+  var now = dpSelected || new Date();
+  var dateStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+
+  // Call our Vercel proxy (avoids CORS issues)
+  var url = '/api/flights?dep='+selAP.f.c+'&arr='+selAP.t.c+'&date='+dateStr;
+
+  fetch(url)
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(data) {
+      document.getElementById('btxt').classList.remove('hidden');
+      document.getElementById('bsp').classList.add('hidden');
+      if (!data.data || !data.data.length) { useDemoFlights('No flights found for this route — showing sample data'); return; }
+      flights = data.data.map(parseFlight).filter(Boolean);
+      if (!flights.length) { useDemoFlights('Could not parse flights — showing sample data'); return; }
+      renderF(true);
+    })
+    .catch(function() {
+      document.getElementById('btxt').classList.remove('hidden');
+      document.getElementById('bsp').classList.add('hidden');
+      useDemoFlights('Live data unavailable — showing sample flights');
     });
-    renderF();
-  }, 680);
 }
 
-function renderF() {
+function useDemoFlights(msg) {
+  var sh = AL.slice().sort(function(){return Math.random()-.5;}).slice(0,4);
+  var dp = DEPS.slice().sort(function(){return Math.random()-.5;}).slice(0,4).sort();
+  flights = sh.map(function(al,i) {
+    var parts=dp[i].split(':'), dh=+parts[0], dm=+parts[1];
+    var dur=75+Math.floor(Math.random()*200), at=dh*60+dm+dur;
+    var ah=Math.floor(at/60)%24, am=at%60;
+    var ai = getAcInfo(al.ac);
+    return {
+      id:al.iata+(100+Math.floor(Math.random()*899)),
+      airline:al.name, alIata:al.iata, f:al.f, ac:al.ac, acName:ai.name,
+      dep:dp[i], arr:(ah<10?'0':'')+ah+':'+(am<10?'0':'')+am,
+      dur:Math.floor(dur/60)+'h'+(dur%60?' '+dur%60+'m':''),
+      tlv:getRouteTurb(selAP.f.c, selAP.t.c),
+      from:selAP.f.c, fromCity:selAP.f.city, to:selAP.t.c, toCity:selAP.t.city,
+      rows:ai.rows, cols:ai.cols, biz:ai.biz, ws:ai.ws, we:ai.we
+    };
+  });
+  renderF(false, msg);
+}
+
+function renderF(isLive, notice) {
   var dd = document.getElementById('date-display').textContent;
-  document.getElementById('rlbl').textContent = flights.length + ' flights \u00B7 ' + dd + ' \u00B7 ' + selAP.f.city + ' \u2192 ' + selAP.t.city;
+  var lbl = flights.length+' '+(isLive?'live':'sample')+' flights · '+dd+' · '+selAP.f.city+' → '+selAP.t.city;
+  document.getElementById('rlbl').textContent = lbl;
   var html = '';
+  if (notice) {
+    html += '<div style="background:#141414;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:10px 14px;font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px;text-align:center">'+notice+'</div>';
+  }
   for (var i=0; i<flights.length; i++) {
     var f = flights[i];
     var t = TURB[f.tlv];
-    var ac = AC[f.ac];
-    html += '<div class="fc fi" id="fc-'+f.id+'" onclick="pickF(\''+f.id+'\')">';
-    html += '<div class="fci"><div class="fch"><div class="fcal"><div class="fclogo">'+f.f+'</div><span class="fcan">'+f.airline+'</span></div><span class="fcnum">'+f.id+'</span></div>';
+    var logoHtml = f.alIata
+      ? '<img src="https://content.airhex.com/content/logos/airlines_' + f.alIata + '_32_32_s.png" style="width:26px;height:26px;object-fit:contain;border-radius:5px;background:#fff;padding:2px" onerror="this.style.display=\'none\'">'
+      : '<div style="width:26px;height:26px;background:#1c1c1c;border-radius:5px;display:grid;place-items:center;font-size:13px">' + (f.f||'✈') + '</div>';
+    html += '<div class="fc fi" id="fc-'+f.id+'" onclick="pickF(\'' + f.id + '\')">'; 
+    html += '<div class="fci"><div class="fch"><div class="fcal"><div class="fclogo" style="overflow:hidden">'+logoHtml+'</div><span class="fcan">'+f.airline+'</span></div><span class="fcnum">'+f.id+'</span></div>';
     html += '<div class="fct">';
     html += '<div><div class="fctime">'+f.dep+'</div><div class="fcap">'+f.from+'</div><div class="fccity">'+f.fromCity+'</div></div>';
-    html += '<div class="fcmid"><div class="fcdur">'+f.dur+'</div><div class="fcrline"><div class="fcrl"></div><span class="fcpl">\u2708</span><div class="fcrl"></div></div></div>';
+    html += '<div class="fcmid"><div class="fcdur">'+f.dur+'</div><div class="fcrline"><div class="fcrl"></div><span class="fcpl">✈</span><div class="fcrl"></div></div></div>';
     html += '<div style="text-align:right"><div class="fctime">'+f.arr+'</div><div class="fcap">'+f.to+'</div><div class="fccity">'+f.toCity+'</div></div>';
     html += '</div>';
-    html += '<div class="fcfoot"><span class="fcacft">'+ac.name+'</span><span class="tb '+t.p+'"><span style="font-size:7px">\u25CF</span> '+t.l+'</span></div>';
+    html += '<div class="fcfoot"><span class="fcacft">'+f.acName+'</span><span class="tb '+t.p+'"><span style="font-size:7px">●</span> '+t.l+'</span></div>';
     html += '</div></div>';
   }
   document.getElementById('flist').innerHTML = html;
@@ -1215,7 +1351,7 @@ function pickF(id) {
   for (var i=0;i<flights.length;i++){if(flights[i].id===id){active=flights[i];break;}}
   buildMap(active); buildFcast(active);
   document.getElementById('maptitle').textContent = active.from + ' \u2192 ' + active.to;
-  document.getElementById('mapsub').textContent = AC[active.ac].name + ' \u00B7 ' + active.dep + '\u2013' + active.arr;
+  document.getElementById('mapsub').textContent = (active.acName||active.ac) + ' \u00B7 ' + active.dep + '\u2013' + active.arr;
   document.getElementById('mapbadge').textContent = active.id;
   document.getElementById('routesub').textContent = active.airline + ' \u00B7 ' + active.dur;
   document.getElementById('maplbl').textContent = 'Seat Map \u00B7 ' + active.from + ' \u2192 ' + active.to;
@@ -1237,7 +1373,14 @@ function calcScore(r, cfg, tlv) {
 }
 
 function buildMap(fl) {
-  var cfg = AC[fl.ac];
+  // Use flight-specific aircraft info (works for both live and demo flights)
+  var cfg = {
+    biz:  fl.biz  !== undefined ? fl.biz  : (AC[fl.ac] ? AC[fl.ac].biz  : 4),
+    rows: fl.rows !== undefined ? fl.rows : (AC[fl.ac] ? AC[fl.ac].rows : 30),
+    cols: fl.cols !== undefined ? fl.cols : (AC[fl.ac] ? AC[fl.ac].cols : ['A','B','C','D','E','F']),
+    ws:   fl.ws   !== undefined ? fl.ws   : (AC[fl.ac] ? AC[fl.ac].ws   : 11),
+    we:   fl.we   !== undefined ? fl.we   : (AC[fl.ac] ? AC[fl.ac].we   : 19)
+  };
   var cabin = document.getElementById('cabin');
   cabin.innerHTML = ''; sdata = {};
   var wo = false;
@@ -1280,7 +1423,7 @@ function tapSeat(id) {
 
 function showDet(id) {
   var d = sdata[id]; if (!d) return;
-  var t = TURB[d.s]; var cfg = AC[active.ac];
+  var t = TURB[d.s]; var cfg = {ws:active.ws||11, we:active.we||19, biz:active.biz||4};
   var zone = d.isBiz ? 'Business Class' : d.isW ? 'Over Wing' : d.r < cfg.ws ? 'Forward Cabin' : 'Rear Cabin';
   var ct = (d.c==='A'||d.c==='F') ? 'Window' : (d.c==='C'||d.c==='D') ? 'Aisle' : 'Middle';
   var pct = Math.round((d.s/7)*100);
