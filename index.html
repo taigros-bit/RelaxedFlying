@@ -365,12 +365,12 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
 <footer>
   <div class="flogo">RelaxedFlying</div>
   <div class="flinks">
-    <a href="#" id="footer-contact" class="flink">info@relaxedflying.app</a>
+    <a href="#" id="footer-contact" class="flink"><span class="__cf_email__" data-cfemail="a8c1c6cec7e8dacdc4c9d0cdcccec4d1c1c6cf86c9d8d8">[email&#160;protected]</span></a>
     <a href="#" class="flink">Privacy</a>
   </div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const AIRPORTS = [
   {c:'LJU',city:'Ljubljana',country:'Slovenia',cc:'SI',n:'Ljubljana Jože Pučnik Airport',f:'🇸🇮'},
   {c:'ZAG',city:'Zagreb',country:'Croatia',cc:'HR',n:'Zagreb Airport',f:'🇭🇷'},
@@ -1243,14 +1243,44 @@ function parseLiveFlights(data, dep, arr) {
       var fArr = (arv.iata||arv.iataCode||'').toUpperCase();
       if (fDep && fDep !== dep.toUpperCase()) continue;
       if (fArr && fArr !== arr.toUpperCase()) continue;
+      // Robust time parser - handles full datetime OR time-only strings
+      function parseTime(t) {
+        if (!t) return null;
+        // Full datetime: "2026-03-20T06:15:00+00:00" -> "06:15"
+        if (t.length > 10 && t.indexOf('T') > 0) {
+          var tp = t.slice(11,16);
+          if (tp && tp.indexOf(':') > 0) return tp;
+        }
+        // Time only: "06:15:00" -> "06:15"
+        if (t.indexOf(':') > 0 && t.length <= 8) return t.slice(0,5);
+        return null;
+      }
       var depT = dpt.estimated || dpt.scheduled || '';
       var arrT = arv.estimated || arv.scheduled || '';
-      var depS = depT ? depT.slice(11,16) : (dpt.scheduledTime||'??:??').slice(0,5);
-      var arrS = arrT ? arrT.slice(11,16) : (arv.scheduledTime||'??:??').slice(0,5);
+      // Also check timetable format fields
+      var depS = parseTime(depT) || parseTime(dpt.scheduledTime) || parseTime(dpt.time) || null;
+      var arrS = parseTime(arrT) || parseTime(arv.scheduledTime) || parseTime(arv.time) || null;
+      // For future timetable flights, build time from date + time fields
+      if (!depS && f._requestedDate) {
+        var schedDep = dpt.scheduledTime || dpt.time || '';
+        depS = schedDep ? schedDep.slice(0,5) : null;
+      }
+      if (!arrS && f._requestedDate) {
+        var schedArr = arv.scheduledTime || arv.time || '';
+        arrS = schedArr ? schedArr.slice(0,5) : null;
+      }
+      if (!depS) depS = '??:??';
+      if (!arrS) arrS = '??:??';
       var durS = '?';
-      if (depT && arrT) {
+      if (depT && arrT && depT.indexOf('T')>0 && arrT.indexOf('T')>0) {
         var mins = Math.round((new Date(arrT)-new Date(depT))/60000);
         if (mins>0&&mins<1440) durS=Math.floor(mins/60)+'h'+(mins%60?' '+mins%60+'m':'');
+      }
+      if (durS==='?' && depS!=='??:??' && arrS!=='??:??') {
+        var dp2=depS.split(':'),ap2=arrS.split(':');
+        var dmins=parseInt(dp2[0])*60+parseInt(dp2[1]);
+        var amins=parseInt(ap2[0])*60+parseInt(ap2[1]);
+        if (amins>dmins) { var diff=amins-dmins; durS=Math.floor(diff/60)+'h'+(diff%60?' '+diff%60+'m':''); }
       }
       // Aircraft type - API first, then fleet database
       var alIata = al.iata || al.iataCode || '';
@@ -1276,6 +1306,10 @@ function loadDemoFlights(notice) {
   var sh = DEMO_AL.slice().sort(function(){return Math.random()-.5;}).slice(0,4);
   var dp = DEPS.slice().sort(function(){return Math.random()-.5;}).slice(0,4).sort();
   var dep = selAP.f.c, arr = selAP.t.c;
+  // Also fetch weather for demo flights
+  fetchWeather(selAP.f.c, selAP.t.c, 
+    dpSelected.getFullYear()+'-'+String(dpSelected.getMonth()+1).padStart(2,'0')+'-'+String(dpSelected.getDate()).padStart(2,'0')
+  );
   flights = sh.map(function(al,i){
     var parts=dp[i].split(':'),dh=+parts[0],dm=+parts[1];
     var dur=75+Math.floor(Math.random()*200),at=dh*60+dm+dur;
@@ -1318,6 +1352,8 @@ document.getElementById('go-btn').addEventListener('click', function() {
       if (!parsed.length) { loadDemoFlights('No flights found for this route today'); return; }
       flights = parsed;
       renderF(true, null);
+      // Fetch real turbulence from weather API
+      fetchWeather(selAP.f.c, selAP.t.c, dateStr);
     })
     .catch(function(e){
       document.getElementById('btxt').classList.remove('hidden');
@@ -1473,6 +1509,101 @@ document.getElementById('fcast').addEventListener('click', function(e){
   fp.classList.add('on');
 });
 
+// ── WEATHER & TURBULENCE ────────────────────────────────────────────────────
+var weatherData = null;
+
+function fetchWeather(dep, arr, date) {
+  var url = '/api/weather?dep='+dep+'&arr='+arr+'&date='+date;
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.error) return;
+      weatherData = data;
+      // Update all flight turbulence scores with real data
+      var score = data.turbulenceScore || 2;
+      for (var i=0; i<flights.length; i++) {
+        flights[i].tlv = score;
+      }
+      // Update forecast strip if a flight is selected
+      if (active) {
+        active.tlv = score;
+        if (data.turbulenceProfile) {
+          updateFcastFromWeather(data.turbulenceProfile);
+        }
+        buildFcast(active);
+      }
+      // Show weather panel if we have dep/arr data
+      if (data.departure && data.arrival) {
+        showWeatherPanel(data, dep, arr);
+      }
+    })
+    .catch(function(){});
+}
+
+function updateFcastFromWeather(profile) {
+  var items = document.querySelectorAll('[data-fp]');
+  for (var i=0; i<items.length && i<profile.length; i++) {
+    var s = profile[i];
+    var t = TURB[s];
+    var h = Math.max(3, Math.round((s/7)*26));
+    var bar = items[i].querySelector('.fpfill');
+    var label = items[i].querySelector('.fpw');
+    if (bar) bar.style.height = h+'px', bar.style.background = t.col;
+    if (label) label.textContent = (s<=1?'Calm':s<=3?'Light':s<=5?'Mod':'Rough'), label.style.color = t.col;
+  }
+}
+
+function showWeatherPanel(data, dep, arr) {
+  var existing = document.getElementById('weather-panel');
+  if (existing) existing.remove();
+  
+  var daily = data.departure.daily || {};
+  var arrDaily = data.arrival.daily || {};
+  var depMaxT = daily.temperature_2m_max ? Math.round(daily.temperature_2m_max[0]) : '?';
+  var depMinT = daily.temperature_2m_min ? Math.round(daily.temperature_2m_min[0]) : '?';
+  var arrMaxT = arrDaily.temperature_2m_max ? Math.round(arrDaily.temperature_2m_max[0]) : '?';
+  var depWind = daily.windspeed_10m_max ? Math.round(daily.windspeed_10m_max[0]) : '?';
+  var arrWind = arrDaily.windspeed_10m_max ? Math.round(arrDaily.windspeed_10m_max[0]) : '?';
+  var depRain = daily.precipitation_sum ? Math.round(daily.precipitation_sum[0]*10)/10 : 0;
+  var arrRain = arrDaily.precipitation_sum ? Math.round(arrDaily.precipitation_sum[0]*10)/10 : 0;
+  var jetSpeed = data.jetStreamSpeed || '?';
+  
+  function wxIcon(rain, wind) {
+    if (rain > 5) return '🌧';
+    if (rain > 1) return '🌦';
+    if (wind > 50) return '💨';
+    return '☀️';
+  }
+  
+  var turbLabel = ['Very Smooth','Smooth','Light Chop','Light Chop','Moderate','Bumpy','Rough'];
+  var turbColor = ['#34C759','#52D068','#A8D938','#FFD60A','#FF9F0A','#FF6B30','#FF453A'];
+  var ts = data.turbulenceScore || 2;
+  
+  var html = '<div id="weather-panel" class="map-panels" style="margin-top:-14px;margin-bottom:24px">'
+    + '<div class="mpanel">'
+    + '<div class="ph"><div><div class="pht">Weather Forecast</div><div class="phs">Open-Meteo real data &middot; '+dep+' &rarr; '+arr+'</div></div></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.10);margin:12px 13px;border:1px solid rgba(255,255,255,.10);border-radius:10px;overflow:hidden">'
+    + '<div style="background:#141414;padding:12px"><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px">'+dep+'  Departure</div>'
+    + '<div style="font-size:22px;margin-bottom:4px">'+wxIcon(depRain,depWind)+'</div>'
+    + '<div style="font-size:17px;font-weight:700">'+depMaxT+'° / '+depMinT+'°C</div>'
+    + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">Wind '+depWind+' km/h &middot; Rain '+depRain+'mm</div>'
+    + '</div>'
+    + '<div style="background:#141414;padding:12px"><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px">'+arr+'  Arrival</div>'
+    + '<div style="font-size:22px;margin-bottom:4px">'+wxIcon(arrRain,arrWind)+'</div>'
+    + '<div style="font-size:17px;font-weight:700">'+arrMaxT+'°C</div>'
+    + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">Wind '+arrWind+' km/h &middot; Rain '+arrRain+'mm</div>'
+    + '</div>'
+    + '</div>'
+    + '<div style="padding:0 13px 13px;display:flex;align-items:center;justify-content:space-between">'
+    + '<div style="font-size:12px;color:rgba(255,255,255,.5)">Jet stream at cruise altitude: <strong style="color:#fff">'+jetSpeed+' km/h</strong></div>'
+    + '<div style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,.07);color:'+turbColor[ts]+'">'+turbLabel[ts]+'</div>'
+    + '</div>'
+    + '</div></div>';
+  
+  var rsec = document.getElementById('rsec');
+  rsec.insertAdjacentHTML('afterend', html);
+}
+
 // ── WAITLIST ─────────────────────────────────────────────────────────────────
 document.getElementById('wl-btn').addEventListener('click', function(){
   var email=document.getElementById('wlemail').value.trim();
@@ -1481,8 +1612,3 @@ document.getElementById('wl-btn').addEventListener('click', function(){
     setTimeout(function(){document.getElementById('wlemail').style.borderColor='';},1400);
     return;
   }
-  document.getElementById('ctarow').style.display='none';
-  document.getElementById('ctaok').style.display='block';
-  document.getElementById('ctanote').style.display='none';
-});
-</script></body></html>
