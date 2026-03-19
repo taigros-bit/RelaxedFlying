@@ -365,12 +365,12 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
 <footer>
   <div class="flogo">RelaxedFlying</div>
   <div class="flinks">
-    <a href="#" id="footer-contact" class="flink">info@relaxedflying.app</a>
+    <a href="#" id="footer-contact" class="flink"><span class="__cf_email__" data-cfemail="365f5850597644535a574e5352505a4f5f585118574646">[email&#160;protected]</span></a>
     <a href="#" class="flink">Privacy</a>
   </div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const AIRPORTS = [
   {c:'LJU',city:'Ljubljana',country:'Slovenia',cc:'SI',n:'Ljubljana Jože Pučnik Airport',f:'🇸🇮'},
   {c:'ZAG',city:'Zagreb',country:'Croatia',cc:'HR',n:'Zagreb Airport',f:'🇭🇷'},
@@ -1127,46 +1127,44 @@ var ACMAP = {
 // biz: number of business/first class rows (0 = all economy)
 // ws/we: first and last wing row
 var AIRCRAFT = {
-  // Dash 8-400 (Croatia Airlines, Adria etc)
-  // 76 seats, 19 rows, 2+2 layout, NO B/E seats
-  DH8D: { name:'Bombardier Dash 8-400', rows:19, cols:['A','C','D','F'], biz:0, ws:8, we:14 },
-  // ATR 72-600
-  // 70-74 seats, 18 rows, 2+2 layout
-  AT72: { name:'ATR 72-600', rows:18, cols:['A','C','D','F'], biz:0, ws:5, we:12 },
-  // Airbus A319 (Croatia Airlines, Adria, Austrian)
-  // 144 seats, 24 rows econ + 4 biz, 3+3
-  A319: { name:'Airbus A319', rows:26, cols:['A','B','C','D','E','F'], biz:4, ws:10, we:17 },
-  // Airbus A320
+  // ── Turboprops ─────────────────────────────────────────────────────────────
+  // Dash 8-400 / Q400 (Croatia Airlines OU, etc)
+  // 76 seats, 19 rows, 2+2 (A,C,D,F — no B/E aisle labels)
+  DH8D: { name:'Bombardier Q400', rows:19, cols:['A','C','D','F'], biz:0, ws:7, we:13 },
+  // ATR 72-600 — 70 seats, 17 rows, 2+2
+  AT72: { name:'ATR 72-600', rows:17, cols:['A','C','D','F'], biz:0, ws:5, we:11 },
+  // ── Narrow bodies ──────────────────────────────────────────────────────────
+  // A219 = wrong name. A319 — Croatia Airlines: 144 seats, 24 eco rows + 3 biz
+  A319: { name:'Airbus A319', rows:24, cols:['A','B','C','D','E','F'], biz:3, ws:10, we:17 },
+  // A320 — 180 seats, 30 rows, 4 biz
   A320: { name:'Airbus A320', rows:30, cols:['A','B','C','D','E','F'], biz:4, ws:11, we:19 },
-  // Airbus A321
+  // A321 — 200 seats, 34 rows, 4 biz
   A321: { name:'Airbus A321', rows:34, cols:['A','B','C','D','E','F'], biz:4, ws:13, we:22 },
-  // Boeing 737-800
-  B737: { name:'Boeing 737-800', rows:32, cols:['A','B','C','D','E','F'], biz:4, ws:12, we:20 },
-  // Boeing 737 MAX 8
-  B738: { name:'Boeing 737 MAX 8', rows:34, cols:['A','B','C','D','E','F'], biz:4, ws:12, we:21 },
-  // Embraer E190
-  // 100 seats, 25 rows, 2+2 layout
-  E190: { name:'Embraer E190', rows:25, cols:['A','C','D','F'], biz:0, ws:8, we:15 },
-  // Embraer E195
-  E195: { name:'Embraer E195', rows:27, cols:['A','C','D','F'], biz:0, ws:10, we:17 },
-  // Embraer E175
-  E175: { name:'Embraer E175', rows:20, cols:['A','C','D','F'], biz:0, ws:7, we:13 },
-  // CRJ-900
-  CRJ9: { name:'Bombardier CRJ-900', rows:24, cols:['A','C','D','F'], biz:0, ws:8, we:15 },
-  // CRJ-700
-  CRJ7: { name:'Bombardier CRJ-700', rows:17, cols:['A','C','D','F'], biz:0, ws:6, we:12 },
-  // Boeing 777
-  B772: { name:'Boeing 777', rows:42, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:18, we:28 },
-  // Boeing 787
-  B788: { name:'Boeing 787 Dreamliner', rows:38, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:20, we:32 },
-  // Airbus A330
-  A330: { name:'Airbus A330', rows:38, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:15, we:26 },
-  // Airbus A350
-  A350: { name:'Airbus A350', rows:40, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:17, we:30 },
-  // Airbus A388
+  // A220-300 (Swiss LX, etc) — 130 seats, 26 rows, 2+3 (A,B,C,D,E)
+  A223: { name:'Airbus A220-300', rows:26, cols:['A','B','C','D','E'], biz:0, ws:9, we:17 },
+  // Boeing 737-800 — 189 seats, 31 rows, 3 biz
+  B737: { name:'Boeing 737-800', rows:31, cols:['A','B','C','D','E','F'], biz:3, ws:12, we:20 },
+  // Boeing 737 MAX 8 — 189 seats, 31 rows, 3 biz
+  B738: { name:'Boeing 737 MAX 8', rows:31, cols:['A','B','C','D','E','F'], biz:3, ws:12, we:20 },
+  // ── Embraer regional jets — 2+2 (A,B,C,D) ─────────────────────────────────
+  // E190 — 100 seats, 25 rows, 2+2
+  E190: { name:'Embraer E190', rows:25, cols:['A','B','C','D'], biz:0, ws:8, we:15 },
+  // E195 — 120 seats, 30 rows, 2+2
+  E195: { name:'Embraer E195', rows:30, cols:['A','B','C','D'], biz:0, ws:9, we:17 },
+  // E175 — 80 seats, 20 rows, 2+2
+  E175: { name:'Embraer E175', rows:20, cols:['A','B','C','D'], biz:0, ws:7, we:13 },
+  // E170 — 72 seats, 18 rows, 2+2
+  E170: { name:'Embraer E170', rows:18, cols:['A','B','C','D'], biz:0, ws:6, we:12 },
+  // ── CRJ regional jets — 2+2 ────────────────────────────────────────────────
+  CRJ9: { name:'Bombardier CRJ-900', rows:18, cols:['A','B','C','D'], biz:0, ws:6, we:12 },
+  CRJ7: { name:'Bombardier CRJ-700', rows:15, cols:['A','B','C','D'], biz:0, ws:5, we:10 },
+  // ── Wide bodies ────────────────────────────────────────────────────────────
+  B772: { name:'Boeing 777-200', rows:39, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:18, we:28 },
+  B788: { name:'Boeing 787-8', rows:32, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:14, we:24 },
+  B789: { name:'Boeing 787-9', rows:35, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:15, we:26 },
+  A330: { name:'Airbus A330', rows:36, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:15, we:26 },
+  A350: { name:'Airbus A350', rows:35, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:17, we:28 },
   A388: { name:'Airbus A380', rows:50, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:20, we:35 },
-  // Airbus A220
-  A223: { name:'Airbus A220-300', rows:28, cols:['A','C','D','F'], biz:0, ws:9, we:17 },
 };
 
 // Airline fleet - fallback when API doesnt return aircraft type
@@ -1351,10 +1349,10 @@ function parseLiveFlights(data, dep, arr) {
       var durS=calcDur(dpt,arv,depS,arrS);
       // Aircraft type
       var alIata=al.iata||al.iataCode||'';
-      var acCode=acft.iata||acft.iataCode||'';
+      var acCode=acft.iata||acft.iataCode||acft.modelCode||acft.icao||'';
       var acType=getAcType(acCode)||getFleetAc(alIata,dep,arr);
       var ac=getAC(acType);
-      var flId=fn.iata||fn.iataNumber||(alIata+(200+Math.floor(Math.random()*700)));
+      var flId=fn.iata||fn.iataNumber||fn.icaoNumber||(alIata+(200+Math.floor(Math.random()*700)));
       out.push({
         id:flId, airline:al.name||'Unknown', alIata:alIata,
         acType:acType, acName:ac.name,
@@ -1444,15 +1442,24 @@ tapOn('go-btn', function() {
       document.getElementById('bsp').classList.add('hidden');
       if (data.error) { loadDemoFlights('API: '+data.error); return; }
       var parsed=parseLiveFlights(data, selAP.f.c, selAP.t.c);
-      if (!parsed.length) { loadDemoFlights('No flights found for this route and date'); return; }
+      if (!parsed.length) {
+        document.getElementById('rlbl').textContent = 'No flights found';
+        document.getElementById('flist').className = '';
+        document.getElementById('flist').innerHTML = '<div style="background:#0d0d0d;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:32px 20px;text-align:center"><div style="font-size:32px;margin-bottom:12px;opacity:.3">&#9992;</div><div style="font-size:15px;font-weight:700;margin-bottom:8px">No flights found</div><div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.7">'+selAP.f.city+' → '+selAP.t.city+'<br>'+dateStr+'<br><br>This route may not operate on this date,<br>or try a nearby date.</div></div>';
+        document.getElementById('rsec').classList.remove('hidden');
+        return;
+      }
       flights=parsed;
       renderF(true,null);
       fetchWeather(selAP.f.c, selAP.t.c, dateStr);
     })
-    .catch(function(){ 
+    .catch(function(){
       document.getElementById('btxt').classList.remove('hidden');
       document.getElementById('bsp').classList.add('hidden');
-      loadDemoFlights('Could not connect to live data');
+      document.getElementById('rlbl').textContent = 'Connection error';
+      document.getElementById('flist').className = '';
+      document.getElementById('flist').innerHTML = '<div style="background:#0d0d0d;border:1px solid rgba(255,69,58,.2);border-radius:14px;padding:32px 20px;text-align:center"><div style="font-size:15px;font-weight:700;margin-bottom:8px;color:#FF453A">Could not load flights</div><div style="font-size:13px;color:rgba(255,255,255,.4)">Check your internet connection and try again.</div></div>';
+      document.getElementById('rsec').classList.remove('hidden');
     });
 });
 
@@ -1709,7 +1716,4 @@ document.getElementById('wl-btn').addEventListener('click', function(){
   document.getElementById('ctanote').style.display='none';
 });
 
-// Fix email links to avoid Cloudflare obfuscation
-document.getElementById('contact-link').href='mai'+'lto:info@relaxedflying.app';
-document.getElementById('footer-contact').href='mai'+'lto:info@relaxedflying.app';
-</script></body></html>
+// Fix email links to avoid Cloudfl
