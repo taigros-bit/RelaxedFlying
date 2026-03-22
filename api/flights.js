@@ -1,6 +1,5 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
 
   var dep = (req.query.dep || '').toUpperCase().trim();
   var arr = (req.query.arr || '').toUpperCase().trim();
@@ -17,22 +16,23 @@ export default async function handler(req, res) {
       + dep + '/' + fromDT + '/' + toDT
       + '?withLeg=true&direction=Departure&withCancelled=false&withCodeshared=false&withCargo=false&withPrivate=false&withLocation=false';
 
-    var response = await fetch(url, {
+    var r = await fetch(url, {
       headers: {
         'x-rapidapi-host': 'aerodatabox.p.rapidapi.com',
         'x-rapidapi-key': key
       }
     });
 
-    if (!response.ok) {
-      var errText = await response.text();
-      return res.status(200).json({error: 'API error ' + response.status, detail: errText});
+    var body = await r.text();
+
+    if (!r.ok) {
+      return res.status(200).json({error:'AeroDataBox HTTP '+r.status, detail: body.slice(0,500)});
     }
 
-    var data = await response.json();
-
-    // Filter to flights going to our destination
+    var data = JSON.parse(body);
     var all = data.departures || [];
+
+    // Filter to destination
     var filtered = all.filter(function(f) {
       var a = f.arrival && f.arrival.airport && f.arrival.airport.iata;
       return a && a.toUpperCase() === arr;
@@ -43,11 +43,12 @@ export default async function handler(req, res) {
       dep: dep,
       arr: arr,
       date: date,
+      total_departures: all.length,
       count: filtered.length,
       departures: filtered
     });
 
   } catch(e) {
-    return res.status(200).json({error: e.message});
+    return res.status(200).json({error: e.message, stack: e.stack ? e.stack.slice(0,300) : ''});
   }
 }
