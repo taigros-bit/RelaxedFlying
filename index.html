@@ -1614,4 +1614,10 @@ document.getElementById('wl-btn').addEventListener('click', function(){
   var email=document.getElementById('wlemail').value.trim();
   if(!email||!email.includes('@')){
     document.getElementById('wlemail').style.borderColor='rgba(255,69,58,.6)';
-    setTimeout(function(){d
+    setTimeout(function(){ document.getElementById('wlemail').style.borderColor=''; },1400);
+    return;
+  }
+  document.getElementById('ctarow').style.display='none';
+  document.getElementById('ctaok').style.display='block';
+  document.getElementById('ctanote').style.display='none';
+});d
