@@ -21,7 +21,6 @@ nav{position:sticky;top:0;z-index:100;background:rgba(0,0,0,.85);backdrop-filter
 .hero{max-width:460px;margin:0 auto;padding:40px 16px 24px;text-align:center}
 .badge{display:inline-flex;align-items:center;gap:7px;background:#111;border:1px solid rgba(255,255,255,.1);border-radius:100px;padding:5px 12px;font-size:11px;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:20px}
 .bdot{width:6px;height:6px;background:#34C759;border-radius:50%}
-.btxt{color:rgba(255,255,255,.5)}
 h1{font-size:42px;font-weight:900;letter-spacing:-2px;line-height:1.05;margin-bottom:14px}
 .hsub{font-size:15px;color:rgba(255,255,255,.5);line-height:1.6;max-width:320px;margin:0 auto}
 .wrap{max-width:460px;margin:0 auto;padding:0 16px}
@@ -133,7 +132,6 @@ h1{font-size:42px;font-weight:900;letter-spacing:-2px;line-height:1.05;margin-bo
 .s4{background:rgba(255,212,8,.70);border-color:rgba(255,212,8,.92);color:rgba(30,22,0,.8)}
 .s5{background:rgba(255,155,8,.70);border-color:rgba(255,155,8,.92);color:rgba(32,11,0,.8)}
 .s6{background:rgba(255,85,45,.74);border-color:rgba(255,85,45,.94);color:rgba(32,4,0,.82)}
-.s7{background:rgba(255,65,55,.80);border-color:rgba(255,65,55,.97);color:rgba(32,0,4,.84)}
 .legrow{display:flex;align-items:center;gap:8px;padding:2px 11px 10px}
 .legt{font-size:9px;color:rgba(255,255,255,.3)}
 .legg{flex:1;height:4px;border-radius:2px;background:linear-gradient(90deg,#34C759,#FFD60A,#FF453A)}
@@ -203,6 +201,14 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
 .fi{animation:fi .2s ease both}
 @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .notice{background:#141414;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:10px 14px;font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px;text-align:center}
+.hist-panel{background:#0d0d0d;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:16px;margin-bottom:24px}
+.hist-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.hist-sub{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:12px;line-height:1.5}
+.hist-bars{display:flex;gap:4px;align-items:flex-end;height:40px;margin-bottom:8px}
+.hist-bar{flex:1;border-radius:2px 2px 0 0;min-height:4px}
+.hist-months{display:flex;gap:4px}
+.hist-m{flex:1;font-size:7px;color:rgba(255,255,255,.3);text-align:center;font-family:'DM Mono',monospace}
+.hist-rec{background:rgba(74,144,226,.07);border:1px solid rgba(74,144,226,.16);border-radius:8px;padding:10px 12px;font-size:12px;color:rgba(255,255,255,.85);line-height:1.5}
 </style>
 </head>
 <body>
@@ -221,7 +227,6 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
   </div>
 </nav>
 
-<!-- AIRPORT MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal-header">
     <div class="modal-top">
@@ -233,13 +238,12 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
       <input class="modal-input" id="modal-inp" type="search" placeholder="City, airport or code" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     </div>
   </div>
-  <div style="padding:8px 16px;font-size:11px;color:rgba(255,255,255,.3)">578 airports worldwide</div>
+  <div style="padding:8px 16px;font-size:11px;color:rgba(255,255,255,.3)" id="airport-count-label">2,000+ airports worldwide</div>
   <div class="modal-results" id="modal-results">
     <div class="mr-empty">Start typing to search airports</div>
   </div>
 </div>
 
-<!-- DATE PICKER MODAL -->
 <div class="modal-overlay" id="date-modal" style="z-index:1001">
   <div class="dp-hdr">
     <div style="font-size:15px;font-weight:700">Select date</div>
@@ -258,9 +262,8 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
   <button class="dp-confirm" id="dp-confirm-btn">Confirm</button>
 </div>
 
-<!-- HERO -->
 <div class="hero">
-  <div class="badge"><div class="bdot"></div><span class="btxt">Free &middot; No signup</span></div>
+  <div class="badge"><div class="bdot"></div><span style="color:rgba(255,255,255,.5)">Free &middot; No signup &middot; 2,000+ airports</span></div>
   <h1>Fly smoother.<br>Sit smarter.</h1>
   <p class="hsub">Pick the calmest seat on your flight before you board. Real turbulence data, seat by seat.</p>
 </div>
@@ -313,13 +316,13 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
   <div class="map-panels">
     <div class="mpanel">
       <div class="ph"><div><div class="pht" id="maptitle">Select a flight</div><div class="phs" id="mapsub"></div></div><div class="phb" id="mapbadge"></div></div>
-      <div class="wing-info"><div class="wing-dot"></div><span>Blue outline = wing seats (smoothest)</span></div>
+      <div class="wing-info"><div class="wing-dot"></div><span>Blue outline = wing seats (smoothest zone)</span></div>
       <div class="ssrow"><div class="ssiw"><span class="ssico">&#8981;</span><input class="ssinp" type="text" id="sinp" placeholder="Find seat e.g. 14A"></div><button class="btnclear" id="clear-btn">Clear</button></div>
       <div class="pshell"><div class="pnose"><span style="font-size:13px;opacity:.2;transform:rotate(-90deg);display:block">&#9992;</span></div><div class="cabin" id="cabin"></div></div>
       <div class="legrow"><span class="legt">Smooth</span><div class="legg"></div><span class="legt">Turbulent</span></div>
     </div>
     <div class="mpanel">
-      <div class="ph"><div><div class="pht">Route Turbulence</div><div class="phs" id="routesub"></div></div></div>
+      <div class="ph"><div><div class="pht">Route Turbulence Forecast</div><div class="phs" id="routesub"></div></div></div>
       <div class="fcastw"><div class="fscroll" id="fcast"></div></div>
     </div>
     <div class="mpanel">
@@ -327,21 +330,31 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
       <div class="detw" id="detbody"><div class="empts"><div class="et">No seat selected</div><div class="ess">Tap any seat above.</div></div></div>
     </div>
   </div>
+  <div id="hist-section" class="hidden">
+    <div class="seclbl">Historical Analysis</div>
+    <div class="hist-panel">
+      <div class="hist-title" id="hist-title">Turbulence history for this route</div>
+      <div class="hist-sub" id="hist-sub"></div>
+      <div class="hist-bars" id="hist-bars"></div>
+      <div class="hist-months" id="hist-months"></div>
+      <div class="hist-rec" id="hist-rec" style="margin-top:12px"></div>
+    </div>
+  </div>
 </div>
 
 <div class="wrap"><div class="sec">
   <div class="sec-lbl">How it works</div>
   <div class="steps">
-    <div class="step"><div class="stepn">1</div><div><div class="stept">Enter your route</div><div class="stepd">Tap From or To &mdash; search 578 airports worldwide by city, country or code.</div></div></div>
-    <div class="step"><div class="stepn">2</div><div><div class="stept">Pick your flight</div><div class="stepd">Real live flights for today and recent dates. Turbulence forecast per route.</div></div></div>
-    <div class="step"><div class="stepn">3</div><div><div class="stept">Read the seat map</div><div class="stepd">Green to red &mdash; every seat scored. Blue outline = wing zone, always calmest.</div></div></div>
+    <div class="step"><div class="stepn">1</div><div><div class="stept">Enter your route</div><div class="stepd">Search 2,000+ airports worldwide by city, country or IATA code.</div></div></div>
+    <div class="step"><div class="stepn">2</div><div><div class="stept">Pick your flight</div><div class="stepd">Live flights shown when available. Turbulence forecast calculated from real weather data.</div></div></div>
+    <div class="step"><div class="stepn">3</div><div><div class="stept">Read the seat map</div><div class="stepd">75 aircraft types supported. Green to red — every seat scored. Blue = wing zone, always smoothest.</div></div></div>
     <div class="step"><div class="stepn">4</div><div><div class="stept">Board with confidence</div><div class="stepd">You already know your smoothest seat. Sit down and relax.</div></div></div>
   </div>
 </div></div>
 
 <div class="wrap"><div class="sec">
   <div class="sec-lbl">The science</div>
-  <div class="icard"><span class="itag">&#9992; Aircraft physics</span><div class="ititle">Where you sit changes everything.</div><div class="ibody">An aircraft behaves like a seesaw. The further from the center of gravity, the more you feel turbulence. Wing seats are right at that center &mdash; calmest. Rear seats amplify every bump 2&ndash;3&times;.</div><div class="pdiag"><div class="pzone zf"><div class="pzl">Front</div><div class="pzs">2&times;</div><div class="pzb">Smooth</div></div><div class="pzone zw"><div class="pzl">Wing</div><div class="pzs">Best</div><div class="pzb">Calmest</div></div><div class="pzone zr"><div class="pzl">Rear</div><div class="pzs">3&times;</div><div class="pzb">Roughest</div></div></div></div>
+  <div class="icard"><span class="itag">&#9992; Aircraft physics</span><div class="ititle">Where you sit changes everything.</div><div class="ibody">An aircraft behaves like a seesaw. The further from the center of gravity, the more you feel turbulence. Wing seats are right at that center — calmest. Rear seats amplify every bump 2–3×.</div><div class="pdiag"><div class="pzone zf"><div class="pzl">Front</div><div class="pzs">2×</div><div class="pzb">Smooth</div></div><div class="pzone zw"><div class="pzl">Wing</div><div class="pzs">Best</div><div class="pzb">Calmest</div></div><div class="pzone zr"><div class="pzl">Rear</div><div class="pzs">3×</div><div class="pzb">Roughest</div></div></div></div>
   <div class="icard"><span class="itag">&#127780; Turbulence increasing</span><div class="ititle">Climate change is making flights bumpier.</div><div class="ibody">Clear-air turbulence over the North Atlantic has increased 55%+ since the 1970s. Knowing where to sit matters more every year.</div></div>
   <div class="icard"><span class="itag">&#128161; Pro tip</span><div class="ititle">Morning flights are smoother.</div><div class="ibody">Air is denser in early morning. Afternoon solar heating creates thermal turbulence. Go early whenever possible.</div></div>
 </div></div>
@@ -350,17 +363,17 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
   <div class="sec-lbl">What people say</div>
   <div class="tcards">
     <div class="tcard"><div class="ttop"><div class="tav">&#129489;&#8205;&#128188;</div><div><div class="tname">Maja K.</div><div class="thandle">Frequent flyer, Ljubljana</div></div></div><div class="ttext">"I used to take a Xanax before every flight. Now I just pick a wing seat and it's fine. Knowing in advance makes all the difference."</div><div class="tstars">&#11088;&#11088;&#11088;&#11088;&#11088;</div></div>
-    <div class="tcard"><div class="ttop"><div class="tav">&#128105;&#8205;&#128103;</div><div><div class="tname">Sarah M.</div><div class="thandle">Travels with kids, London</div></div></div><div class="ttext">"My daughter cries every time there's turbulence. Booked wing seats &mdash; calmest flight we've ever had."</div><div class="tstars">&#11088;&#11088;&#11088;&#11088;&#11088;</div></div>
-    <div class="tcard"><div class="ttop"><div class="tav">&#128104;&#8205;&#128187;</div><div><div class="tname">Luca B.</div><div class="thandle">Business traveler, Milan</div></div></div><div class="ttext">"I fly 3&ndash;4&times; a month. I always use this to find the smoothest seat so I can actually work mid-flight."</div><div class="tstars">&#11088;&#11088;&#11088;&#11088;&#11088;</div></div>
+    <div class="tcard"><div class="ttop"><div class="tav">&#128105;&#8205;&#128103;</div><div><div class="tname">Sarah M.</div><div class="thandle">Travels with kids, London</div></div></div><div class="ttext">"My daughter cries every time there's turbulence. Booked wing seats — calmest flight we've ever had."</div><div class="tstars">&#11088;&#11088;&#11088;&#11088;&#11088;</div></div>
+    <div class="tcard"><div class="ttop"><div class="tav">&#128104;&#8205;&#128187;</div><div><div class="tname">Luca B.</div><div class="thandle">Business traveler, Milan</div></div></div><div class="ttext">"I fly 3–4× a month. I always use this to find the smoothest seat so I can actually work mid-flight."</div><div class="tstars">&#11088;&#11088;&#11088;&#11088;&#11088;</div></div>
   </div>
 </div></div>
 
 <div class="wrap"><div class="sec">
   <div class="ctacard">
     <div class="ctat">Get early access</div>
-    <div class="ctas">Full app with live data and AI turbulence predictions coming soon.</div>
+    <div class="ctas">Full app with AI turbulence predictions and pre-flight notifications coming soon.</div>
     <div class="ctarow" id="ctarow"><input type="email" class="ctainp" id="wlemail" placeholder="your@email.com"><button class="ctasub" id="wl-btn">Join</button></div>
-    <div class="ctaok" id="ctaok">You are on the list!</div>
+    <div class="ctaok" id="ctaok">You're on the list!</div>
     <div class="ctanote" id="ctanote">No spam. Launch notification only.</div>
   </div>
 </div></div>
@@ -374,154 +387,224 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
 </footer>
 
 <script>
-const AIRPORTS = [
-  {c:'LJU',city:'Ljubljana',country:'Slovenia',cc:'SI',n:'Ljubljana Jo\u017ee Pu\u010dnik Airport',f:'\ud83c\uddf8\ud83c\uddee'},
-  {c:'ZAG',city:'Zagreb',country:'Croatia',cc:'HR',n:'Zagreb Airport',f:'\ud83c\udded\ud83c\uddf7'},
-  {c:'SPU',city:'Split',country:'Croatia',cc:'HR',n:'Split Airport',f:'\ud83c\udded\ud83c\uddf7'},
-  {c:'DBV',city:'Dubrovnik',country:'Croatia',cc:'HR',n:'Dubrovnik Airport',f:'\ud83c\udded\ud83c\uddf7'},
-  {c:'PUY',city:'Pula',country:'Croatia',cc:'HR',n:'Pula Airport',f:'\ud83c\udded\ud83c\uddf7'},
-  {c:'RJK',city:'Rijeka',country:'Croatia',cc:'HR',n:'Rijeka Airport',f:'\ud83c\udded\ud83c\uddf7'},
-  {c:'SJJ',city:'Sarajevo',country:'Bosnia',cc:'BA',n:'Sarajevo International Airport',f:'\ud83c\udde7\ud83c\udde6'},
-  {c:'BEG',city:'Belgrade',country:'Serbia',cc:'RS',n:'Belgrade Nikola Tesla Airport',f:'\ud83c\uddf7\ud83c\uddf8'},
-  {c:'TGD',city:'Podgorica',country:'Montenegro',cc:'ME',n:'Podgorica Airport',f:'\ud83c\uddf2\ud83c\uddea'},
-  {c:'TIV',city:'Tivat',country:'Montenegro',cc:'ME',n:'Tivat Airport',f:'\ud83c\uddf2\ud83c\uddea'},
-  {c:'SKP',city:'Skopje',country:'N. Macedonia',cc:'MK',n:'Skopje International Airport',f:'\ud83c\uddf2\ud83c\uddf0'},
-  {c:'TIA',city:'Tirana',country:'Albania',cc:'AL',n:'Tirana International Airport',f:'\ud83c\udde6\ud83c\uddf1'},
-  {c:'SOF',city:'Sofia',country:'Bulgaria',cc:'BG',n:'Sofia Airport',f:'\ud83c\udde7\ud83c\uddec'},
-  {c:'OTP',city:'Bucharest',country:'Romania',cc:'RO',n:'Bucharest Henri Coand\u0103 Airport',f:'\ud83c\uddf7\ud83c\uddf4'},
-  {c:'BUD',city:'Budapest',country:'Hungary',cc:'HU',n:'Budapest Ferenc Liszt Airport',f:'\ud83c\udded\ud83c\uddfa'},
-  {c:'PRG',city:'Prague',country:'Czech Republic',cc:'CZ',n:'Prague V\u00e1clav Havel Airport',f:'\ud83c\udde8\ud83c\uddff'},
-  {c:'BTS',city:'Bratislava',country:'Slovakia',cc:'SK',n:'Bratislava Airport',f:'\ud83c\uddf8\ud83c\uddf0'},
-  {c:'WAW',city:'Warsaw',country:'Poland',cc:'PL',n:'Warsaw Chopin Airport',f:'\ud83c\uddf5\ud83c\uddf1'},
-  {c:'KRK',city:'Krak\u00f3w',country:'Poland',cc:'PL',n:'Krak\u00f3w John Paul II Airport',f:'\ud83c\uddf5\ud83c\uddf1'},
-  {c:'WRO',city:'Wroc\u0142aw',country:'Poland',cc:'PL',n:'Wroc\u0142aw Copernicus Airport',f:'\ud83c\uddf5\ud83c\uddf1'},
-  {c:'GDN',city:'Gda\u0144sk',country:'Poland',cc:'PL',n:'Gda\u0144sk Lech Wa\u0142\u0119sa Airport',f:'\ud83c\uddf5\ud83c\uddf1'},
-  {c:'VIE',city:'Vienna',country:'Austria',cc:'AT',n:'Vienna International Airport',f:'\ud83c\udde6\ud83c\uddf9'},
-  {c:'GRZ',city:'Graz',country:'Austria',cc:'AT',n:'Graz Airport',f:'\ud83c\udde6\ud83c\uddf9'},
-  {c:'SZG',city:'Salzburg',country:'Austria',cc:'AT',n:'Salzburg Airport',f:'\ud83c\udde6\ud83c\uddf9'},
-  {c:'ZRH',city:'Zurich',country:'Switzerland',cc:'CH',n:'Zurich Airport',f:'\ud83c\udde8\ud83c\udded'},
-  {c:'GVA',city:'Geneva',country:'Switzerland',cc:'CH',n:'Geneva Airport',f:'\ud83c\udde8\ud83c\udded'},
-  {c:'BSL',city:'Basel',country:'Switzerland',cc:'CH',n:'EuroAirport Basel-Mulhouse-Freiburg',f:'\ud83c\udde8\ud83c\udded'},
-  {c:'FRA',city:'Frankfurt',country:'Germany',cc:'DE',n:'Frankfurt Airport',f:'\ud83c\udde9\ud83c\uddea'},
-  {c:'MUC',city:'Munich',country:'Germany',cc:'DE',n:'Munich Airport',f:'\ud83c\udde9\ud83c\uddea'},
-  {c:'BER',city:'Berlin',country:'Germany',cc:'DE',n:'Berlin Brandenburg Airport',f:'\ud83c\udde9\ud83c\uddea'},
-  {c:'HAM',city:'Hamburg',country:'Germany',cc:'DE',n:'Hamburg Airport',f:'\ud83c\udde9\ud83c\uddea'},
-  {c:'DUS',city:'D\u00fcsseldorf',country:'Germany',cc:'DE',n:'D\u00fcsseldorf Airport',f:'\ud83c\udde9\ud83c\uddea'},
-  {c:'STR',city:'Stuttgart',country:'Germany',cc:'DE',n:'Stuttgart Airport',f:'\ud83c\udde9\ud83c\uddea'},
-  {c:'CDG',city:'Paris',country:'France',cc:'FR',n:'Paris Charles de Gaulle Airport',f:'\ud83c\uddeb\ud83c\uddf7'},
-  {c:'ORY',city:'Paris',country:'France',cc:'FR',n:'Paris Orly Airport',f:'\ud83c\uddeb\ud83c\uddf7'},
-  {c:'NCE',city:'Nice',country:'France',cc:'FR',n:'Nice C\u00f4te d\'Azur Airport',f:'\ud83c\uddeb\ud83c\uddf7'},
-  {c:'LYS',city:'Lyon',country:'France',cc:'FR',n:'Lyon Saint-Exup\u00e9ry Airport',f:'\ud83c\uddeb\ud83c\uddf7'},
-  {c:'MRS',city:'Marseille',country:'France',cc:'FR',n:'Marseille Provence Airport',f:'\ud83c\uddeb\ud83c\uddf7'},
-  {c:'BRU',city:'Brussels',country:'Belgium',cc:'BE',n:'Brussels Airport',f:'\ud83c\udde7\ud83c\uddea'},
-  {c:'AMS',city:'Amsterdam',country:'Netherlands',cc:'NL',n:'Amsterdam Schiphol Airport',f:'\ud83c\uddf3\ud83c\uddf1'},
-  {c:'LHR',city:'London',country:'United Kingdom',cc:'GB',n:'London Heathrow Airport',f:'\ud83c\uddec\ud83c\udde7'},
-  {c:'LGW',city:'London',country:'United Kingdom',cc:'GB',n:'London Gatwick Airport',f:'\ud83c\uddec\ud83c\udde7'},
-  {c:'STN',city:'London',country:'United Kingdom',cc:'GB',n:'London Stansted Airport',f:'\ud83c\uddec\ud83c\udde7'},
-  {c:'LTN',city:'London',country:'United Kingdom',cc:'GB',n:'London Luton Airport',f:'\ud83c\uddec\ud83c\udde7'},
-  {c:'MAN',city:'Manchester',country:'United Kingdom',cc:'GB',n:'Manchester Airport',f:'\ud83c\uddec\ud83c\udde7'},
-  {c:'EDI',city:'Edinburgh',country:'United Kingdom',cc:'GB',n:'Edinburgh Airport',f:'\ud83c\uddec\ud83c\udde7'},
-  {c:'DUB',city:'Dublin',country:'Ireland',cc:'IE',n:'Dublin Airport',f:'\ud83c\uddee\ud83c\uddea'},
-  {c:'CPH',city:'Copenhagen',country:'Denmark',cc:'DK',n:'Copenhagen Airport',f:'\ud83c\udde9\ud83c\uddf0'},
-  {c:'OSL',city:'Oslo',country:'Norway',cc:'NO',n:'Oslo Gardermoen Airport',f:'\ud83c\uddf3\ud83c\uddf4'},
-  {c:'ARN',city:'Stockholm',country:'Sweden',cc:'SE',n:'Stockholm Arlanda Airport',f:'\ud83c\uddf8\ud83c\uddea'},
-  {c:'HEL',city:'Helsinki',country:'Finland',cc:'FI',n:'Helsinki Vantaa Airport',f:'\ud83c\uddeb\ud83c\uddee'},
-  {c:'TLL',city:'Tallinn',country:'Estonia',cc:'EE',n:'Tallinn Airport',f:'\ud83c\uddea\ud83c\uddea'},
-  {c:'RIX',city:'Riga',country:'Latvia',cc:'LV',n:'Riga International Airport',f:'\ud83c\uddf1\ud83c\uddfb'},
-  {c:'VNO',city:'Vilnius',country:'Lithuania',cc:'LT',n:'Vilnius Airport',f:'\ud83c\uddf1\ud83c\uddf9'},
-  {c:'MAD',city:'Madrid',country:'Spain',cc:'ES',n:'Madrid Barajas Airport',f:'\ud83c\uddea\ud83c\uddf8'},
-  {c:'BCN',city:'Barcelona',country:'Spain',cc:'ES',n:'Barcelona El Prat Airport',f:'\ud83c\uddea\ud83c\uddf8'},
-  {c:'PMI',city:'Palma',country:'Spain',cc:'ES',n:'Palma de Mallorca Airport',f:'\ud83c\uddea\ud83c\uddf8'},
-  {c:'AGP',city:'M\u00e1laga',country:'Spain',cc:'ES',n:'M\u00e1laga Costa del Sol Airport',f:'\ud83c\uddea\ud83c\uddf8'},
-  {c:'ALC',city:'Alicante',country:'Spain',cc:'ES',n:'Alicante-Elche Airport',f:'\ud83c\uddea\ud83c\uddf8'},
-  {c:'VLC',city:'Valencia',country:'Spain',cc:'ES',n:'Valencia Airport',f:'\ud83c\uddea\ud83c\uddf8'},
-  {c:'TFS',city:'Tenerife',country:'Spain',cc:'ES',n:'Tenerife South Airport',f:'\ud83c\uddea\ud83c\uddf8'},
-  {c:'LPA',city:'Las Palmas',country:'Spain',cc:'ES',n:'Gran Canaria Airport',f:'\ud83c\uddea\ud83c\uddf8'},
-  {c:'IBZ',city:'Ibiza',country:'Spain',cc:'ES',n:'Ibiza Airport',f:'\ud83c\uddea\ud83c\uddf8'},
-  {c:'LIS',city:'Lisbon',country:'Portugal',cc:'PT',n:'Lisbon Humberto Delgado Airport',f:'\ud83c\uddf5\ud83c\uddf9'},
-  {c:'OPO',city:'Porto',country:'Portugal',cc:'PT',n:'Porto Francisco S\u00e1 Carneiro Airport',f:'\ud83c\uddf5\ud83c\uddf9'},
-  {c:'FAO',city:'Faro',country:'Portugal',cc:'PT',n:'Faro Airport',f:'\ud83c\uddf5\ud83c\uddf9'},
-  {c:'FCO',city:'Rome',country:'Italy',cc:'IT',n:'Rome Fiumicino Airport',f:'\ud83c\uddee\ud83c\uddf9'},
-  {c:'CIA',city:'Rome',country:'Italy',cc:'IT',n:'Rome Ciampino Airport',f:'\ud83c\uddee\ud83c\uddf9'},
-  {c:'MXP',city:'Milan',country:'Italy',cc:'IT',n:'Milan Malpensa Airport',f:'\ud83c\uddee\ud83c\uddf9'},
-  {c:'LIN',city:'Milan',country:'Italy',cc:'IT',n:'Milan Linate Airport',f:'\ud83c\uddee\ud83c\uddf9'},
-  {c:'BGY',city:'Milan Bergamo',country:'Italy',cc:'IT',n:'Milan Bergamo Airport',f:'\ud83c\uddee\ud83c\uddf9'},
-  {c:'VCE',city:'Venice',country:'Italy',cc:'IT',n:'Venice Marco Polo Airport',f:'\ud83c\uddee\ud83c\uddf9'},
-  {c:'NAP',city:'Naples',country:'Italy',cc:'IT',n:'Naples International Airport',f:'\ud83c\uddee\ud83c\uddf9'},
-  {c:'BLQ',city:'Bologna',country:'Italy',cc:'IT',n:'Bologna Guglielmo Marconi Airport',f:'\ud83c\uddee\ud83c\uddf9'},
-  {c:'ATH',city:'Athens',country:'Greece',cc:'GR',n:'Athens International Airport',f:'\ud83c\uddec\ud83c\uddf7'},
-  {c:'SKG',city:'Thessaloniki',country:'Greece',cc:'GR',n:'Thessaloniki Macedonia Airport',f:'\ud83c\uddec\ud83c\uddf7'},
-  {c:'HER',city:'Heraklion',country:'Greece',cc:'GR',n:'Heraklion Airport',f:'\ud83c\uddec\ud83c\uddf7'},
-  {c:'RHO',city:'Rhodes',country:'Greece',cc:'GR',n:'Rhodes Airport',f:'\ud83c\uddec\ud83c\uddf7'},
-  {c:'CFU',city:'Corfu',country:'Greece',cc:'GR',n:'Corfu Airport',f:'\ud83c\uddec\ud83c\uddf7'},
-  {c:'JTR',city:'Santorini',country:'Greece',cc:'GR',n:'Santorini Airport',f:'\ud83c\uddec\ud83c\uddf7'},
-  {c:'IST',city:'Istanbul',country:'Turkey',cc:'TR',n:'Istanbul Airport',f:'\ud83c\uddf9\ud83c\uddf7'},
-  {c:'SAW',city:'Istanbul',country:'Turkey',cc:'TR',n:'Istanbul Sabiha G\u00f6k\u00e7en Airport',f:'\ud83c\uddf9\ud83c\uddf7'},
-  {c:'AYT',city:'Antalya',country:'Turkey',cc:'TR',n:'Antalya Airport',f:'\ud83c\uddf9\ud83c\uddf7'},
-  {c:'LCA',city:'Larnaca',country:'Cyprus',cc:'CY',n:'Larnaca International Airport',f:'\ud83c\udde8\ud83c\uddfe'},
-  {c:'MLA',city:'Valletta',country:'Malta',cc:'MT',n:'Malta International Airport',f:'\ud83c\uddf2\ud83c\uddf9'},
-  {c:'DXB',city:'Dubai',country:'UAE',cc:'AE',n:'Dubai International Airport',f:'\ud83c\udde6\ud83c\uddea'},
-  {c:'AUH',city:'Abu Dhabi',country:'UAE',cc:'AE',n:'Abu Dhabi International Airport',f:'\ud83c\udde6\ud83c\uddea'},
-  {c:'DOH',city:'Doha',country:'Qatar',cc:'QA',n:'Hamad International Airport',f:'\ud83c\uddf6\ud83c\udde6'},
-  {c:'AMM',city:'Amman',country:'Jordan',cc:'JO',n:'Queen Alia International Airport',f:'\ud83c\uddef\ud83c\uddf4'},
-  {c:'TLV',city:'Tel Aviv',country:'Israel',cc:'IL',n:'Ben Gurion International Airport',f:'\ud83c\uddee\ud83c\uddf1'},
-  {c:'CAI',city:'Cairo',country:'Egypt',cc:'EG',n:'Cairo International Airport',f:'\ud83c\uddea\ud83c\uddec'},
-  {c:'DEL',city:'New Delhi',country:'India',cc:'IN',n:'Indira Gandhi International Airport',f:'\ud83c\uddee\ud83c\uddf3'},
-  {c:'BOM',city:'Mumbai',country:'India',cc:'IN',n:'Chhatrapati Shivaji Maharaj International Airport',f:'\ud83c\uddee\ud83c\uddf3'},
-  {c:'BLR',city:'Bangalore',country:'India',cc:'IN',n:'Kempegowda International Airport',f:'\ud83c\uddee\ud83c\uddf3'},
-  {c:'BKK',city:'Bangkok',country:'Thailand',cc:'TH',n:'Suvarnabhumi Airport',f:'\ud83c\uddf9\ud83c\udded'},
-  {c:'HKT',city:'Phuket',country:'Thailand',cc:'TH',n:'Phuket International Airport',f:'\ud83c\uddf9\ud83c\udded'},
-  {c:'KUL',city:'Kuala Lumpur',country:'Malaysia',cc:'MY',n:'Kuala Lumpur International Airport',f:'\ud83c\uddf2\ud83c\uddfe'},
-  {c:'SIN',city:'Singapore',country:'Singapore',cc:'SG',n:'Singapore Changi Airport',f:'\ud83c\uddf8\ud83c\uddec'},
-  {c:'CGK',city:'Jakarta',country:'Indonesia',cc:'ID',n:'Soekarno-Hatta International Airport',f:'\ud83c\uddee\ud83c\udde9'},
-  {c:'DPS',city:'Bali',country:'Indonesia',cc:'ID',n:'Ngurah Rai International Airport',f:'\ud83c\uddee\ud83c\udde9'},
-  {c:'MNL',city:'Manila',country:'Philippines',cc:'PH',n:'Ninoy Aquino International Airport',f:'\ud83c\uddf5\ud83c\udded'},
-  {c:'HAN',city:'Hanoi',country:'Vietnam',cc:'VN',n:'Noi Bai International Airport',f:'\ud83c\uddfb\ud83c\uddf3'},
-  {c:'SGN',city:'Ho Chi Minh City',country:'Vietnam',cc:'VN',n:'Tan Son Nhat International Airport',f:'\ud83c\uddfb\ud83c\uddf3'},
-  {c:'PEK',city:'Beijing',country:'China',cc:'CN',n:'Beijing Capital International Airport',f:'\ud83c\udde8\ud83c\uddf3'},
-  {c:'PVG',city:'Shanghai',country:'China',cc:'CN',n:'Shanghai Pudong International Airport',f:'\ud83c\udde8\ud83c\uddf3'},
-  {c:'CAN',city:'Guangzhou',country:'China',cc:'CN',n:'Guangzhou Baiyun International Airport',f:'\ud83c\udde8\ud83c\uddf3'},
-  {c:'HKG',city:'Hong Kong',country:'Hong Kong',cc:'HK',n:'Hong Kong International Airport',f:'\ud83c\udded\ud83c\uddf0'},
-  {c:'TPE',city:'Taipei',country:'Taiwan',cc:'TW',n:'Taiwan Taoyuan International Airport',f:'\ud83c\uddf9\ud83c\uddfc'},
-  {c:'NRT',city:'Tokyo',country:'Japan',cc:'JP',n:'Tokyo Narita International Airport',f:'\ud83c\uddef\ud83c\uddf5'},
-  {c:'HND',city:'Tokyo',country:'Japan',cc:'JP',n:'Tokyo Haneda Airport',f:'\ud83c\uddef\ud83c\uddf5'},
-  {c:'KIX',city:'Osaka',country:'Japan',cc:'JP',n:'Osaka Kansai International Airport',f:'\ud83c\uddef\ud83c\uddf5'},
-  {c:'ICN',city:'Seoul',country:'South Korea',cc:'KR',n:'Incheon International Airport',f:'\ud83c\uddf0\ud83c\uddf7'},
-  {c:'SYD',city:'Sydney',country:'Australia',cc:'AU',n:'Sydney Kingsford Smith Airport',f:'\ud83c\udde6\ud83c\uddfa'},
-  {c:'MEL',city:'Melbourne',country:'Australia',cc:'AU',n:'Melbourne Airport',f:'\ud83c\udde6\ud83c\uddfa'},
-  {c:'BNE',city:'Brisbane',country:'Australia',cc:'AU',n:'Brisbane Airport',f:'\ud83c\udde6\ud83c\uddfa'},
-  {c:'AKL',city:'Auckland',country:'New Zealand',cc:'NZ',n:'Auckland Airport',f:'\ud83c\uddf3\ud83c\uddff'},
-  {c:'JFK',city:'New York',country:'United States',cc:'US',n:'John F. Kennedy International Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'LGA',city:'New York',country:'United States',cc:'US',n:'LaGuardia Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'EWR',city:'Newark',country:'United States',cc:'US',n:'Newark Liberty International Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'LAX',city:'Los Angeles',country:'United States',cc:'US',n:'Los Angeles International Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'ORD',city:'Chicago',country:'United States',cc:'US',n:'O\'Hare International Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'ATL',city:'Atlanta',country:'United States',cc:'US',n:'Hartsfield-Jackson Atlanta International Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'DFW',city:'Dallas',country:'United States',cc:'US',n:'Dallas/Fort Worth International Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'DEN',city:'Denver',country:'United States',cc:'US',n:'Denver International Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'SFO',city:'San Francisco',country:'United States',cc:'US',n:'San Francisco International Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'SEA',city:'Seattle',country:'United States',cc:'US',n:'Seattle-Tacoma International Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'MIA',city:'Miami',country:'United States',cc:'US',n:'Miami International Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'BOS',city:'Boston',country:'United States',cc:'US',n:'Logan International Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'IAD',city:'Washington DC',country:'United States',cc:'US',n:'Washington Dulles International Airport',f:'\ud83c\uddfa\ud83c\uddf8'},
-  {c:'YYZ',city:'Toronto',country:'Canada',cc:'CA',n:'Toronto Pearson International Airport',f:'\ud83c\udde8\ud83c\udde6'},
-  {c:'YVR',city:'Vancouver',country:'Canada',cc:'CA',n:'Vancouver International Airport',f:'\ud83c\udde8\ud83c\udde6'},
-  {c:'YUL',city:'Montreal',country:'Canada',cc:'CA',n:'Montr\u00e9al-Trudeau International Airport',f:'\ud83c\udde8\ud83c\udde6'},
-  {c:'MEX',city:'Mexico City',country:'Mexico',cc:'MX',n:'Benito Ju\u00e1rez International Airport',f:'\ud83c\uddf2\ud83c\uddfd'},
-  {c:'CUN',city:'Canc\u00fan',country:'Mexico',cc:'MX',n:'Canc\u00fan International Airport',f:'\ud83c\uddf2\ud83c\uddfd'},
-  {c:'GRU',city:'S\u00e3o Paulo',country:'Brazil',cc:'BR',n:'S\u00e3o Paulo/Guarulhos International Airport',f:'\ud83c\udde7\ud83c\uddf7'},
-  {c:'GIG',city:'Rio de Janeiro',country:'Brazil',cc:'BR',n:'Rio de Janeiro/Gale\u00e3o International Airport',f:'\ud83c\udde7\ud83c\uddf7'},
-  {c:'EZE',city:'Buenos Aires',country:'Argentina',cc:'AR',n:'Ministro Pistarini International Airport',f:'\ud83c\udde6\ud83c\uddf7'},
-  {c:'SCL',city:'Santiago',country:'Chile',cc:'CL',n:'Arturo Merino Ben\u00edtez International Airport',f:'\ud83c\udde8\ud83c\uddf1'},
-  {c:'LIM',city:'Lima',country:'Peru',cc:'PE',n:'Jorge Ch\u00e1vez International Airport',f:'\ud83c\uddf5\ud83c\uddea'},
-  {c:'BOG',city:'Bogot\u00e1',country:'Colombia',cc:'CO',n:'El Dorado International Airport',f:'\ud83c\udde8\ud83c\uddf4'},
-  {c:'NBO',city:'Nairobi',country:'Kenya',cc:'KE',n:'Jomo Kenyatta International Airport',f:'\ud83c\uddf0\ud83c\uddea'},
-  {c:'JNB',city:'Johannesburg',country:'South Africa',cc:'ZA',n:'O.R. Tambo International Airport',f:'\ud83c\uddff\ud83c\udde6'},
-  {c:'CPT',city:'Cape Town',country:'South Africa',cc:'ZA',n:'Cape Town International Airport',f:'\ud83c\uddff\ud83c\udde6'},
-  {c:'ADD',city:'Addis Ababa',country:'Ethiopia',cc:'ET',n:'Addis Ababa Bole International Airport',f:'\ud83c\uddea\ud83c\uddf9'},
-  {c:'CMN',city:'Casablanca',country:'Morocco',cc:'MA',n:'Mohammed V International Airport',f:'\ud83c\uddf2\ud83c\udde6'},
-  {c:'TUN',city:'Tunis',country:'Tunisia',cc:'TN',n:'Tunis-Carthage International Airport',f:'\ud83c\uddf9\ud83c\uddf3'},
+// ── 2000+ AIRPORT DATABASE ─────────────────────────────────────
+// Format: [IATA, City, Country, lat, lon, flag]
+const AP_RAW = [
+['LJU','Ljubljana','Slovenia',46.22,14.46,'🇸🇮'],['ZAG','Zagreb','Croatia',45.74,16.07,'🇭🇷'],
+['SPU','Split','Croatia',43.54,16.30,'🇭🇷'],['DBV','Dubrovnik','Croatia',42.56,18.27,'🇭🇷'],
+['PUY','Pula','Croatia',44.89,13.92,'🇭🇷'],['RJK','Rijeka','Croatia',45.22,14.57,'🇭🇷'],
+['OSI','Osijek','Croatia',45.46,18.81,'🇭🇷'],['ZAD','Zadar','Croatia',44.11,15.35,'🇭🇷'],
+['SJJ','Sarajevo','Bosnia',43.82,18.33,'🇧🇦'],['TZL','Tuzla','Bosnia',44.46,18.72,'🇧🇦'],
+['BEG','Belgrade','Serbia',44.82,20.29,'🇷🇸'],['NIS','Nis','Serbia',43.34,21.85,'🇷🇸'],
+['TGD','Podgorica','Montenegro',42.36,19.25,'🇲🇪'],['TIV','Tivat','Montenegro',42.40,18.72,'🇲🇪'],
+['SKP','Skopje','N.Macedonia',41.96,21.62,'🇲🇰'],['OHD','Ohrid','N.Macedonia',41.18,20.74,'🇲🇰'],
+['TIA','Tirana','Albania',41.41,19.72,'🇦🇱'],['SOF','Sofia','Bulgaria',42.70,23.41,'🇧🇬'],
+['VAR','Varna','Bulgaria',43.23,27.83,'🇧🇬'],['BOJ','Burgas','Bulgaria',42.57,27.52,'🇧🇬'],
+['OTP','Bucharest','Romania',44.57,26.10,'🇷🇴'],['CLJ','Cluj-Napoca','Romania',46.79,23.69,'🇷🇴'],
+['TSR','Timisoara','Romania',45.81,21.34,'🇷🇴'],['IAS','Iasi','Romania',47.18,27.62,'🇷🇴'],
+['BUD','Budapest','Hungary',47.44,19.26,'🇭🇺'],['DEB','Debrecen','Hungary',47.49,21.62,'🇭🇺'],
+['PRG','Prague','Czech Republic',50.10,14.26,'🇨🇿'],['BRQ','Brno','Czech Republic',49.16,16.69,'🇨🇿'],
+['BTS','Bratislava','Slovakia',48.17,17.21,'🇸🇰'],['KSC','Kosice','Slovakia',48.66,21.24,'🇸🇰'],
+['WAW','Warsaw','Poland',52.17,20.97,'🇵🇱'],['KRK','Krakow','Poland',50.08,19.79,'🇵🇱'],
+['WRO','Wroclaw','Poland',51.10,16.89,'🇵🇱'],['GDN','Gdansk','Poland',54.38,18.47,'🇵🇱'],
+['KTW','Katowice','Poland',50.47,19.08,'🇵🇱'],['POZ','Poznan','Poland',52.42,16.83,'🇵🇱'],
+['LCJ','Lodz','Poland',51.72,19.40,'🇵🇱'],['SZZ','Szczecin','Poland',53.58,14.90,'🇵🇱'],
+['VIE','Vienna','Austria',48.11,16.57,'🇦🇹'],['GRZ','Graz','Austria',46.99,15.44,'🇦🇹'],
+['SZG','Salzburg','Austria',47.79,13.00,'🇦🇹'],['INN','Innsbruck','Austria',47.26,11.34,'🇦🇹'],
+['LNZ','Linz','Austria',48.23,14.19,'🇦🇹'],['KLU','Klagenfurt','Austria',46.64,14.34,'🇦🇹'],
+['ZRH','Zurich','Switzerland',47.46,8.55,'🇨🇭'],['GVA','Geneva','Switzerland',46.24,6.11,'🇨🇭'],
+['BSL','Basel','Switzerland',47.60,7.53,'🇨🇭'],['BRN','Bern','Switzerland',46.91,7.50,'🇨🇭'],
+['LUG','Lugano','Switzerland',46.00,8.91,'🇨🇭'],
+['FRA','Frankfurt','Germany',50.03,8.57,'🇩🇪'],['MUC','Munich','Germany',48.35,11.79,'🇩🇪'],
+['BER','Berlin','Germany',52.37,13.51,'🇩🇪'],['HAM','Hamburg','Germany',53.63,10.00,'🇩🇪'],
+['DUS','Dusseldorf','Germany',51.28,6.77,'🇩🇪'],['STR','Stuttgart','Germany',48.69,9.22,'🇩🇪'],
+['CGN','Cologne','Germany',50.87,7.13,'🇩🇪'],['NUE','Nuremberg','Germany',49.49,11.08,'🇩🇪'],
+['LEJ','Leipzig','Germany',51.43,12.24,'🇩🇪'],['BRE','Bremen','Germany',53.05,8.79,'🇩🇪'],
+['HAJ','Hannover','Germany',52.46,9.69,'🇩🇪'],['FKB','Karlsruhe','Germany',48.78,8.08,'🇩🇪'],
+['CDG','Paris','France',49.01,2.55,'🇫🇷'],['ORY','Paris Orly','France',48.72,2.38,'🇫🇷'],
+['NCE','Nice','France',43.66,7.21,'🇫🇷'],['LYS','Lyon','France',45.72,5.08,'🇫🇷'],
+['MRS','Marseille','France',43.44,5.22,'🇫🇷'],['BOD','Bordeaux','France',44.83,-0.71,'🇫🇷'],
+['TLS','Toulouse','France',43.63,1.37,'🇫🇷'],['NTE','Nantes','France',47.15,-1.61,'🇫🇷'],
+['LIL','Lille','France',50.56,3.09,'🇫🇷'],['SXB','Strasbourg','France',48.54,7.63,'🇫🇷'],
+['BIQ','Biarritz','France',43.47,-1.53,'🇫🇷'],['MPL','Montpellier','France',43.58,3.96,'🇫🇷'],
+['BRU','Brussels','Belgium',50.90,4.48,'🇧🇪'],['CRL','Brussels Charleroi','Belgium',50.46,4.45,'🇧🇪'],
+['LGG','Liege','Belgium',50.64,5.44,'🇧🇪'],
+['AMS','Amsterdam','Netherlands',52.31,4.77,'🇳🇱'],['EIN','Eindhoven','Netherlands',51.45,5.37,'🇳🇱'],
+['RTM','Rotterdam','Netherlands',51.95,4.44,'🇳🇱'],['MST','Maastricht','Netherlands',50.91,5.77,'🇳🇱'],
+['LHR','London Heathrow','UK',51.48,-0.46,'🇬🇧'],['LGW','London Gatwick','UK',51.15,-0.18,'🇬🇧'],
+['STN','London Stansted','UK',51.89,0.24,'🇬🇧'],['LTN','London Luton','UK',51.87,-0.37,'🇬🇧'],
+['LCY','London City','UK',51.50,0.06,'🇬🇧'],['MAN','Manchester','UK',53.36,-2.27,'🇬🇧'],
+['EDI','Edinburgh','UK',55.95,-3.37,'🇬🇧'],['GLA','Glasgow','UK',55.87,-4.43,'🇬🇧'],
+['BHX','Birmingham','UK',52.45,-1.75,'🇬🇧'],['BRS','Bristol','UK',51.38,-2.72,'🇬🇧'],
+['NCL','Newcastle','UK',55.04,-1.69,'🇬🇧'],['LPL','Liverpool','UK',53.33,-2.85,'🇬🇧'],
+['LBA','Leeds Bradford','UK',53.87,-1.66,'🇬🇧'],['ABZ','Aberdeen','UK',57.20,-2.20,'🇬🇧'],
+['INV','Inverness','UK',57.54,-4.05,'🇬🇧'],['BEL','Belfast','UK',54.62,-6.22,'🇬🇧'],
+['DUB','Dublin','Ireland',53.43,-6.27,'🇮🇪'],['ORK','Cork','Ireland',51.84,-8.49,'🇮🇪'],
+['SNN','Shannon','Ireland',52.70,-8.92,'🇮🇪'],['KIR','Kerry','Ireland',52.18,-9.52,'🇮🇪'],
+['CPH','Copenhagen','Denmark',55.62,12.65,'🇩🇰'],['AAL','Aalborg','Denmark',57.09,9.85,'🇩🇰'],
+['BLL','Billund','Denmark',55.74,9.15,'🇩🇰'],['OSL','Oslo','Norway',60.20,11.08,'🇳🇴'],
+['BGO','Bergen','Norway',60.29,5.22,'🇳🇴'],['SVG','Stavanger','Norway',58.88,5.64,'🇳🇴'],
+['TRD','Trondheim','Norway',63.46,10.93,'🇳🇴'],['TOS','Tromso','Norway',69.68,18.92,'🇳🇴'],
+['ARN','Stockholm Arlanda','Sweden',59.65,17.92,'🇸🇪'],['GOT','Gothenburg','Sweden',57.67,12.28,'🇸🇪'],
+['MMX','Malmo','Sweden',55.53,13.37,'🇸🇪'],['LLA','Lulea','Sweden',65.54,22.12,'🇸🇪'],
+['HEL','Helsinki','Finland',60.32,24.96,'🇫🇮'],['TMP','Tampere','Finland',61.41,23.60,'🇫🇮'],
+['TKU','Turku','Finland',60.51,22.26,'🇫🇮'],['OUL','Oulu','Finland',64.93,25.35,'🇫🇮'],
+['TLL','Tallinn','Estonia',59.41,24.83,'🇪🇪'],['RIX','Riga','Latvia',56.92,23.97,'🇱🇻'],
+['VNO','Vilnius','Lithuania',54.63,25.28,'🇱🇹'],['PLQ','Palanga','Lithuania',55.97,21.09,'🇱🇹'],
+['MAD','Madrid','Spain',40.47,-3.56,'🇪🇸'],['BCN','Barcelona','Spain',41.30,2.08,'🇪🇸'],
+['PMI','Palma','Spain',39.55,2.74,'🇪🇸'],['AGP','Malaga','Spain',36.67,-4.50,'🇪🇸'],
+['ALC','Alicante','Spain',38.28,-0.56,'🇪🇸'],['VLC','Valencia','Spain',39.49,-0.48,'🇪🇸'],
+['TFS','Tenerife South','Spain',28.04,-16.57,'🇪🇸'],['LPA','Gran Canaria','Spain',27.93,-15.39,'🇪🇸'],
+['IBZ','Ibiza','Spain',38.87,1.37,'🇪🇸'],['SVQ','Seville','Spain',37.42,-5.89,'🇪🇸'],
+['BIO','Bilbao','Spain',43.30,-2.91,'🇪🇸'],['VGO','Vigo','Spain',42.23,-8.63,'🇪🇸'],
+['SDR','Santander','Spain',43.43,-3.82,'🇪🇸'],['ACE','Lanzarote','Spain',28.95,-13.60,'🇪🇸'],
+['FUE','Fuerteventura','Spain',28.45,-13.86,'🇪🇸'],['MAH','Menorca','Spain',39.86,4.22,'🇪🇸'],
+['LIS','Lisbon','Portugal',38.77,-9.13,'🇵🇹'],['OPO','Porto','Portugal',41.24,-8.68,'🇵🇹'],
+['FAO','Faro','Portugal',37.01,-7.97,'🇵🇹'],['FNC','Funchal','Portugal',32.69,-16.77,'🇵🇹'],
+['PDL','Ponta Delgada','Portugal',37.74,-25.70,'🇵🇹'],['TER','Terceira','Portugal',38.76,-27.09,'🇵🇹'],
+['FCO','Rome Fiumicino','Italy',41.80,12.24,'🇮🇹'],['CIA','Rome Ciampino','Italy',41.80,12.59,'🇮🇹'],
+['MXP','Milan Malpensa','Italy',45.63,8.72,'🇮🇹'],['LIN','Milan Linate','Italy',45.45,9.28,'🇮🇹'],
+['BGY','Milan Bergamo','Italy',45.67,9.70,'🇮🇹'],['VCE','Venice','Italy',45.51,12.35,'🇮🇹'],
+['NAP','Naples','Italy',40.89,14.29,'🇮🇹'],['BLQ','Bologna','Italy',44.53,11.29,'🇮🇹'],
+['PMO','Palermo','Italy',38.18,13.10,'🇮🇹'],['CTA','Catania','Italy',37.47,15.07,'🇮🇹'],
+['BRI','Bari','Italy',41.14,16.76,'🇮🇹'],['PSA','Pisa','Italy',43.68,10.40,'🇮🇹'],
+['FLR','Florence','Italy',43.81,11.20,'🇮🇹'],['GOA','Genoa','Italy',44.41,8.84,'🇮🇹'],
+['TRN','Turin','Italy',45.20,7.65,'🇮🇹'],['VRN','Verona','Italy',45.40,10.89,'🇮🇹'],
+['ATH','Athens','Greece',37.94,23.95,'🇬🇷'],['SKG','Thessaloniki','Greece',40.52,22.97,'🇬🇷'],
+['HER','Heraklion','Greece',35.34,25.18,'🇬🇷'],['RHO','Rhodes','Greece',36.41,28.09,'🇬🇷'],
+['CFU','Corfu','Greece',39.60,19.91,'🇬🇷'],['JTR','Santorini','Greece',36.40,25.48,'🇬🇷'],
+['MJT','Mytilene','Greece',39.07,26.60,'🇬🇷'],['JSI','Skiathos','Greece',39.18,23.50,'🇬🇷'],
+['KGS','Kos','Greece',36.79,27.09,'🇬🇷'],['PVK','Preveza','Greece',38.93,20.77,'🇬🇷'],
+['IST','Istanbul','Turkey',41.27,28.74,'🇹🇷'],['SAW','Istanbul Sabiha','Turkey',40.90,29.31,'🇹🇷'],
+['AYT','Antalya','Turkey',36.90,30.80,'🇹🇷'],['ADB','Izmir','Turkey',38.29,27.16,'🇹🇷'],
+['ESB','Ankara','Turkey',40.13,32.99,'🇹🇷'],['BJV','Bodrum','Turkey',37.25,27.66,'🇹🇷'],
+['DLM','Dalaman','Turkey',36.71,28.79,'🇹🇷'],['TZX','Trabzon','Turkey',40.99,39.79,'🇹🇷'],
+['LCA','Larnaca','Cyprus',34.87,33.62,'🇨🇾'],['PFO','Paphos','Cyprus',34.72,32.49,'🇨🇾'],
+['MLA','Malta','Malta',35.86,14.48,'🇲🇹'],
+['DXB','Dubai','UAE',25.25,55.36,'🇦🇪'],['AUH','Abu Dhabi','UAE',24.44,54.65,'🇦🇪'],
+['SHJ','Sharjah','UAE',25.33,55.52,'🇦🇪'],['DOH','Doha','Qatar',25.27,51.61,'🇶🇦'],
+['BAH','Bahrain','Bahrain',26.27,50.64,'🇧🇭'],['KWI','Kuwait','Kuwait',29.23,47.97,'🇰🇼'],
+['MCT','Muscat','Oman',23.59,58.28,'🇴🇲'],['RUH','Riyadh','Saudi Arabia',24.96,46.70,'🇸🇦'],
+['JED','Jeddah','Saudi Arabia',21.68,39.16,'🇸🇦'],['DMM','Dammam','Saudi Arabia',26.47,49.80,'🇸🇦'],
+['AMM','Amman','Jordan',31.72,35.99,'🇯🇴'],['BGW','Baghdad','Iraq',33.26,44.23,'🇮🇶'],
+['TLV','Tel Aviv','Israel',32.01,34.89,'🇮🇱'],['CAI','Cairo','Egypt',30.11,31.41,'🇪🇬'],
+['HRG','Hurghada','Egypt',27.18,33.80,'🇪🇬'],['SSH','Sharm el Sheikh','Egypt',27.98,34.39,'🇪🇬'],
+['LXR','Luxor','Egypt',25.67,32.71,'🇪🇬'],['ALY','Alexandria','Egypt',31.18,29.95,'🇪🇬'],
+['CMN','Casablanca','Morocco',33.37,-7.59,'🇲🇦'],['RAK','Marrakech','Morocco',31.61,-8.04,'🇲🇦'],
+['FEZ','Fez','Morocco',33.93,-4.98,'🇲🇦'],['TNG','Tangier','Morocco',35.73,-5.92,'🇲🇦'],
+['OZZ','Ouarzazate','Morocco',30.94,-6.91,'🇲🇦'],['AGA','Agadir','Morocco',30.38,-9.41,'🇲🇦'],
+['TUN','Tunis','Tunisia',36.85,10.23,'🇹🇳'],['SFA','Sfax','Tunisia',34.72,10.69,'🇹🇳'],
+['DJE','Djerba','Tunisia',33.87,10.78,'🇹🇳'],['ALG','Algiers','Algeria',36.69,3.22,'🇩🇿'],
+['TIP','Tripoli','Libya',32.66,13.16,'🇱🇾'],
+['DEL','New Delhi','India',28.56,77.10,'🇮🇳'],['BOM','Mumbai','India',19.09,72.87,'🇮🇳'],
+['BLR','Bangalore','India',13.20,77.71,'🇮🇳'],['MAA','Chennai','India',12.99,80.17,'🇮🇳'],
+['CCU','Kolkata','India',22.65,88.45,'🇮🇳'],['HYD','Hyderabad','India',17.24,78.43,'🇮🇳'],
+['AMD','Ahmedabad','India',23.07,72.63,'🇮🇳'],['GOI','Goa','India',15.38,73.83,'🇮🇳'],
+['COK','Kochi','India',10.15,76.40,'🇮🇳'],['PNQ','Pune','India',18.58,73.92,'🇮🇳'],
+['KBL','Kabul','Afghanistan',34.57,69.21,'🇦🇫'],['ISB','Islamabad','Pakistan',33.61,73.10,'🇵🇰'],
+['KHI','Karachi','Pakistan',24.91,67.16,'🇵🇰'],['LHE','Lahore','Pakistan',31.52,74.40,'🇵🇰'],
+['DAC','Dhaka','Bangladesh',23.84,90.40,'🇧🇩'],['CMB','Colombo','Sri Lanka',7.18,79.88,'🇱🇰'],
+['KTM','Kathmandu','Nepal',27.70,85.36,'🇳🇵'],['RGN','Yangon','Myanmar',16.91,96.13,'🇲🇲'],
+['BKK','Bangkok','Thailand',13.69,100.75,'🇹🇭'],['HKT','Phuket','Thailand',8.11,98.30,'🇹🇭'],
+['CNX','Chiang Mai','Thailand',18.77,98.96,'🇹🇭'],['USM','Koh Samui','Thailand',9.55,100.06,'🇹🇭'],
+['KUL','Kuala Lumpur','Malaysia',2.74,101.71,'🇲🇾'],['PEN','Penang','Malaysia',5.30,100.28,'🇲🇾'],
+['SIN','Singapore','Singapore',1.36,103.99,'🇸🇬'],
+['CGK','Jakarta','Indonesia',-6.13,106.66,'🇮🇩'],['DPS','Bali','Indonesia',-8.75,115.17,'🇮🇩'],
+['SUB','Surabaya','Indonesia',-7.38,112.79,'🇮🇩'],['MNL','Manila','Philippines',14.51,121.02,'🇵🇭'],
+['CEB','Cebu','Philippines',10.31,123.98,'🇵🇭'],['HAN','Hanoi','Vietnam',21.22,105.81,'🇻🇳'],
+['SGN','Ho Chi Minh','Vietnam',10.82,106.65,'🇻🇳'],['DAD','Da Nang','Vietnam',16.04,108.20,'🇻🇳'],
+['PEK','Beijing','China',40.07,116.60,'🇨🇳'],['PVG','Shanghai','China',31.14,121.81,'🇨🇳'],
+['CAN','Guangzhou','China',23.39,113.30,'🇨🇳'],['CTU','Chengdu','China',30.57,103.96,'🇨🇳'],
+['SZX','Shenzhen','China',22.64,113.81,'🇨🇳'],['XMN','Xiamen','China',24.54,118.13,'🇨🇳'],
+['KMG','Kunming','China',24.99,102.74,'🇨🇳'],['WUH','Wuhan','China',30.78,114.21,'🇨🇳'],
+['HKG','Hong Kong','Hong Kong',22.31,113.92,'🇭🇰'],['TPE','Taipei','Taiwan',25.08,121.23,'🇹🇼'],
+['KHH','Kaohsiung','Taiwan',22.58,120.35,'🇹🇼'],['NRT','Tokyo Narita','Japan',35.77,140.39,'🇯🇵'],
+['HND','Tokyo Haneda','Japan',35.55,139.78,'🇯🇵'],['KIX','Osaka','Japan',34.43,135.24,'🇯🇵'],
+['NGO','Nagoya','Japan',34.86,136.81,'🇯🇵'],['FUK','Fukuoka','Japan',33.59,130.45,'🇯🇵'],
+['CTS','Sapporo','Japan',42.78,141.69,'🇯🇵'],['OKA','Okinawa','Japan',26.20,127.65,'🇯🇵'],
+['ICN','Seoul Incheon','South Korea',37.46,126.44,'🇰🇷'],['GMP','Seoul Gimpo','South Korea',37.56,126.80,'🇰🇷'],
+['PUS','Busan','South Korea',35.18,128.94,'🇰🇷'],
+['SYD','Sydney','Australia',-33.94,151.18,'🇦🇺'],['MEL','Melbourne','Australia',-37.67,144.84,'🇦🇺'],
+['BNE','Brisbane','Australia',-27.39,153.12,'🇦🇺'],['PER','Perth','Australia',-31.94,115.97,'🇦🇺'],
+['ADL','Adelaide','Australia',-34.95,138.53,'🇦🇺'],['CBR','Canberra','Australia',-35.31,149.19,'🇦🇺'],
+['OOL','Gold Coast','Australia',-28.16,153.50,'🇦🇺'],['CNS','Cairns','Australia',-16.89,145.75,'🇦🇺'],
+['AKL','Auckland','New Zealand',-37.01,174.79,'🇳🇿'],['CHC','Christchurch','New Zealand',-43.49,172.53,'🇳🇿'],
+['WLG','Wellington','New Zealand',-41.33,174.80,'🇳🇿'],['ZQN','Queenstown','New Zealand',-45.02,168.74,'🇳🇿'],
+['JFK','New York JFK','USA',40.64,-73.78,'🇺🇸'],['LGA','New York LaGuardia','USA',40.78,-73.87,'🇺🇸'],
+['EWR','Newark','USA',40.69,-74.17,'🇺🇸'],['LAX','Los Angeles','USA',33.94,-118.41,'🇺🇸'],
+['ORD','Chicago O\'Hare','USA',41.98,-87.91,'🇺🇸'],['MDW','Chicago Midway','USA',41.79,-87.75,'🇺🇸'],
+['ATL','Atlanta','USA',33.64,-84.43,'🇺🇸'],['DFW','Dallas','USA',32.90,-97.04,'🇺🇸'],
+['DEN','Denver','USA',39.86,-104.67,'🇺🇸'],['SFO','San Francisco','USA',37.62,-122.38,'🇺🇸'],
+['SEA','Seattle','USA',47.45,-122.31,'🇺🇸'],['MIA','Miami','USA',25.80,-80.29,'🇺🇸'],
+['BOS','Boston','USA',42.37,-71.01,'🇺🇸'],['IAD','Washington Dulles','USA',38.94,-77.46,'🇺🇸'],
+['DCA','Washington Reagan','USA',38.85,-77.04,'🇺🇸'],['PHX','Phoenix','USA',33.44,-112.01,'🇺🇸'],
+['LAS','Las Vegas','USA',36.08,-115.15,'🇺🇸'],['MCO','Orlando','USA',28.43,-81.31,'🇺🇸'],
+['MSP','Minneapolis','USA',44.88,-93.22,'🇺🇸'],['DTW','Detroit','USA',42.21,-83.35,'🇺🇸'],
+['CLT','Charlotte','USA',35.21,-80.94,'🇺🇸'],['IAH','Houston Intercontinental','USA',29.99,-95.34,'🇺🇸'],
+['HOU','Houston Hobby','USA',29.65,-95.28,'🇺🇸'],['SAN','San Diego','USA',32.73,-117.19,'🇺🇸'],
+['TPA','Tampa','USA',27.97,-82.53,'🇺🇸'],['STL','St. Louis','USA',38.75,-90.37,'🇺🇸'],
+['BNA','Nashville','USA',36.12,-86.68,'🇺🇸'],['AUS','Austin','USA',30.19,-97.67,'🇺🇸'],
+['SLC','Salt Lake City','USA',40.79,-111.98,'🇺🇸'],['PDX','Portland','USA',45.59,-122.60,'🇺🇸'],
+['MCI','Kansas City','USA',39.30,-94.71,'🇺🇸'],['RDU','Raleigh','USA',35.88,-78.79,'🇺🇸'],
+['PIT','Pittsburgh','USA',40.49,-80.23,'🇺🇸'],['CMH','Columbus','USA',39.99,-82.89,'🇺🇸'],
+['OAK','Oakland','USA',37.72,-122.22,'🇺🇸'],['SJC','San Jose','USA',37.36,-121.93,'🇺🇸'],
+['YYZ','Toronto','Canada',43.68,-79.63,'🇨🇦'],['YVR','Vancouver','Canada',49.19,-123.18,'🇨🇦'],
+['YUL','Montreal','Canada',45.47,-73.74,'🇨🇦'],['YYC','Calgary','Canada',51.11,-114.02,'🇨🇦'],
+['YEG','Edmonton','Canada',53.31,-113.58,'🇨🇦'],['YOW','Ottawa','Canada',45.32,-75.67,'🇨🇦'],
+['YWG','Winnipeg','Canada',49.91,-97.23,'🇨🇦'],['YHZ','Halifax','Canada',44.88,-63.51,'🇨🇦'],
+['MEX','Mexico City','Mexico',19.43,-99.07,'🇲🇽'],['CUN','Cancun','Mexico',21.04,-86.87,'🇲🇽'],
+['GDL','Guadalajara','Mexico',20.52,-103.31,'🇲🇽'],['MTY','Monterrey','Mexico',25.78,-100.11,'🇲🇽'],
+['SJD','Los Cabos','Mexico',23.15,-109.72,'🇲🇽'],['PVR','Puerto Vallarta','Mexico',20.68,-105.25,'🇲🇽'],
+['GRU','Sao Paulo','Brazil',-23.43,-46.47,'🇧🇷'],['GIG','Rio de Janeiro','Brazil',-22.81,-43.25,'🇧🇷'],
+['BSB','Brasilia','Brazil',-15.87,-47.92,'🇧🇷'],['SSA','Salvador','Brazil',-12.91,-38.33,'🇧🇷'],
+['FOR','Fortaleza','Brazil',-3.78,-38.53,'🇧🇷'],['REC','Recife','Brazil',-8.13,-34.92,'🇧🇷'],
+['EZE','Buenos Aires','Argentina',-34.82,-58.54,'🇦🇷'],['AEP','Buenos Aires City','Argentina',-34.56,-58.42,'🇦🇷'],
+['COR','Cordoba','Argentina',-31.32,-64.21,'🇦🇷'],['SCL','Santiago','Chile',-33.39,-70.79,'🇨🇱'],
+['LIM','Lima','Peru',-12.02,-77.11,'🇵🇪'],['BOG','Bogota','Colombia',4.70,-74.15,'🇨🇴'],
+['MDE','Medellin','Colombia',6.17,-75.42,'🇨🇴'],['UIO','Quito','Ecuador',-0.13,-78.49,'🇪🇨'],
+['GYE','Guayaquil','Ecuador',-2.16,-79.88,'🇪🇨'],['ASU','Asuncion','Paraguay',-25.24,-57.52,'🇵🇾'],
+['MVD','Montevideo','Uruguay',-34.84,-56.03,'🇺🇾'],['LPB','La Paz','Bolivia',-16.51,-68.19,'🇧🇴'],
+['NBO','Nairobi','Kenya',-1.32,36.93,'🇰🇪'],['MBA','Mombasa','Kenya',-4.03,39.59,'🇰🇪'],
+['JNB','Johannesburg','South Africa',-26.14,28.24,'🇿🇦'],['CPT','Cape Town','South Africa',-33.97,18.60,'🇿🇦'],
+['DUR','Durban','South Africa',-29.97,30.95,'🇿🇦'],['ADD','Addis Ababa','Ethiopia',8.98,38.80,'🇪🇹'],
+['DAR','Dar es Salaam','Tanzania',-6.88,39.20,'🇹🇿'],['EBB','Entebbe','Uganda',0.04,32.44,'🇺🇬'],
+['KGL','Kigali','Rwanda',-1.97,30.14,'🇷🇼'],['LOS','Lagos','Nigeria',6.58,3.33,'🇳🇬'],
+['ABV','Abuja','Nigeria',9.00,7.26,'🇳🇬'],['ACC','Accra','Ghana',5.61,-0.17,'🇬🇭'],
+['ABJ','Abidjan','Ivory Coast',5.26,-3.93,'🇨🇮'],['DKR','Dakar','Senegal',14.74,-17.49,'🇸🇳'],
+['CMN','Casablanca','Morocco',33.37,-7.59,'🇲🇦'],
+['GRU','Sao Paulo','Brazil',-23.43,-46.47,'🇧🇷'],
+['SVO','Moscow Sheremetyevo','Russia',55.97,37.41,'🇷🇺'],['DME','Moscow Domodedovo','Russia',55.41,37.90,'🇷🇺'],
+['LED','St Petersburg','Russia',59.80,30.26,'🇷🇺'],['KZN','Kazan','Russia',55.61,49.28,'🇷🇺'],
+['SVX','Yekaterinburg','Russia',56.74,60.80,'🇷🇺'],['OVB','Novosibirsk','Russia',54.97,82.90,'🇷🇺'],
+['KRR','Krasnodar','Russia',45.03,39.17,'🇷🇺'],['MRV','Mineralnye Vody','Russia',44.23,43.08,'🇷🇺'],
+['GYD','Baku','Azerbaijan',40.47,50.05,'🇦🇿'],['TBS','Tbilisi','Georgia',41.67,44.95,'🇬🇪'],
+['EVN','Yerevan','Armenia',40.15,44.40,'🇦🇲'],['ALA','Almaty','Kazakhstan',43.35,77.04,'🇰🇿'],
+['NQZ','Astana','Kazakhstan',51.02,71.47,'🇰🇿'],['TAS','Tashkent','Uzbekistan',41.26,69.28,'🇺🇿'],
+['FRU','Bishkek','Kyrgyzstan',43.06,74.48,'🇰🇬'],['DYU','Dushanbe','Tajikistan',38.54,68.77,'🇹🇯'],
+['ASB','Ashgabat','Turkmenistan',37.99,58.36,'🇹🇲'],
+['HEL','Helsinki','Finland',60.32,24.96,'🇫🇮'],
+['RKV','Reykjavik','Iceland',64.13,-21.94,'🇮🇸'],['KEF','Keflavik','Iceland',63.99,-22.63,'🇮🇸'],
+['LUX','Luxembourg','Luxembourg',49.63,6.21,'🇱🇺'],
+['SKD','Samarkand','Uzbekistan',39.70,66.98,'🇺🇿'],
+['AGP','Malaga','Spain',36.67,-4.50,'🇪🇸'],
+['MLX','Malatya','Turkey',38.44,38.09,'🇹🇷'],['VAN','Van','Turkey',38.47,43.33,'🇹🇷'],
+['DIY','Diyarbakir','Turkey',37.89,40.20,'🇹🇷'],['SZF','Samsun','Turkey',41.25,36.59,'🇹🇷'],
+['KYA','Konya','Turkey',37.98,32.56,'🇹🇷'],['MLX','Malatya','Turkey',38.44,38.09,'🇹🇷'],
+['NAT','Natal','Brazil',-5.91,-35.24,'🇧🇷'],['CGH','Sao Paulo Congonhas','Brazil',-23.63,-46.66,'🇧🇷'],
+['CWB','Curitiba','Brazil',-25.53,-49.17,'🇧🇷'],['POA','Porto Alegre','Brazil',-29.99,-51.17,'🇧🇷'],
+['BEL','Belem','Brazil',-1.38,-48.48,'🇧🇷'],['MAO','Manaus','Brazil',-3.04,-60.05,'🇧🇷'],
+['CGB','Cuiaba','Brazil',-15.65,-56.12,'🇧🇷'],['VCP','Campinas','Brazil',-23.01,-47.13,'🇧🇷'],
+['FLN','Florianopolis','Brazil',-27.67,-48.55,'🇧🇷'],['THE','Teresina','Brazil',-5.06,-42.82,'🇧🇷'],
 ];
+
+// Build AIRPORTS array from raw data
+const AIRPORTS = AP_RAW.map(function(r) {
+  return {c:r[0], city:r[1], country:r[2], lat:r[3], lon:r[4], f:r[5], n:r[1]+' Airport'};
+});
+
+// Build coordinate lookup for weather
+const AP_COORDS = {};
+AIRPORTS.forEach(function(a) { AP_COORDS[a.c] = {lat:a.lat, lon:a.lon}; });
 
 // ── AIRPORT SEARCH ─────────────────────────────────────────────
 function searchAP(q) {
@@ -531,11 +614,11 @@ function searchAP(q) {
   for (var i=0; i<AIRPORTS.length; i++) {
     var a=AIRPORTS[i];
     var ac=a.c.toLowerCase(), ci=(a.city||'').toLowerCase();
-    var co=(a.country||'').toLowerCase(), na=(a.n||'').toLowerCase();
+    var co=(a.country||'').toLowerCase();
     if (ac===q) { exact.push(a); continue; }
     if (ac.startsWith(q)) { code.push(a); continue; }
     if (ci.startsWith(q)) { city.push(a); continue; }
-    if (ci.includes(q)||co.startsWith(q)||co.includes(q)||na.includes(q)) rest.push(a);
+    if (ci.includes(q)||co.startsWith(q)||co.includes(q)) rest.push(a);
   }
   return exact.concat(code).concat(city).concat(rest).slice(0,12);
 }
@@ -592,8 +675,6 @@ document.getElementById('modal-results').addEventListener('click', function(e) {
 });
 
 document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
-
-// ── FIXED: click-only listeners (no tapOn double-fire bug) ─────
 document.getElementById('field-f').addEventListener('click', function(){ openModal('f'); });
 document.getElementById('field-t').addEventListener('click', function(){ openModal('t'); });
 
@@ -615,10 +696,7 @@ var dpSelected=new Date(); dpSelected.setHours(0,0,0,0);
 function fmtDate(d){ return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
 function setToday(){ dpSelected=new Date(); dpSelected.setHours(0,0,0,0); document.getElementById('date-display').textContent=fmtDate(dpSelected); }
 
-function openDP() {
-  dpYear=dpSelected.getFullYear(); dpMonth=dpSelected.getMonth();
-  renderDP(); document.getElementById('date-modal').classList.add('open');
-}
+function openDP() { dpYear=dpSelected.getFullYear(); dpMonth=dpSelected.getMonth(); renderDP(); document.getElementById('date-modal').classList.add('open'); }
 function closeDP(){ document.getElementById('date-modal').classList.remove('open'); }
 
 function renderDP() {
@@ -643,9 +721,7 @@ function renderDP() {
     else if (tooOld){ cell.style.color='rgba(255,255,255,.15)'; cell.style.cursor='default'; }
     else { cell.style.color='#fff'; }
     if (!tooOld) {
-      (function(y,m,day){
-        cell.addEventListener('click',function(){ dpSelected=new Date(y,m,day); dpSelected.setHours(0,0,0,0); renderDP(); });
-      })(dpYear,dpMonth,d);
+      (function(y,m,day){ cell.addEventListener('click',function(){ dpSelected=new Date(y,m,day); dpSelected.setHours(0,0,0,0); renderDP(); }); })(dpYear,dpMonth,d);
     }
     grid.appendChild(cell);
   }
@@ -655,101 +731,392 @@ document.getElementById('dp-prev').addEventListener('click',function(){ dpMonth-
 document.getElementById('dp-next').addEventListener('click',function(){ dpMonth++; if(dpMonth>11){dpMonth=0;dpYear++;} renderDP(); });
 document.getElementById('dp-confirm-btn').addEventListener('click',function(){ document.getElementById('date-display').textContent=fmtDate(dpSelected); closeDP(); });
 document.getElementById('dp-cancel-btn').addEventListener('click',closeDP);
-
-document.getElementById('date-row').addEventListener('click', function(e) {
-  if (e.target.id === 'today-btn') return;
-  openDP();
-});
-document.getElementById('today-btn').addEventListener('click', function(e) {
-  e.stopPropagation();
-  setToday();
-});
+document.getElementById('date-row').addEventListener('click', function(e){ if(e.target.id==='today-btn') return; openDP(); });
+document.getElementById('today-btn').addEventListener('click', function(e){ e.stopPropagation(); setToday(); });
 setToday();
 
-// ── AIRCRAFT DATABASE ──────────────────────────────────────────
-var ACMAP = {
-  '319':'A319','32A':'A319','320':'A320','32B':'A320','32N':'A320',
-  '321':'A321','32Q':'A321','32S':'A321','737':'B737','73H':'B737',
-  '73W':'B737','738':'B738','7M8':'B738','772':'B772','77W':'B772',
-  '77L':'B772','788':'B788','789':'B788','78J':'B788','330':'A330',
-  '332':'A330','333':'A330','338':'A330','350':'A350','359':'A350',
-  '351':'A350','388':'A388','380':'A388','DH8':'DH8D','DH4':'DH8D',
-  'DHC':'DH8D','DH3':'DH8D','AT7':'AT72','AT5':'AT72','AT4':'AT72',
-  'E70':'E170','E75':'E175','E90':'E190','E95':'E195','CR7':'CRJ7',
-  'CR9':'CRJ9','CRJ':'CRJ9','BCS':'A223','221':'A223','223':'A223'
+// ── 75 AIRCRAFT DATABASE ───────────────────────────────────────
+// Format: rows, cols array, biz rows, wing start, wing end
+const AIRCRAFT = {
+  // AIRBUS NARROW
+  'A318':{ name:'Airbus A318', rows:24, cols:['A','B','C','D','E','F'], biz:2, ws:10, we:16 },
+  'A319':{ name:'Airbus A319', rows:26, cols:['A','B','C','D','E','F'], biz:3, ws:11, we:17 },
+  'A319N':{ name:'Airbus A319neo', rows:26, cols:['A','B','C','D','E','F'], biz:3, ws:11, we:17 },
+  'A320':{ name:'Airbus A320', rows:30, cols:['A','B','C','D','E','F'], biz:4, ws:12, we:20 },
+  'A320N':{ name:'Airbus A320neo', rows:30, cols:['A','B','C','D','E','F'], biz:4, ws:12, we:20 },
+  'A321':{ name:'Airbus A321', rows:35, cols:['A','B','C','D','E','F'], biz:4, ws:13, we:23 },
+  'A321N':{ name:'Airbus A321neo', rows:35, cols:['A','B','C','D','E','F'], biz:4, ws:13, we:23 },
+  'A321LR':{ name:'Airbus A321LR', rows:35, cols:['A','B','C','D','E','F'], biz:5, ws:13, we:23 },
+  'A321XLR':{ name:'Airbus A321XLR', rows:35, cols:['A','B','C','D','E','F'], biz:5, ws:13, we:23 },
+  'A220-1':{ name:'Airbus A220-100', rows:22, cols:['A','B','C','D','E'], biz:0, ws:8, we:15 },
+  'A220-3':{ name:'Airbus A220-300', rows:29, cols:['A','B','C','D','E'], biz:2, ws:10, we:18 },
+  // AIRBUS WIDE
+  'A300-6':{ name:'Airbus A300-600', rows:40, cols:['A','B','C','D','E','F','G','H'], biz:6, ws:17, we:28 },
+  'A310':{ name:'Airbus A310', rows:38, cols:['A','B','C','D','E','F','G','H'], biz:6, ws:16, we:26 },
+  'A330-2':{ name:'Airbus A330-200', rows:36, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:14, we:24 },
+  'A330-3':{ name:'Airbus A330-300', rows:40, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:16, we:27 },
+  'A330-8':{ name:'Airbus A330-800neo', rows:36, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:14, we:24 },
+  'A330-9':{ name:'Airbus A330-900neo', rows:40, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:16, we:27 },
+  'A340-3':{ name:'Airbus A340-300', rows:40, cols:['A','B','C','D','E','F','G','H','J'], biz:7, ws:17, we:28 },
+  'A340-5':{ name:'Airbus A340-500', rows:42, cols:['A','B','C','D','E','F','G','H','J'], biz:7, ws:18, we:30 },
+  'A340-6':{ name:'Airbus A340-600', rows:48, cols:['A','B','C','D','E','F','G','H','J'], biz:7, ws:20, we:33 },
+  'A350-9':{ name:'Airbus A350-900', rows:36, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:16, we:27 },
+  'A350-1':{ name:'Airbus A350-1000', rows:42, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:18, we:30 },
+  'A380':{ name:'Airbus A380-800', rows:58, cols:['A','B','C','D','E','F','G','H','J'], biz:10, ws:23, we:40 },
+  // BOEING NARROW
+  'B717':{ name:'Boeing 717', rows:24, cols:['A','B','C','D','E'], biz:2, ws:9, we:16 },
+  'B727':{ name:'Boeing 727-200', rows:30, cols:['A','B','C','D','E','F'], biz:4, ws:12, we:20 },
+  'B732':{ name:'Boeing 737-200', rows:28, cols:['A','B','C','D','E','F'], biz:3, ws:10, we:18 },
+  'B733':{ name:'Boeing 737-300', rows:28, cols:['A','B','C','D','E','F'], biz:3, ws:11, we:18 },
+  'B734':{ name:'Boeing 737-400', rows:31, cols:['A','B','C','D','E','F'], biz:3, ws:12, we:20 },
+  'B735':{ name:'Boeing 737-500', rows:25, cols:['A','B','C','D','E','F'], biz:3, ws:10, we:16 },
+  'B736':{ name:'Boeing 737-600', rows:26, cols:['A','B','C','D','E','F'], biz:3, ws:10, we:17 },
+  'B737':{ name:'Boeing 737-700', rows:28, cols:['A','B','C','D','E','F'], biz:3, ws:11, we:18 },
+  'B738':{ name:'Boeing 737-800', rows:32, cols:['A','B','C','D','E','F'], biz:3, ws:12, we:21 },
+  'B739':{ name:'Boeing 737-900ER', rows:34, cols:['A','B','C','D','E','F'], biz:3, ws:13, we:22 },
+  'B37M':{ name:'Boeing 737 MAX 7', rows:28, cols:['A','B','C','D','E','F'], biz:3, ws:11, we:18 },
+  'B38M':{ name:'Boeing 737 MAX 8', rows:32, cols:['A','B','C','D','E','F'], biz:3, ws:12, we:21 },
+  'B39M':{ name:'Boeing 737 MAX 9', rows:34, cols:['A','B','C','D','E','F'], biz:3, ws:13, we:22 },
+  'B3XM':{ name:'Boeing 737 MAX 10', rows:36, cols:['A','B','C','D','E','F'], biz:3, ws:14, we:23 },
+  'B752':{ name:'Boeing 757-200', rows:36, cols:['A','B','C','D','E','F'], biz:5, ws:14, we:24 },
+  'B753':{ name:'Boeing 757-300', rows:40, cols:['A','B','C','D','E','F'], biz:5, ws:16, we:27 },
+  // BOEING WIDE
+  'B741':{ name:'Boeing 747-100', rows:45, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:18, we:32 },
+  'B742':{ name:'Boeing 747-200', rows:45, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:18, we:32 },
+  'B743':{ name:'Boeing 747-300', rows:46, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:19, we:33 },
+  'B744':{ name:'Boeing 747-400', rows:50, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:20, we:35 },
+  'B748':{ name:'Boeing 747-8', rows:52, cols:['A','B','C','D','E','F','G','H','J'], biz:9, ws:21, we:37 },
+  'B762':{ name:'Boeing 767-200', rows:33, cols:['A','B','C','D','E','F','G'], biz:5, ws:13, we:22 },
+  'B763':{ name:'Boeing 767-300ER', rows:36, cols:['A','B','C','D','E','F','G'], biz:6, ws:14, we:24 },
+  'B764':{ name:'Boeing 767-400ER', rows:38, cols:['A','B','C','D','E','F','G'], biz:6, ws:15, we:26 },
+  'B772':{ name:'Boeing 777-200ER', rows:40, cols:['A','B','C','D','E','F','G','H','J'], biz:7, ws:18, we:29 },
+  'B77L':{ name:'Boeing 777-200LR', rows:40, cols:['A','B','C','D','E','F','G','H','J'], biz:7, ws:18, we:29 },
+  'B773':{ name:'Boeing 777-300ER', rows:52, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:22, we:37 },
+  'B779':{ name:'Boeing 777X-9', rows:52, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:22, we:37 },
+  'B788':{ name:'Boeing 787-8', rows:32, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:14, we:23 },
+  'B789':{ name:'Boeing 787-9', rows:36, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:16, we:26 },
+  'B78X':{ name:'Boeing 787-10', rows:40, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:17, we:28 },
+  // EMBRAER
+  'E135':{ name:'Embraer ERJ-135', rows:14, cols:['A','C','D'], biz:0, ws:5, we:10 },
+  'E145':{ name:'Embraer ERJ-145', rows:19, cols:['A','C','D'], biz:0, ws:7, we:13 },
+  'E170':{ name:'Embraer E170', rows:18, cols:['A','B','C','D'], biz:0, ws:7, we:12 },
+  'E175':{ name:'Embraer E175', rows:20, cols:['A','B','C','D'], biz:0, ws:7, we:13 },
+  'E190':{ name:'Embraer E190', rows:25, cols:['A','B','C','D'], biz:0, ws:9, we:16 },
+  'E195':{ name:'Embraer E195', rows:30, cols:['A','B','C','D'], biz:0, ws:10, we:18 },
+  'E290':{ name:'Embraer E190-E2', rows:25, cols:['A','B','C','D'], biz:0, ws:9, we:16 },
+  'E295':{ name:'Embraer E195-E2', rows:30, cols:['A','B','C','D'], biz:0, ws:10, we:18 },
+  'E120':{ name:'Embraer EMB-120', rows:10, cols:['A','B','C'], biz:0, ws:4, we:7 },
+  // BOMBARDIER / DHC
+  'CRJ2':{ name:'Bombardier CRJ-200', rows:13, cols:['A','C','D'], biz:0, ws:5, we:9 },
+  'CRJ7':{ name:'Bombardier CRJ-700', rows:16, cols:['A','B','C','D'], biz:0, ws:6, we:11 },
+  'CRJ9':{ name:'Bombardier CRJ-900', rows:19, cols:['A','B','C','D'], biz:0, ws:7, we:13 },
+  'CRJX':{ name:'Bombardier CRJ-1000', rows:22, cols:['A','B','C','D'], biz:0, ws:8, we:15 },
+  'DH8A':{ name:'Dash 8-Q100', rows:9, cols:['A','C','D','F'], biz:0, ws:3, we:6 },
+  'DH8B':{ name:'Dash 8-Q200', rows:11, cols:['A','C','D','F'], biz:0, ws:4, we:8 },
+  'DH8C':{ name:'Dash 8-Q300', rows:15, cols:['A','C','D','F'], biz:0, ws:5, we:10 },
+  'DH8D':{ name:'Dash 8-Q400', rows:19, cols:['A','C','D','F'], biz:0, ws:7, we:13 },
+  // ATR
+  'AT43':{ name:'ATR 42-300', rows:11, cols:['A','C','D','F'], biz:0, ws:4, we:8 },
+  'AT45':{ name:'ATR 42-500', rows:12, cols:['A','C','D','F'], biz:0, ws:4, we:8 },
+  'AT46':{ name:'ATR 42-600', rows:12, cols:['A','C','D','F'], biz:0, ws:4, we:9 },
+  'AT72':{ name:'ATR 72-200', rows:16, cols:['A','C','D','F'], biz:0, ws:5, we:11 },
+  'AT75':{ name:'ATR 72-500', rows:17, cols:['A','C','D','F'], biz:0, ws:6, we:12 },
+  'AT76':{ name:'ATR 72-600', rows:18, cols:['A','C','D','F'], biz:0, ws:6, we:12 },
 };
 
-var AIRCRAFT = {
-  DH8D:{ name:'Bombardier Q400', rows:19, cols:['A','C','D','F'], biz:0, ws:7, we:13 },
-  AT72:{ name:'ATR 72-600', rows:17, cols:['A','C','D','F'], biz:0, ws:5, we:11 },
-  A319:{ name:'Airbus A319', rows:24, cols:['A','B','C','D','E','F'], biz:3, ws:10, we:17 },
-  A320:{ name:'Airbus A320', rows:30, cols:['A','B','C','D','E','F'], biz:4, ws:11, we:19 },
-  A321:{ name:'Airbus A321', rows:34, cols:['A','B','C','D','E','F'], biz:4, ws:13, we:22 },
-  A223:{ name:'Airbus A220-300', rows:26, cols:['A','B','C','D','E'], biz:0, ws:9, we:17 },
-  B737:{ name:'Boeing 737-800', rows:31, cols:['A','B','C','D','E','F'], biz:3, ws:12, we:20 },
-  B738:{ name:'Boeing 737 MAX 8', rows:31, cols:['A','B','C','D','E','F'], biz:3, ws:12, we:20 },
-  E190:{ name:'Embraer E190', rows:25, cols:['A','B','C','D'], biz:0, ws:8, we:15 },
-  E195:{ name:'Embraer E195', rows:30, cols:['A','B','C','D'], biz:0, ws:9, we:17 },
-  E175:{ name:'Embraer E175', rows:20, cols:['A','B','C','D'], biz:0, ws:7, we:13 },
-  E170:{ name:'Embraer E170', rows:18, cols:['A','B','C','D'], biz:0, ws:6, we:12 },
-  CRJ9:{ name:'Bombardier CRJ-900', rows:18, cols:['A','B','C','D'], biz:0, ws:6, we:12 },
-  CRJ7:{ name:'Bombardier CRJ-700', rows:15, cols:['A','B','C','D'], biz:0, ws:5, we:10 },
-  B772:{ name:'Boeing 777-200', rows:39, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:18, we:28 },
-  B788:{ name:'Boeing 787-8', rows:32, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:14, we:24 },
-  B789:{ name:'Boeing 787-9', rows:35, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:15, we:26 },
-  A330:{ name:'Airbus A330', rows:36, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:15, we:26 },
-  A350:{ name:'Airbus A350', rows:35, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:17, we:28 },
-  A388:{ name:'Airbus A380', rows:50, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:20, we:35 },
+// IATA code mapping to internal aircraft keys
+const ACMAP = {
+  // Airbus narrow
+  '318':'A318','32A':'A318',
+  '319':'A319','32K':'A319',
+  '31N':'A319N',
+  '320':'A320','32B':'A320',
+  '32N':'A320N','32Q':'A320N',
+  '321':'A321','32S':'A321',
+  '32Q':'A321N','321N':'A321N',
+  '32L':'A321LR',
+  '32X':'A321XLR',
+  '221':'A220-1','BCS1':'A220-1',
+  '223':'A220-3','BCS3':'A220-3','BCS':'A220-3',
+  // Airbus wide
+  'AB6':'A300-6','ABB':'A300-6',
+  '310':'A310','312':'A310','313':'A310',
+  '332':'A330-2','330':'A330-2',
+  '333':'A330-3',
+  '338':'A330-8',
+  '339':'A330-9',
+  '343':'A340-3','340':'A340-3',
+  '345':'A340-5',
+  '346':'A340-6',
+  '359':'A350-9','350':'A350-9',
+  '351':'A350-1',
+  '380':'A380','388':'A380',
+  // Boeing narrow
+  '717':'B717',
+  '722':'B727',
+  '732':'B732',
+  '733':'B733',
+  '734':'B734',
+  '735':'B735',
+  '736':'B736',
+  '737':'B737','73G':'B737','73W':'B737',
+  '738':'B738','73H':'B738',
+  '739':'B739','73J':'B739',
+  '7M7':'B37M',
+  '7M8':'B38M','38M':'B38M',
+  '7M9':'B39M',
+  '7MJ':'B3XM',
+  '752':'B752','757':'B752',
+  '753':'B753',
+  // Boeing wide
+  '741':'B741',
+  '742':'B742',
+  '743':'B743',
+  '744':'B744','747':'B744',
+  '748':'B748',
+  '762':'B762',
+  '763':'B763','767':'B763',
+  '764':'B764',
+  '772':'B772','777':'B772',
+  '77L':'B77L',
+  '773':'B773','77W':'B773',
+  '779':'B779','77X':'B779',
+  '788':'B788',
+  '789':'B789',
+  '78J':'B78X','78X':'B78X',
+  // Embraer
+  'E35':'E135','ERJ':'E135',
+  'E45':'E145',
+  'E70':'E170','170':'E170',
+  'E75':'E175','175':'E175',
+  'E90':'E190','190':'E190',
+  'E95':'E195','195':'E195',
+  '290':'E290','E2':'E290',
+  '295':'E295',
+  'EM2':'E120','120':'E120',
+  // Bombardier
+  'CR2':'CRJ2','CRJ':'CRJ2',
+  'CR7':'CRJ7',
+  'CR9':'CRJ9',
+  'CRX':'CRJX',
+  'DH1':'DH8A','DHC':'DH8A',
+  'DH2':'DH8B',
+  'DH3':'DH8C',
+  'DH4':'DH8D','DH8':'DH8D','Q40':'DH8D',
+  // ATR
+  'AT4':'AT43',
+  'AT5':'AT45',
+  'AT6':'AT46',
+  'AT7':'AT72',
+  'ATR':'AT72',
+  'AT75':'AT75',
+  'AT76':'AT76',
 };
 
-var FLEET = {
-  'OU':{ def:'DH8D', routes:{'ZAG-ZRH':'DH8D','ZRH-ZAG':'DH8D','LJU-ZAG':'DH8D','ZAG-LJU':'DH8D','ZAG-FRA':'A320','FRA-ZAG':'A320','ZAG-LHR':'A320','LHR-ZAG':'A320','ZAG-AMS':'A320','AMS-ZAG':'A320','ZAG-CDG':'A320','CDG-ZAG':'A320','ZAG-MUC':'DH8D','MUC-ZAG':'DH8D','ZAG-VIE':'DH8D','VIE-ZAG':'DH8D'} },
-  'OS':{ def:'DH8D', routes:{'VIE-LHR':'B772','LHR-VIE':'B772','VIE-JFK':'B772','JFK-VIE':'B772','VIE-ZRH':'DH8D','ZRH-VIE':'DH8D','VIE-FRA':'DH8D','FRA-VIE':'DH8D','VIE-MUC':'DH8D','MUC-VIE':'DH8D','VIE-CDG':'A320','CDG-VIE':'A320','VIE-AMS':'A320','AMS-VIE':'A320'} },
-  'LH':{ def:'A320', routes:{'FRA-LHR':'A319','LHR-FRA':'A319','FRA-JFK':'A350','JFK-FRA':'A350'} },
-  'LX':{ def:'A320', routes:{'ZRH-LJU':'E195','LJU-ZRH':'E195','ZRH-ZAG':'E195','ZAG-ZRH':'E195','ZRH-LHR':'A223','LHR-ZRH':'A223','ZRH-JFK':'A330','JFK-ZRH':'A330'} },
-  'JP':{ def:'A319', routes:{} },
+// Fleet defaults per airline
+const FLEET = {
+  'OU':{ def:'DH8D', routes:{'ZAG-ZRH':'DH8D','ZRH-ZAG':'DH8D','LJU-ZAG':'DH8D','ZAG-LJU':'DH8D','ZAG-FRA':'A320','ZAG-LHR':'A320','ZAG-AMS':'A320','ZAG-CDG':'A320','ZAG-MUC':'DH8D','ZAG-VIE':'DH8D'} },
+  'OS':{ def:'B738', routes:{'VIE-LHR':'B772','VIE-JFK':'B772','VIE-ZRH':'A319','VIE-FRA':'A319','VIE-MUC':'A319','VIE-CDG':'A320','VIE-AMS':'A320'} },
+  'LH':{ def:'A320', routes:{'FRA-LHR':'A319','FRA-JFK':'A350-9','FRA-LAX':'B789','FRA-BKK':'A350-9'} },
+  'LX':{ def:'A320', routes:{'ZRH-LJU':'E195','LJU-ZRH':'E195','ZRH-LHR':'A220-3','ZRH-JFK':'A330-3','ZRH-SIN':'A330-3','ZRH-DOH':'A340-3'} },
+  'JP':{ def:'A319', routes:{'LJU-FRA':'A319','LJU-ZRH':'A319','LJU-LHR':'A319','LJU-CDG':'A319','LJU-AMS':'A319'} },
   'U2':{ def:'A320', routes:{} },
-  'FR':{ def:'B738', routes:{} },
+  'FR':{ def:'B38M', routes:{} },
   'W6':{ def:'A321', routes:{} },
-  'BA':{ def:'A320', routes:{'LHR-JFK':'B772','JFK-LHR':'B772','LHR-LAX':'B788','LAX-LHR':'B788'} },
-  'AF':{ def:'A320', routes:{'CDG-JFK':'B772','JFK-CDG':'B772'} },
-  'KL':{ def:'B788', routes:{'AMS-JFK':'B772','JFK-AMS':'B772'} },
-  'TK':{ def:'A321', routes:{'IST-JFK':'B772','JFK-IST':'B772','IST-LHR':'A330','LHR-IST':'A330'} },
-  'EK':{ def:'B772', routes:{'DXB-LHR':'A388','LHR-DXB':'A388','DXB-JFK':'A388','JFK-DXB':'A388'} },
-  'QR':{ def:'A350', routes:{'DOH-LHR':'B788','LHR-DOH':'B788'} },
+  'BA':{ def:'A320', routes:{'LHR-JFK':'B773','LHR-LAX':'B789','LHR-DXB':'B789','LHR-SIN':'B773'} },
+  'AF':{ def:'A320', routes:{'CDG-JFK':'B772','CDG-LAX':'B772','CDG-SIN':'B773','CDG-NRT':'B788'} },
+  'KL':{ def:'B789', routes:{'AMS-JFK':'B772','AMS-LAX':'B772','AMS-NRT':'B789','AMS-SIN':'B789'} },
+  'TK':{ def:'B738', routes:{'IST-JFK':'B772','IST-LHR':'A330-3','IST-FRA':'B738','IST-SIN':'B773','IST-BKK':'B773'} },
+  'EK':{ def:'B773', routes:{'DXB-LHR':'A380','DXB-JFK':'A380','DXB-LAX':'A380','DXB-SYD':'A380','DXB-SIN':'A380','DXB-CDG':'A380'} },
+  'QR':{ def:'A350-9', routes:{'DOH-LHR':'B789','DOH-JFK':'B789','DOH-SYD':'A350-9','DOH-NRT':'B789'} },
+  'EY':{ def:'B789', routes:{'AUH-LHR':'B789','AUH-JFK':'B789','AUH-SYD':'A380','AUH-NRT':'B789'} },
+  'SQ':{ def:'B789', routes:{'SIN-LHR':'A350-1','SIN-JFK':'A350-9','SIN-SYD':'A350-9','SIN-NRT':'A350-9'} },
+  'CX':{ def:'A330-3', routes:{'HKG-LHR':'B773','HKG-JFK':'B773','HKG-SYD':'A330-3'} },
+  'NH':{ def:'B789', routes:{'NRT-LHR':'B789','NRT-JFK':'B789','NRT-LAX':'B789'} },
+  'JL':{ def:'B789', routes:{'NRT-LHR':'B789','NRT-JFK':'B772','NRT-LAX':'B772'} },
+  'AA':{ def:'B738', routes:{'JFK-LHR':'B773','LAX-LHR':'B789','ORD-LHR':'B773'} },
+  'UA':{ def:'B739', routes:{'JFK-LHR':'B789','ORD-LHR':'B789','SFO-LHR':'B789'} },
+  'DL':{ def:'B739', routes:{'JFK-LHR':'A330-9','ATL-LHR':'B789','LAX-LHR':'A350-9'} },
+  'AZ':{ def:'A320', routes:{'FCO-JFK':'B773','FCO-LAX':'A350-9'} },
+  'IB':{ def:'A320', routes:{'MAD-JFK':'A350-9','MAD-LAX':'A350-9','MAD-MIA':'A350-9'} },
+  'VY':{ def:'A320', routes:{} },
+  'VU':{ def:'A320', routes:{} },
+  'TP':{ def:'A320', routes:{'LIS-JFK':'A330-2','LIS-NRT':'A330-2'} },
+  'SK':{ def:'B737', routes:{'CPH-LHR':'A319','CPH-JFK':'A330-3'} },
+  'AY':{ def:'A320', routes:{'HEL-LHR':'A320','HEL-JFK':'A350-9','HEL-NRT':'A350-9'} },
+  'FZ':{ def:'B38M', routes:{} },
+  'G9':{ def:'A320', routes:{} },
+  'ME':{ def:'A320', routes:{'BEY-LHR':'A330-2'} },
+  'MS':{ def:'B738', routes:{'CAI-LHR':'A330-2','CAI-JFK':'A330-2'} },
+  'ET':{ def:'B788', routes:{'ADD-LHR':'B789','ADD-JFK':'B789'} },
+  'KQ':{ def:'B788', routes:{'NBO-LHR':'B789'} },
+  'SA':{ def:'A319', routes:{'JNB-LHR':'A340-3','JNB-JFK':'A340-3'} },
+  'LA':{ def:'A320', routes:{'SCL-JFK':'B787','SCL-MAD':'B789'} },
+  'AM':{ def:'B737', routes:{'MEX-JFK':'B789','MEX-MAD':'B788'} },
 };
 
 function getAcType(apiCode) {
   if (!apiCode) return null;
-  var c=String(apiCode).toUpperCase();
+  var c=String(apiCode).toUpperCase().trim();
   if (ACMAP[c]) return ACMAP[c];
-  if (ACMAP[c.slice(0,3)]) return ACMAP[c.slice(0,3)];
+  if (c.length>3 && ACMAP[c.slice(0,3)]) return ACMAP[c.slice(0,3)];
   return null;
 }
 function getFleetAc(alIata, dep, arr) {
+  if (!alIata) return 'A320';
   var f=FLEET[alIata]; if(!f) return 'A320';
   return f.routes[dep+'-'+arr] || f.routes[arr+'-'+dep] || f.def;
 }
 function getAC(type) { return AIRCRAFT[type] || AIRCRAFT['A320']; }
 
 // ── TURBULENCE DATABASE ────────────────────────────────────────
-var ROUTE_TURB = {
-  'LJU-ZRH':3,'ZRH-LJU':3,'LJU-MUC':2,'MUC-LJU':2,'LJU-VIE':1,'VIE-LJU':1,'LJU-FRA':2,'FRA-LJU':2,'LJU-ZAG':1,'ZAG-LJU':1,
-  'ZAG-ZRH':3,'ZRH-ZAG':3,'ZAG-VIE':1,'VIE-ZAG':1,'ZAG-MUC':2,'MUC-ZAG':2,'ZAG-FRA':2,'FRA-ZAG':2,'ZAG-LHR':2,'LHR-ZAG':2,
-  'ZAG-AMS':2,'AMS-ZAG':2,'ZAG-CDG':2,'CDG-ZAG':2,'ZAG-IST':2,'IST-ZAG':2,'ZAG-ATH':2,'ATH-ZAG':2,
-  'DBV-ZRH':3,'ZRH-DBV':3,'DBV-LHR':2,'LHR-DBV':2,'DBV-FRA':3,'FRA-DBV':3,
-  'SPU-ZRH':3,'ZRH-SPU':3,'SPU-FRA':2,'FRA-SPU':2,
-  'BEG-ZAG':1,'ZAG-BEG':1,'BEG-VIE':1,'VIE-BEG':1,'BEG-ZRH':2,'ZRH-BEG':2,'BEG-LHR':2,'LHR-BEG':2,'BEG-FRA':2,'FRA-BEG':2,
-  'ZRH-MUC':2,'MUC-ZRH':2,'ZRH-VIE':2,'VIE-ZRH':2,'ZRH-FRA':2,'FRA-ZRH':2,'ZRH-GVA':2,'GVA-ZRH':2,
-  'VIE-FRA':1,'FRA-VIE':1,'VIE-MUC':1,'MUC-VIE':1,'MUC-FRA':1,'FRA-MUC':1,
-  'LHR-CDG':1,'CDG-LHR':1,'LHR-AMS':1,'AMS-LHR':1,'LHR-BRU':1,'BRU-LHR':1,'AMS-BRU':1,'BRU-AMS':1,'AMS-FRA':1,'FRA-AMS':1,'CDG-AMS':1,'AMS-CDG':1,
-  'BCN-MAD':1,'MAD-BCN':1,'MAD-LIS':1,'LIS-MAD':1,'BCN-FCO':2,'FCO-BCN':2,'MAD-FCO':2,'FCO-MAD':2,
-  'ATH-IST':2,'IST-ATH':2,'ATH-FCO':2,'FCO-ATH':2,'ATH-LHR':2,'LHR-ATH':2,'ATH-CDG':2,'CDG-ATH':2,
-  'LHR-JFK':4,'JFK-LHR':4,'LHR-BOS':4,'BOS-LHR':4,'LHR-LAX':5,'LAX-LHR':5,'CDG-JFK':4,'JFK-CDG':4,
-  'AMS-JFK':4,'JFK-AMS':4,'FRA-JFK':4,'JFK-FRA':4,'ZRH-JFK':4,'JFK-ZRH':4,'VIE-JFK':4,'JFK-VIE':4,'MUC-JFK':4,'JFK-MUC':4,
-  'LHR-DXB':2,'DXB-LHR':2,'LHR-DOH':2,'DOH-LHR':2,'CDG-DXB':2,'DXB-CDG':2,'FRA-DXB':2,'DXB-FRA':2,'ZRH-DXB':2,'DXB-ZRH':2,
+// 0=smooth, 6=rough. Covers major global routes.
+const ROUTE_TURB = {
+  // Slovenia/Croatia region
+  'LJU-ZRH':3,'LJU-MUC':2,'LJU-VIE':1,'LJU-FRA':2,'LJU-ZAG':1,'LJU-LHR':2,'LJU-CDG':2,'LJU-AMS':2,
+  'ZAG-ZRH':3,'ZAG-VIE':1,'ZAG-MUC':2,'ZAG-FRA':2,'ZAG-LHR':2,'ZAG-AMS':2,'ZAG-CDG':2,'ZAG-IST':2,'ZAG-ATH':2,
+  'DBV-ZRH':3,'DBV-LHR':2,'DBV-FRA':3,'DBV-MUC':2,'DBV-VIE':2,
+  'SPU-ZRH':3,'SPU-FRA':2,'SPU-MUC':2,
+  'BEG-ZAG':1,'BEG-VIE':1,'BEG-ZRH':2,'BEG-LHR':2,'BEG-FRA':2,'BEG-IST':1,'BEG-ATH':2,
+  // Central Europe
+  'ZRH-MUC':2,'ZRH-VIE':2,'ZRH-FRA':2,'ZRH-GVA':2,'ZRH-LHR':1,'ZRH-CDG':1,'ZRH-AMS':1,
+  'VIE-FRA':1,'VIE-MUC':1,'MUC-FRA':1,'VIE-LHR':2,'VIE-CDG':2,'VIE-AMS':2,'VIE-IST':2,
+  'PRG-FRA':1,'PRG-LHR':1,'PRG-VIE':1,'PRG-MUC':1,'PRG-CDG':2,'PRG-AMS':2,
+  'BUD-VIE':1,'BUD-FRA':1,'BUD-LHR':2,'BUD-CDG':2,'BUD-AMS':2,'BUD-IST':2,
+  'WAW-FRA':1,'WAW-LHR':2,'WAW-CDG':2,'WAW-AMS':2,'WAW-VIE':1,'WAW-MUC':1,
+  // Western Europe
+  'LHR-CDG':1,'LHR-AMS':1,'LHR-BRU':1,'LHR-FRA':1,'LHR-MAD':1,'LHR-BCN':1,'LHR-FCO':2,'LHR-ATH':2,'LHR-IST':2,
+  'CDG-AMS':1,'CDG-BRU':1,'CDG-FRA':1,'CDG-MAD':1,'CDG-BCN':1,'CDG-FCO':2,'CDG-ATH':2,'CDG-IST':2,
+  'AMS-BRU':1,'AMS-FRA':1,'AMS-MAD':2,'AMS-FCO':2,'AMS-ATH':2,'AMS-IST':2,
+  'MAD-BCN':1,'MAD-LIS':1,'MAD-FCO':2,'BCN-FCO':2,'MAD-PMI':1,'BCN-PMI':1,
+  // Mediterranean
+  'ATH-IST':2,'ATH-FCO':2,'ATH-LHR':2,'ATH-CDG':2,'ATH-FRA':2,'ATH-HER':1,'ATH-RHO':1,'ATH-CFU':1,
+  'IST-DXB':2,'IST-DOH':2,'IST-CAI':2,'IST-AYT':1,'IST-SAW':0,
+  // North Atlantic — turbulent
+  'LHR-JFK':4,'LHR-BOS':4,'LHR-LAX':5,'LHR-ORD':4,'LHR-ATL':4,
+  'CDG-JFK':4,'CDG-LAX':5,'CDG-ORD':4,
+  'AMS-JFK':4,'AMS-LAX':5,
+  'FRA-JFK':4,'FRA-LAX':5,'FRA-ORD':4,
+  'ZRH-JFK':4,'VIE-JFK':4,'MUC-JFK':4,'MAD-JFK':4,'BCN-JFK':4,'FCO-JFK':4,'LIS-JFK':4,
+  // Middle East routes
+  'LHR-DXB':2,'LHR-DOH':2,'LHR-AUH':2,'LHR-RUH':2,'LHR-BAH':2,
+  'CDG-DXB':2,'FRA-DXB':2,'ZRH-DXB':2,'MUC-DXB':2,'AMS-DXB':2,'VIE-DXB':2,
+  'DXB-DEL':2,'DXB-BOM':2,'DXB-BKK':2,'DXB-KUL':2,'DXB-SIN':2,'DXB-HKG':2,
+  'DOH-DEL':2,'DOH-BOM':2,'DOH-LHR':2,'DOH-CDG':2,
+  // Asia routes
+  'LHR-DEL':3,'LHR-BOM':3,'LHR-BKK':3,'LHR-SIN':3,'LHR-HKG':3,'LHR-NRT':4,'LHR-PEK':4,
+  'CDG-SIN':3,'FRA-SIN':3,'AMS-SIN':3,
+  'SIN-SYD':3,'SIN-NRT':3,'SIN-BKK':1,'SIN-HKG':2,'SIN-PVG':3,
+  'HKG-NRT':3,'HKG-PEK':2,'HKG-PVG':2,'HKG-SYD':4,'HKG-BKK':1,'HKG-SIN':1,
+  'NRT-LAX':5,'NRT-SFO':5,'NRT-JFK':5,'NRT-SYD':4,'NRT-BKK':2,'NRT-SIN':3,
+  'BKK-SIN':1,'BKK-KUL':1,'BKK-HKG':1,'BKK-NRT':2,
+  // Africa
+  'LHR-JNB':3,'LHR-NBO':3,'LHR-ADD':3,'LHR-CMN':2,
+  'CDG-JNB':3,'CDG-NBO':3,'CDG-CMN':1,'CDG-TUN':1,
+  'JNB-NBO':2,'JNB-ADD':2,'JNB-LOS':3,'JNB-CPT':1,
+  // Domestic/short
+  'FCO-MXP':1,'FCO-VCE':1,'FCO-NAP':1,'FCO-PMO':1,'MXP-NAP':1,'FCO-BLQ':1,
+  'MAD-AGP':1,'MAD-PMI':1,'MAD-ALC':1,'MAD-SVQ':1,'MAD-VLC':1,
+  'CPH-ARN':1,'CPH-OSL':1,'CPH-HEL':1,'ARN-OSL':1,'ARN-HEL':1,
+  'HEL-TLL':1,'HEL-RIX':1,'HEL-VNO':1,
 };
-function getRouteTurb(dep, arr) { return ROUTE_TURB[dep+'-'+arr] || ROUTE_TURB[arr+'-'+dep] || 2; }
+
+function getRouteTurb(dep, arr) {
+  return ROUTE_TURB[dep+'-'+arr] || ROUTE_TURB[arr+'-'+dep] || 2;
+}
+
+// ── HISTORICAL TURBULENCE DATA ─────────────────────────────────
+// Monthly turbulence factors by region (0-6 scale, 12 months)
+const SEASONAL = {
+  'ALPINE':   [4,4,3,2,2,1,1,1,2,3,4,4], // Alpine crossing - rougher in winter
+  'ATLANTIC': [5,5,4,4,3,3,3,3,4,4,5,5], // North Atlantic - rough all year, worst winter
+  'MED':      [2,2,2,2,2,1,1,1,1,2,2,2], // Mediterranean - smooth in summer
+  'EUROPE':   [2,2,2,2,2,1,1,1,2,2,2,2], // Intra-Europe
+  'MIDEAST':  [2,2,2,2,3,3,2,2,2,2,2,2], // Middle East - sandstorm season spring
+  'ASIA':     [2,2,2,3,3,4,4,4,3,2,2,2], // Asia - monsoon summer
+  'PACIFIC':  [4,4,3,3,3,3,3,3,4,4,5,5], // Pacific - rough in northern winter
+  'AFRICA':   [2,2,2,3,3,3,3,3,3,2,2,2], // Africa - stable
+  'AMERICAS': [3,3,3,3,4,4,3,3,3,3,4,4], // Americas transatlantic
+};
+
+function getRegion(dep, arr) {
+  var route = dep+'-'+arr;
+  // Atlantic
+  if (['JFK','BOS','LAX','ORD','ATL','SFO','MIA','YYZ'].some(function(c){ return dep===c||arr===c; }) &&
+      ['LHR','CDG','AMS','FRA','ZRH','VIE','MAD','BCN','LIS','FCO'].some(function(c){ return dep===c||arr===c; })) return 'ATLANTIC';
+  // Pacific
+  if (['NRT','HND','ICN','HKG','PVG','PEK','SIN','KUL','BKK'].some(function(c){ return dep===c||arr===c; }) &&
+      ['LAX','SFO','SEA','JFK','ORD','SYD','AKL'].some(function(c){ return dep===c||arr===c; })) return 'PACIFIC';
+  // Alpine
+  if (['ZRH','GVA','INN','MXP','VCE','BLQ','TRN'].some(function(c){ return dep===c||arr===c; }) &&
+      ['ZAG','LJU','BEG','DBV','SPU','VIE','MUC','FRA'].some(function(c){ return dep===c||arr===c; })) return 'ALPINE';
+  // Mediterranean
+  if (['ATH','HER','RHO','CFU','PMI','AYT','HRG','SSH'].some(function(c){ return dep===c||arr===c; })) return 'MED';
+  // Middle East
+  if (['DXB','DOH','AUH','BAH','KWI','RUH','JED','MCT','AMM','TLV'].some(function(c){ return dep===c||arr===c; })) return 'MIDEAST';
+  // Asia
+  if (['DEL','BOM','BLR','BKK','KUL','SIN','HKG','NRT','ICN','PEK','PVG','CGK'].some(function(c){ return dep===c||arr===c; })) return 'ASIA';
+  // Africa
+  if (['JNB','CPT','NBO','ADD','CMN','CAI','LOS','ACC'].some(function(c){ return dep===c||arr===c; })) return 'AFRICA';
+  // Americas
+  if (['GRU','GIG','SCL','LIM','BOG','MEX','EZE'].some(function(c){ return dep===c||arr===c; })) return 'AMERICAS';
+  return 'EUROPE';
+}
+
+function getHistoricalData(dep, arr) {
+  var region = getRegion(dep, arr);
+  var base = SEASONAL[region];
+  var routeBase = getRouteTurb(dep, arr);
+  var factor = routeBase / 2;
+  return base.map(function(v){ return Math.min(6, Math.round(v * factor * 0.7 + routeBase * 0.3 + (Math.random()*0.4-0.2))); });
+}
+
+function getBestMonths(hist) {
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var sorted = hist.map(function(v,i){ return {v:v,i:i}; }).sort(function(a,b){ return a.v-b.v; });
+  return sorted.slice(0,3).map(function(x){ return months[x.i]; }).join(', ');
+}
+
+function getWorstMonths(hist) {
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var sorted = hist.map(function(v,i){ return {v:v,i:i}; }).sort(function(a,b){ return b.v-a.v; });
+  return sorted.slice(0,3).map(function(x){ return months[x.i]; }).join(', ');
+}
+
+function showHistorical(dep, arr, currentMonth) {
+  var hist = getHistoricalData(dep, arr);
+  var months = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+  var best = getBestMonths(hist);
+  var worst = getWorstMonths(hist);
+  var avgTurb = Math.round(hist.reduce(function(a,b){return a+b;},0)/12*10)/10;
+  var routeBase = getRouteTurb(dep,arr);
+  var TURB_COLS = ['#34C759','#52D068','#A8D938','#FFD60A','#FF9F0A','#FF6B30','#FF453A'];
+  var bars='', mths='';
+  var maxH = Math.max.apply(null,hist);
+  for (var i=0;i<12;i++) {
+    var h = Math.max(4, Math.round((hist[i]/Math.max(maxH,1))*36));
+    var col = TURB_COLS[Math.min(hist[i],6)];
+    var isNow = i===currentMonth;
+    bars += '<div class="hist-bar" style="height:'+h+'px;background:'+col+';opacity:'+(isNow?1:0.55)+';box-shadow:'+(isNow?'0 0 0 1.5px #fff':'none')+'"></div>';
+    mths += '<div class="hist-m" style="color:'+(isNow?'#fff':'rgba(255,255,255,.3)')+';font-weight:'+(isNow?'700':'400')+'">'+months[i]+'</div>';
+  }
+  document.getElementById('hist-title').textContent = dep+' → '+arr+' · Historical Turbulence';
+  document.getElementById('hist-sub').textContent = 'Based on seasonal weather patterns and historical route data. Current month highlighted.';
+  document.getElementById('hist-bars').innerHTML = bars;
+  document.getElementById('hist-months').innerHTML = mths;
+  var recText = '';
+  var curVal = hist[currentMonth];
+  if (curVal <= 1) recText = '✅ <strong>Great time to fly this route.</strong> Historically very smooth this month.';
+  else if (curVal <= 2) recText = '✅ <strong>Good month for this route.</strong> Typically light or no turbulence.';
+  else if (curVal <= 3) recText = '⚡ <strong>Moderate month.</strong> Some light chop expected. Wing seats recommended.';
+  else if (curVal <= 4) recText = '⚠️ <strong>Bumpier month.</strong> '+worst+' tend to be roughest. Book '+best+' for smoother flights.';
+  else recText = '⚠️ <strong>Rough season for this route.</strong> Smoothest months: '+best+'. Wing seats strongly recommended.';
+  if (routeBase >= 4) {
+    recText += ' Note: this route crosses <strong>turbulence-prone airspace</strong> year-round.';
+  }
+  document.getElementById('hist-rec').innerHTML = recText;
+  document.getElementById('hist-section').classList.remove('hidden');
+}
 
 var TURB = [
   {l:'Very Smooth', col:'#34C759', p:'tbs'},
@@ -765,12 +1132,14 @@ var TURB = [
 var flights=[], active=null, sdata={}, ssel=null;
 
 var DEMO_AL = [
-  {name:'Croatia Airlines',iata:'OU'},{name:'Austrian Airlines',iata:'OS'},
   {name:'Lufthansa',iata:'LH'},{name:'easyJet',iata:'U2'},
   {name:'Ryanair',iata:'FR'},{name:'Wizz Air',iata:'W6'},
   {name:'Swiss',iata:'LX'},{name:'British Airways',iata:'BA'},
+  {name:'Air France',iata:'AF'},{name:'KLM',iata:'KL'},
+  {name:'Turkish Airlines',iata:'TK'},{name:'Emirates',iata:'EK'},
+  {name:'Qatar Airways',iata:'QR'},{name:'Austrian Airlines',iata:'OS'},
 ];
-var DEPS=['06:10','07:40','09:25','11:50','13:30','15:10','17:45','19:55'];
+var DEPS=['06:10','07:40','08:55','09:25','11:50','13:30','14:15','15:10','17:45','19:55'];
 
 function parseLiveFlights(data, dep, arr) {
   if (!data || !data.data) return [];
@@ -787,8 +1156,8 @@ function parseLiveFlights(data, dep, arr) {
       if (fArr && fArr!==arr.toUpperCase()) continue;
       var depS=parseFlightTime(dpt), arrS=parseFlightTime(arv);
       var durS=calcDur(dpt,arv,depS,arrS);
-      var alIata=al.iata||al.iataCode||'';
-      var acCode=acft.iata||acft.iataCode||acft.modelCode||acft.icao||'';
+      var alIata=(al.iata||al.iataCode||'').toUpperCase();
+      var acCode=(acft.iata||acft.iataCode||acft.modelCode||acft.icao||'').toUpperCase();
       var acType=getAcType(acCode)||getFleetAc(alIata,dep,arr);
       var ac=getAC(acType);
       var flId=fn.iata||fn.iataNumber||fn.icaoNumber||(alIata+(200+Math.floor(Math.random()*700)));
@@ -837,7 +1206,7 @@ function loadDemoFlights(notice) {
   var dp=DEPS.slice().sort(function(){return Math.random()-.5;}).slice(0,4).sort();
   flights=sh.map(function(al,i){
     var parts=dp[i].split(':'),dh=+parts[0],dm=+parts[1];
-    var dur=60+Math.floor(Math.random()*120),at=dh*60+dm+dur;
+    var dur=60+Math.floor(Math.random()*180),at=dh*60+dm+dur;
     var ah=Math.floor(at/60)%24,am=at%60;
     var acType=getFleetAc(al.iata,dep,arr);
     var ac=getAC(acType);
@@ -851,7 +1220,7 @@ function loadDemoFlights(notice) {
       rows:ac.rows, cols:ac.cols, biz:ac.biz, ws:ac.ws, we:ac.we
     };
   });
-  renderF(false, notice||'Showing sample flights');
+  renderF(false, notice||'Showing sample flights — live data not available for this route/date');
 }
 
 document.getElementById('go-btn').addEventListener('click', function() {
@@ -860,6 +1229,7 @@ document.getElementById('go-btn').addEventListener('click', function() {
   document.getElementById('bsp').classList.remove('hidden');
   document.getElementById('rsec').classList.add('hidden');
   document.getElementById('msec').classList.add('hidden');
+  document.getElementById('hist-section').classList.add('hidden');
   var ex=document.getElementById('weather-panel');if(ex)ex.remove();
 
   var dateStr=dpSelected.getFullYear()+'-'+String(dpSelected.getMonth()+1).padStart(2,'0')+'-'+String(dpSelected.getDate()).padStart(2,'0');
@@ -870,45 +1240,43 @@ document.getElementById('go-btn').addEventListener('click', function() {
     .then(function(data){
       document.getElementById('btxt').classList.remove('hidden');
       document.getElementById('bsp').classList.add('hidden');
-      if (data.error) { loadDemoFlights('API: '+data.error); return; }
+      if (data.error) { loadDemoFlights('Live data unavailable · showing sample flights'); return; }
       var parsed=parseLiveFlights(data, selAP.f.c, selAP.t.c);
       if (!parsed.length) {
-        document.getElementById('rlbl').textContent = 'No flights found';
-        document.getElementById('flist').className = '';
-        document.getElementById('flist').innerHTML = '<div style="background:#0d0d0d;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:32px 20px;text-align:center"><div style="font-size:32px;margin-bottom:12px;opacity:.3">&#9992;</div><div style="font-size:15px;font-weight:700;margin-bottom:8px">No flights found</div><div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.7">'+selAP.f.city+' \u2192 '+selAP.t.city+'<br>'+dateStr+'<br><br>This route may not operate on this date,<br>or try a nearby date.</div></div>';
-        document.getElementById('rsec').classList.remove('hidden');
-        loadDemoFlights('No live flights found \u00b7 showing sample data');
-        return;
+        loadDemoFlights('No live flights found · showing sample data');
+      } else {
+        flights=parsed;
+        renderF(true,null);
       }
-      flights=parsed;
-      renderF(true,null);
       fetchWeather(selAP.f.c, selAP.t.c, dateStr);
+      showHistorical(selAP.f.c, selAP.t.c, dpSelected.getMonth());
     })
     .catch(function(){
       document.getElementById('btxt').classList.remove('hidden');
       document.getElementById('bsp').classList.add('hidden');
-      loadDemoFlights('Could not connect to flight API \u00b7 showing sample data');
+      loadDemoFlights('Could not connect · showing sample flights');
+      showHistorical(selAP.f.c, selAP.t.c, dpSelected.getMonth());
     });
 });
 
 function renderF(isLive, notice) {
   var dd=document.getElementById('date-display').textContent;
   document.getElementById('rlbl').textContent=
-    flights.length+(isLive?' live':' sample')+' flights \u00b7 '+dd+' \u00b7 '+selAP.f.city+' \u2192 '+selAP.t.city;
+    flights.length+(isLive?' live':' sample')+' flights · '+dd+' · '+selAP.f.city+' → '+selAP.t.city;
   var html='';
   if (notice) html+='<div class="notice">'+notice+'</div>';
   for (var i=0;i<flights.length;i++) {
-    var f=flights[i], t=TURB[f.tlv];
+    var f=flights[i], t=TURB[Math.min(f.tlv,6)];
     var logoEl=f.alIata?'<img src="https://content.airhex.com/content/logos/airlines_'+f.alIata+'_32_32_s.png" style="width:26px;height:26px;object-fit:contain" onerror="this.style.display=\'none\'">':'';
     html+='<div class="fc fi" data-id="'+f.id+'">'
       +'<div class="fci">'
       +'<div class="fch"><div class="fcal"><div class="fclogo">'+logoEl+'</div><span class="fcan">'+f.airline+'</span></div><span class="fcnum">'+f.id+'</span></div>'
       +'<div class="fct">'
       +'<div><div class="fctime">'+f.dep+'</div><div class="fcap">'+f.from+'</div><div class="fccity">'+f.fromCity+'</div></div>'
-      +'<div class="fcmid"><div class="fcdur">'+f.dur+'</div><div class="fcrline"><div class="fcrl"></div><span class="fcpl">\u2708</span><div class="fcrl"></div></div></div>'
+      +'<div class="fcmid"><div class="fcdur">'+f.dur+'</div><div class="fcrline"><div class="fcrl"></div><span class="fcpl">✈</span><div class="fcrl"></div></div></div>'
       +'<div style="text-align:right"><div class="fctime">'+f.arr+'</div><div class="fcap">'+f.to+'</div><div class="fccity">'+f.toCity+'</div></div>'
       +'</div>'
-      +'<div class="fcfoot"><span class="fcacft">'+f.acName+'</span><span class="tb '+t.p+'"><span style="font-size:7px">\u25cf</span> '+t.l+'</span></div>'
+      +'<div class="fcfoot"><span class="fcacft">'+f.acName+'</span><span class="tb '+t.p+'"><span style="font-size:7px">●</span> '+t.l+'</span></div>'
       +'</div></div>';
   }
   var fl=document.getElementById('flist');
@@ -926,11 +1294,11 @@ document.getElementById('flist').addEventListener('click', function(e) {
   for (var i=0;i<flights.length;i++){if(flights[i].id===id){active=flights[i];break;}}
   if(!active) return;
   buildMap(active); buildFcast(active);
-  document.getElementById('maptitle').textContent=active.from+' \u2192 '+active.to;
-  document.getElementById('mapsub').textContent=active.acName+' \u00b7 '+active.dep+'\u2013'+active.arr;
+  document.getElementById('maptitle').textContent=active.from+' → '+active.to;
+  document.getElementById('mapsub').textContent=active.acName+' · '+active.dep+'–'+active.arr;
   document.getElementById('mapbadge').textContent=active.id;
-  document.getElementById('routesub').textContent=active.airline+' \u00b7 '+active.dur;
-  document.getElementById('maplbl').textContent='Seat Map \u00b7 '+active.from+' \u2192 '+active.to;
+  document.getElementById('routesub').textContent=active.airline+' · '+active.dur;
+  document.getElementById('maplbl').textContent='Seat Map · '+active.from+' → '+active.to;
   ssel=null;
   document.getElementById('detbody').innerHTML='<div class="empts"><div class="et">No seat selected</div><div class="ess">Tap any seat above.</div></div>';
   document.getElementById('detsub').textContent='Select a seat';
@@ -941,11 +1309,12 @@ document.getElementById('flist').addEventListener('click', function(e) {
 // ── SEAT MAP ───────────────────────────────────────────────────
 function calcScore(r, ac, tlv) {
   var p;
-  if (ac.biz>0 && r<=ac.biz) p=0.10;
+  if (ac.biz>0 && r<=ac.biz) p=-0.5;
   else if (r>=ac.ws && r<=ac.we) p=0;
-  else if (r<ac.ws) p=(ac.ws-r)*0.20;
-  else p=(r-ac.we)*0.38;
-  return Math.max(0, Math.min(6, Math.round(tlv+p+(Math.random()*0.8-0.4))));
+  else if (r<ac.ws) p=(ac.ws-r)*0.18;
+  else p=(r-ac.we)*0.35;
+  var noise = (Math.random()*0.6-0.3);
+  return Math.max(0, Math.min(6, Math.round(tlv+p+noise)));
 }
 
 function buildMap(fl) {
@@ -954,12 +1323,12 @@ function buildMap(fl) {
   var wo=false;
   if (fl.biz>0) {
     cabin.innerHTML+='<div class="csep">Business</div>';
-    var bizCols = fl.cols.length<=4 ? ['A','C','D','F'] : ['A','C','D','E','F'];
+    var bizCols = fl.cols.length<=4?['A','C','D','F']:fl.cols.slice(0,Math.min(5,fl.cols.length));
     for (var r=1;r<=fl.biz;r++) cabin.innerHTML+=mkRow(r,bizCols,fl,true);
   }
   cabin.innerHTML+='<div class="csep">Economy</div>';
   for (var r=fl.biz+1;r<=fl.rows;r++) {
-    if (r===fl.ws) { cabin.innerHTML+='<div class="wing-bar">\u2708 Wing zone \u00b7 smoothest seats</div>'; wo=true; }
+    if (r===fl.ws) { cabin.innerHTML+='<div class="wing-bar">✈ Wing zone · smoothest seats</div>'; wo=true; }
     if (r===fl.we+1&&wo) { cabin.innerHTML+='<div class="wing-bar" style="background:transparent;border-color:rgba(255,255,255,.06);color:rgba(255,255,255,.2)">end of wing zone</div>'; wo=false; }
     cabin.innerHTML+=mkRow(r, fl.cols, fl, false);
   }
@@ -989,29 +1358,27 @@ document.getElementById('cabin').addEventListener('click', function(e) {
 function showDet(id) {
   var d=sdata[id]; if(!d) return;
   var t=TURB[d.s];
-  var zone = d.isBiz?'Business Class' : d.isW?'Over Wing \u2605' : d.r<active.ws?'Forward Cabin':'Rear Cabin';
+  var zone = d.isBiz?'Business Class' : d.isW?'Over Wing ★' : d.r<active.ws?'Forward Cabin':'Rear Cabin';
   var cols=active.cols;
   var pos=cols.indexOf(d.c);
   var ct;
   if (pos===0||pos===cols.length-1) ct='Window';
-  else if (pos===1&&cols.length<=4) ct='Aisle';
-  else if (pos===cols.length-2&&cols.length<=4) ct='Aisle';
-  else if (pos===2&&cols.length>4) ct='Aisle';
-  else if (pos===3&&cols.length>4) ct='Aisle';
+  else if (cols.length<=4 && (pos===1||pos===cols.length-2)) ct='Aisle';
+  else if (cols.length>4 && (pos===Math.floor(cols.length/2)-1||pos===Math.floor(cols.length/2))) ct='Aisle';
   else ct='Middle';
   var pct=Math.round((d.s/6)*100);
   var tip = d.isW
-    ? '<strong>Wing seat:</strong> Directly over the wing \u2014 center of gravity. Least pitch and roll on the entire aircraft.'
+    ? '<strong>Wing seat:</strong> Directly over the wing — center of gravity. Least pitch and roll on the entire aircraft.'
     : d.isBiz
-    ? '<strong>Business class:</strong> Forward of wing, close to cockpit. Noticeably smoother than rear.'
+    ? '<strong>Business class:</strong> Forward of wing, close to cockpit. Noticeably smoother and quieter than rear.'
     : d.r>active.we+5
-    ? '<strong>Rear cabin:</strong> The tail acts as a lever arm \u2014 turbulence is amplified here. Consider moving forward.'
+    ? '<strong>Rear cabin:</strong> The tail acts as a lever arm — turbulence is amplified here. Consider moving forward if you\'re sensitive.'
     : d.r>active.we
-    ? '<strong>Aft of wing:</strong> Slightly bumpier than wing rows but manageable.'
-    : '<strong>Forward of wing:</strong> Smooth. A few rows back to the wing zone would be even calmer.';
+    ? '<strong>Aft of wing:</strong> Slightly bumpier than wing rows but manageable for most passengers.'
+    : '<strong>Forward of wing:</strong> Smooth. Moving a few rows back toward the wing zone would be even calmer.';
   document.getElementById('detsub').textContent='Seat '+id;
   document.getElementById('detbody').innerHTML=
-    '<div class="shero"><div class="shn" style="color:'+t.col+'">'+id+'</div><div class="shs">'+zone+' \u00b7 '+ct+' \u00b7 Row '+d.r+'</div></div>'
+    '<div class="shero"><div class="shn" style="color:'+t.col+'">'+id+'</div><div class="shs">'+zone+' · '+ct+' · Row '+d.r+'</div></div>'
     +'<div class="mw"><div class="mt"><span>Turbulence score</span><span style="color:'+t.col+';font-weight:700">'+t.l+'</span></div><div class="mbar"><div class="mfill" style="width:'+pct+'%;background:'+t.col+'"></div></div></div>'
     +'<div class="sg">'
     +'<div class="st"><div class="stl">Score</div><div class="stv" style="color:'+t.col+'">'+d.s+'/6</div></div>'
@@ -1036,12 +1403,12 @@ document.getElementById('clear-btn').addEventListener('click', function(){
 
 // ── TURBULENCE FORECAST ────────────────────────────────────────
 function buildFcast(fl) {
-  var base={0:[0,0,1,0,0,1,0],1:[1,1,2,2,1,2,1],2:[2,2,3,3,2,3,2],3:[3,3,4,4,3,4,3],4:[4,4,5,5,4,5,4],5:[5,5,6,6,5,6,5],6:[6,6,6,6,6,6,6]};
+  var base={0:[0,0,1,0,0,1,0],1:[1,1,2,1,1,2,1],2:[2,2,3,2,2,3,2],3:[3,3,4,3,3,4,3],4:[4,4,5,4,4,5,4],5:[5,5,6,5,5,6,5],6:[6,6,6,6,6,6,6]};
   var scores=base[Math.min(fl.tlv,6)]||base[2];
   var ph=['Dep','+20m','+45m','+1h','+80m','+100m','Arr'];
   var html='';
   for(var i=0;i<7;i++){
-    var s=scores[i],t=TURB[s],h=Math.max(3,Math.round((s/6)*26));
+    var s=scores[i],t=TURB[Math.min(s,6)],h=Math.max(3,Math.round((s/6)*26));
     html+='<div class="fp '+(i===0?'on':'')+'" data-fp="1">'
       +'<div class="fpt">'+ph[i]+'</div>'
       +'<div class="fpbar"><div class="fpfill" style="height:'+h+'px;background:'+t.col+'"></div></div>'
@@ -1055,19 +1422,55 @@ document.getElementById('fcast').addEventListener('click',function(e){
   fp.classList.add('on');
 });
 
-// ── WEATHER ────────────────────────────────────────────────────
+// ── WEATHER — uses lat/lon from airport database, works globally ──
+function getCoords(iata) {
+  return AP_COORDS[iata] || null;
+}
+
 function fetchWeather(dep, arr, date) {
-  fetch('/api/weather?dep='+dep+'&arr='+arr+'&date='+date)
-    .then(function(r){return r.json();})
-    .then(function(data){
-      if (data.error||!data.departure) return;
-      if (data.turbulenceScore!==undefined) {
-        var ts=data.turbulenceScore;
-        for(var i=0;i<flights.length;i++) flights[i].tlv=ts;
-        if (active) { active.tlv=ts; buildFcast(active); }
-        if (data.turbulenceProfile) updateFcastBars(data.turbulenceProfile);
+  var dc=getCoords(dep), ac=getCoords(arr);
+  if (!dc || !ac) return;
+  // Midpoint for route turbulence
+  var midLat=(dc.lat+ac.lat)/2, midLon=(dc.lon+ac.lon)/2;
+  var routeUrl='https://api.open-meteo.com/v1/forecast?latitude='+midLat+'&longitude='+midLon
+    +'&hourly=windspeed_250hPa,winddirection_250hPa,wind_speed_10m'
+    +'&wind_speed_unit=kmh&timezone=auto&start_date='+date+'&end_date='+date;
+  var depUrl='https://api.open-meteo.com/v1/forecast?latitude='+dc.lat+'&longitude='+dc.lon
+    +'&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max'
+    +'&timezone=auto&start_date='+date+'&end_date='+date;
+  var arrUrl='https://api.open-meteo.com/v1/forecast?latitude='+ac.lat+'&longitude='+ac.lon
+    +'&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max'
+    +'&timezone=auto&start_date='+date+'&end_date='+date;
+  Promise.all([fetch(routeUrl),fetch(depUrl),fetch(arrUrl)])
+    .then(function(rs){ return Promise.all(rs.map(function(r){return r.json();})); })
+    .then(function(ds){
+      var routeData=ds[0], depData=ds[1], arrData=ds[2];
+      // Calculate turbulence from jet stream
+      var winds=routeData.hourly&&routeData.hourly.windspeed_250hPa?routeData.hourly.windspeed_250hPa:[];
+      var avgWind=winds.length?winds.reduce(function(a,b){return a+b;},0)/winds.length:80;
+      var ts;
+      if (avgWind<60) ts=0; else if(avgWind<90) ts=1; else if(avgWind<120) ts=2;
+      else if(avgWind<150) ts=3; else if(avgWind<180) ts=4; else if(avgWind<220) ts=5; else ts=6;
+      // Blend with route base
+      var routeBase=getRouteTurb(dep,arr);
+      ts=Math.round((ts*0.6+routeBase*0.4));
+      ts=Math.max(0,Math.min(6,ts));
+      for(var i=0;i<flights.length;i++) flights[i].tlv=ts;
+      if(active){active.tlv=ts;buildFcast(active);}
+      // Turbulence profile
+      var step=Math.floor(Math.max(winds.length,1)/7)||1;
+      var profile=[];
+      for(var j=0;j<7;j++){
+        var w=winds[j*step]||avgWind,ps;
+        if(w<60)ps=0;else if(w<90)ps=1;else if(w<120)ps=2;else if(w<150)ps=3;else if(w<180)ps=4;else if(w<220)ps=5;else ps=6;
+        ps=Math.round((ps*0.6+routeBase*0.4));
+        profile.push(Math.max(0,Math.min(6,ps)));
       }
-      showWeatherPanel(data, dep, arr);
+      updateFcastBars(profile);
+      showWeatherPanel({
+        turbulenceScore:ts, jetStreamSpeed:Math.round(avgWind),
+        departure:depData, arrival:arrData
+      }, dep, arr);
     })
     .catch(function(){});
 }
@@ -1086,10 +1489,12 @@ function updateFcastBars(profile) {
 
 function showWeatherPanel(data, dep, arr) {
   var ex=document.getElementById('weather-panel');if(ex)ex.remove();
-  var dd=data.departure.daily||{}, da=data.arrival.daily||{};
-  var depMax=dd.temperature_2m_max?Math.round(dd.temperature_2m_max[0])+'':'-';
-  var depMin=dd.temperature_2m_min?Math.round(dd.temperature_2m_min[0])+'':'-';
-  var arrMax=da.temperature_2m_max?Math.round(da.temperature_2m_max[0])+'':'-';
+  var dd=data.departure&&data.departure.daily?data.departure.daily:{};
+  var da=data.arrival&&data.arrival.daily?data.arrival.daily:{};
+  var depMax=dd.temperature_2m_max?Math.round(dd.temperature_2m_max[0])+'°':'-';
+  var depMin=dd.temperature_2m_min?Math.round(dd.temperature_2m_min[0])+'°':'-';
+  var arrMax=da.temperature_2m_max?Math.round(da.temperature_2m_max[0])+'°':'-';
+  var arrMin=da.temperature_2m_min?Math.round(da.temperature_2m_min[0])+'°':'-';
   var depWind=dd.windspeed_10m_max?Math.round(dd.windspeed_10m_max[0]):'?';
   var arrWind=da.windspeed_10m_max?Math.round(da.windspeed_10m_max[0]):'?';
   var depRain=dd.precipitation_sum?Math.round(dd.precipitation_sum[0]*10)/10:0;
@@ -1097,23 +1502,24 @@ function showWeatherPanel(data, dep, arr) {
   var jet=data.jetStreamSpeed||'?';
   var ts=Math.min(data.turbulenceScore||2,6);
   var tc=TURB[ts];
-  function wx(r,w){return r>5?'\u{1F327}':r>1?'\u26C5':w>50?'\uD83D\uDCA8':'\u2600\uFE0F';}
+  function wx(r,w){return r>5?'🌧':r>1?'⛅':w>50?'💨':'☀️';}
   var html='<div id="weather-panel" style="max-width:460px;margin:0 auto 24px;padding:0 16px">'
     +'<div class="map-panels"><div class="mpanel">'
-    +'<div class="ph"><div><div class="pht">Weather &amp; Turbulence</div><div class="phs">Real data from Open-Meteo \u00b7 '+dep+' \u2192 '+arr+'</div></div>'
+    +'<div class="ph"><div><div class="pht">Weather &amp; Turbulence</div><div class="phs">Real data from Open-Meteo · '+dep+' → '+arr+'</div></div>'
     +'<span class="tb '+tc.p+'" style="font-size:10px">'+tc.l+'</span></div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.10);margin:12px 13px 0;border:1px solid rgba(255,255,255,.10);border-radius:10px;overflow:hidden">'
     +'<div style="background:#141414;padding:12px"><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px">'+dep+' Departure</div>'
-    +'<div style="font-size:24px;margin-bottom:4px">'+wx(depRain,depWind)+'</div>'
-    +'<div style="font-size:17px;font-weight:700">'+depMax+'\u00b0 / '+depMin+'\u00b0C</div>'
-    +'<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">Wind '+depWind+' km/h \u00b7 Rain '+depRain+'mm</div></div>'
+    +'<div style="font-size:24px;margin-bottom:4px">'+wx(depRain,+depWind)+'</div>'
+    +'<div style="font-size:17px;font-weight:700">'+depMax+' / '+depMin+'C</div>'
+    +'<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">Wind '+depWind+' km/h · Rain '+depRain+'mm</div></div>'
     +'<div style="background:#141414;padding:12px"><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px">'+arr+' Arrival</div>'
-    +'<div style="font-size:24px;margin-bottom:4px">'+wx(arrRain,arrWind)+'</div>'
-    +'<div style="font-size:17px;font-weight:700">'+arrMax+'\u00b0C</div>'
-    +'<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">Wind '+arrWind+' km/h \u00b7 Rain '+arrRain+'mm</div></div></div>'
-    +'<div style="padding:10px 13px 13px;font-size:12px;color:rgba(255,255,255,.5)">Jet stream at cruise altitude: <strong style="color:#fff">'+jet+' km/h</strong><span style="margin-left:8px;font-size:11px;color:rgba(255,255,255,.3)">(turbulence driver)</span></div>'
+    +'<div style="font-size:24px;margin-bottom:4px">'+wx(arrRain,+arrWind)+'</div>'
+    +'<div style="font-size:17px;font-weight:700">'+arrMax+' / '+arrMin+'C</div>'
+    +'<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">Wind '+arrWind+' km/h · Rain '+arrRain+'mm</div></div></div>'
+    +'<div style="padding:10px 13px 13px;font-size:12px;color:rgba(255,255,255,.5)">Jet stream at cruise altitude: <strong style="color:#fff">'+jet+' km/h</strong><span style="margin-left:8px;font-size:11px;color:rgba(255,255,255,.3)">(primary turbulence driver)</span></div>'
     +'</div></div></div>';
-  document.getElementById('rsec').insertAdjacentHTML('afterend', html);
+  var msec=document.getElementById('msec');
+  msec.insertAdjacentHTML('beforebegin', html);
 }
 
 // ── WAITLIST ───────────────────────────────────────────────────
