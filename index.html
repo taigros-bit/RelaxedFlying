@@ -1169,15 +1169,64 @@ var TURB = [
 // ── FLIGHT SEARCH ──────────────────────────────────────────────
 var flights=[], active=null, sdata={}, ssel=null;
 
-var DEMO_AL = [
-  {name:'Lufthansa',iata:'LH'},{name:'easyJet',iata:'U2'},
-  {name:'Ryanair',iata:'FR'},{name:'Wizz Air',iata:'W6'},
-  {name:'Swiss',iata:'LX'},{name:'British Airways',iata:'BA'},
-  {name:'Air France',iata:'AF'},{name:'KLM',iata:'KL'},
-  {name:'Turkish Airlines',iata:'TK'},{name:'Emirates',iata:'EK'},
-  {name:'Qatar Airways',iata:'QR'},{name:'Austrian Airlines',iata:'OS'},
-];
-var DEPS=['06:10','07:40','08:55','09:25','11:50','13:30','14:15','15:10','17:45','19:55'];
+// ── REALISTIC AIRLINES PER ROUTE TYPE ─────────────────────────
+// Regions for classification
+var EU = ['LHR','LGW','STN','LTN','LCY','MAN','EDI','GLA','BHX','BRS','DUB','ORK','CDG','ORY','NCE','LYS','MRS','AMS','BRU','FRA','MUC','BER','HAM','DUS','STR','ZRH','GVA','BSL','VIE','GRZ','SZG','LJU','ZAG','BEG','SOF','OTP','BUD','PRG','WAW','KRK','WRO','GDN','ARN','GOT','CPH','OSL','HEL','TLL','RIX','VNO','MAD','BCN','LIS','FCO','MXP','BGY','VCE','NAP','ATH','IST','SAW','TGD','SKP','TIA'];
+var US = ['JFK','LGA','EWR','LAX','ORD','MDW','ATL','DFW','DEN','SFO','SEA','MIA','BOS','IAD','DCA','PHX','LAS','MCO','MSP','DTW','CLT','IAH','SAN','TPA','AUS','SLC','PDX'];
+var ME = ['DXB','AUH','SHJ','DOH','BAH','KWI','MCT','RUH','JED','AMM','TLV','CAI'];
+var ASIA = ['DEL','BOM','BLR','MAA','BKK','HKT','KUL','SIN','CGK','DPS','MNL','HAN','SGN','PEK','PVG','CAN','SZX','HKG','TPE','NRT','HND','KIX','ICN','GMP'];
+var AF = ['JNB','CPT','NBO','MBA','ADD','DAR','CMN','CAI','LOS','ACC','DKR'];
+var AUS_NZ = ['SYD','MEL','BNE','PER','ADL','AKL','CHC','WLG'];
+var SA = ['GRU','GIG','BSB','SCL','LIM','BOG','EZE','MVD'];
+var CA = ['YYZ','YVR','YUL','YYC'];
+
+function getRouteRegion(dep, arr) {
+  function reg(c) {
+    if (EU.indexOf(c)>=0) return 'EU';
+    if (US.indexOf(c)>=0 || CA.indexOf(c)>=0) return 'US';
+    if (ME.indexOf(c)>=0) return 'ME';
+    if (ASIA.indexOf(c)>=0) return 'ASIA';
+    if (AF.indexOf(c)>=0) return 'AF';
+    if (AUS_NZ.indexOf(c)>=0) return 'AUS';
+    if (SA.indexOf(c)>=0) return 'SA';
+    return 'OTHER';
+  }
+  return reg(dep) + '_' + reg(arr);
+}
+
+function getRealisticAirlines(dep, arr) {
+  var rr = getRouteRegion(dep, arr);
+  // Normalize: EU_EU same regardless of order
+  var norm = rr;
+  var parts = rr.split('_');
+  if (parts[0] > parts[1]) norm = parts[1]+'_'+parts[0];
+
+  var pools = {
+    'EU_EU':    [{name:'Lufthansa',iata:'LH'},{name:'British Airways',iata:'BA'},{name:'Air France',iata:'AF'},{name:'KLM',iata:'KL'},{name:'easyJet',iata:'U2'},{name:'Ryanair',iata:'FR'},{name:'Wizz Air',iata:'W6'},{name:'Swiss',iata:'LX'},{name:'Austrian Airlines',iata:'OS'},{name:'Eurowings',iata:'EW'},{name:'TAP Air Portugal',iata:'TP'},{name:'Iberia',iata:'IB'},{name:'Vueling',iata:'VY'},{name:'Turkish Airlines',iata:'TK'},{name:'LOT Polish Airlines',iata:'LO'}],
+    'EU_US':    [{name:'British Airways',iata:'BA'},{name:'American Airlines',iata:'AA'},{name:'United Airlines',iata:'UA'},{name:'Delta',iata:'DL'},{name:'Virgin Atlantic',iata:'VS'},{name:'Air France',iata:'AF'},{name:'Lufthansa',iata:'LH'},{name:'KLM',iata:'KL'},{name:'Iberia',iata:'IB'},{name:'TAP Air Portugal',iata:'TP'}],
+    'EU_ME':    [{name:'British Airways',iata:'BA'},{name:'Emirates',iata:'EK'},{name:'Qatar Airways',iata:'QR'},{name:'Etihad',iata:'EY'},{name:'Lufthansa',iata:'LH'},{name:'flydubai',iata:'FZ'},{name:'Air Arabia',iata:'G9'},{name:'Turkish Airlines',iata:'TK'}],
+    'EU_ASIA':  [{name:'British Airways',iata:'BA'},{name:'Lufthansa',iata:'LH'},{name:'Air France',iata:'AF'},{name:'KLM',iata:'KL'},{name:'Emirates',iata:'EK'},{name:'Qatar Airways',iata:'QR'},{name:'Singapore Airlines',iata:'SQ'},{name:'Cathay Pacific',iata:'CX'},{name:'ANA',iata:'NH'},{name:'Japan Airlines',iata:'JL'}],
+    'EU_AF':    [{name:'British Airways',iata:'BA'},{name:'Air France',iata:'AF'},{name:'KLM',iata:'KL'},{name:'Lufthansa',iata:'LH'},{name:'Ethiopian Airlines',iata:'ET'},{name:'Kenya Airways',iata:'KQ'},{name:'South African Airways',iata:'SA'},{name:'Turkish Airlines',iata:'TK'}],
+    'EU_AUS':   [{name:'British Airways',iata:'BA'},{name:'Qantas',iata:'QF'},{name:'Emirates',iata:'EK'},{name:'Singapore Airlines',iata:'SQ'},{name:'Etihad',iata:'EY'},{name:'Qatar Airways',iata:'QR'}],
+    'EU_SA':    [{name:'British Airways',iata:'BA'},{name:'Air France',iata:'AF'},{name:'Iberia',iata:'IB'},{name:'LATAM',iata:'LA'},{name:'TAP Air Portugal',iata:'TP'}],
+    'ME_ME':    [{name:'Emirates',iata:'EK'},{name:'Qatar Airways',iata:'QR'},{name:'Etihad',iata:'EY'},{name:'flydubai',iata:'FZ'},{name:'Air Arabia',iata:'G9'}],
+    'ME_ASIA':  [{name:'Emirates',iata:'EK'},{name:'Qatar Airways',iata:'QR'},{name:'Etihad',iata:'EY'},{name:'flydubai',iata:'FZ'},{name:'Air India',iata:'AI'},{name:'IndiGo',iata:'6E'},{name:'SpiceJet',iata:'SG'}],
+    'ME_AF':    [{name:'Emirates',iata:'EK'},{name:'Qatar Airways',iata:'QR'},{name:'Ethiopian Airlines',iata:'ET'},{name:'Kenya Airways',iata:'KQ'},{name:'flydubai',iata:'FZ'}],
+    'ME_AUS':   [{name:'Emirates',iata:'EK'},{name:'Qatar Airways',iata:'QR'},{name:'Etihad',iata:'EY'},{name:'Qantas',iata:'QF'}],
+    'ASIA_ASIA':[{name:'Singapore Airlines',iata:'SQ'},{name:'Cathay Pacific',iata:'CX'},{name:'ANA',iata:'NH'},{name:'Japan Airlines',iata:'JL'},{name:'Korean Air',iata:'KE'},{name:'Thai Airways',iata:'TG'},{name:'Malaysia Airlines',iata:'MH'},{name:'Vietnam Airlines',iata:'VN'}],
+    'AUS_ASIA': [{name:'Qantas',iata:'QF'},{name:'Singapore Airlines',iata:'SQ'},{name:'Cathay Pacific',iata:'CX'},{name:'Malaysia Airlines',iata:'MH'}],
+    'US_US':    [{name:'American Airlines',iata:'AA'},{name:'United Airlines',iata:'UA'},{name:'Delta',iata:'DL'},{name:'Southwest',iata:'WN'},{name:'JetBlue',iata:'B6'},{name:'Alaska Airlines',iata:'AS'}],
+    'US_ASIA':  [{name:'United Airlines',iata:'UA'},{name:'American Airlines',iata:'AA'},{name:'Delta',iata:'DL'},{name:'ANA',iata:'NH'},{name:'Japan Airlines',iata:'JL'},{name:'Korean Air',iata:'KE'},{name:'Cathay Pacific',iata:'CX'}],
+    'US_ME':    [{name:'American Airlines',iata:'AA'},{name:'United Airlines',iata:'UA'},{name:'Emirates',iata:'EK'},{name:'Qatar Airways',iata:'QR'},{name:'Etihad',iata:'EY'}],
+    'AUS_AUS':  [{name:'Qantas',iata:'QF'},{name:'Virgin Australia',iata:'VA'},{name:'Jetstar',iata:'JQ'}],
+  };
+
+  var pool = pools[norm] || pools[rr] || [{name:'Lufthansa',iata:'LH'},{name:'British Airways',iata:'BA'},{name:'Air France',iata:'AF'},{name:'KLM',iata:'KL'},{name:'Swiss',iata:'LX'}];
+  // Return 4 random airlines from the pool (no duplicates)
+  var shuffled = pool.slice().sort(function(){return Math.random()-.5;});
+  return shuffled.slice(0, Math.min(4, shuffled.length));
+}
+var DEPS=['06:10','07:40','08:55','09:25','10:10','11:50','12:30','13:30','14:15','15:10','16:45','17:45','19:20','19:55','21:10'];
 
 function parseLiveFlights(data, dep, arr) {
   if (!data || !data.data) return [];
@@ -1266,10 +1315,13 @@ function calcDur(dpt, arv, depS, arrS) {
 function loadDemoFlights(notice) {
   var dep=selAP.f.c, arr=selAP.t.c;
   var durMins=calcFlightMins(dep,arr);
-  var sh=DEMO_AL.slice().sort(function(){return Math.random()-.5;}).slice(0,4);
-  var dp=DEPS.slice().sort(function(){return Math.random()-.5;}).slice(0,4).sort();
-  flights=sh.map(function(al,i){
-    var parts=dp[i].split(':'),dh=+parts[0],dm=+parts[1];
+  // Get airlines that actually fly this route
+  var airlines=getRealisticAirlines(dep,arr);
+  var count=Math.min(airlines.length,4);
+  // Pick realistic departure times spread through the day
+  var allDeps=DEPS.slice().sort(function(){return Math.random()-.5;}).slice(0,count).sort();
+  flights=airlines.slice(0,count).map(function(al,i){
+    var parts=allDeps[i].split(':'),dh=+parts[0],dm=+parts[1];
     var variation=[-5,0,0,5][Math.floor(Math.random()*4)];
     var dur=durMins+variation;
     var at=dh*60+dm+dur;
@@ -1279,14 +1331,14 @@ function loadDemoFlights(notice) {
     return {
       id:al.iata+(100+Math.floor(Math.random()*899)),
       airline:al.name, alIata:al.iata, acType:acType, acName:ac.name,
-      dep:dp[i], arr:(ah<10?'0':'')+ah+':'+(am<10?'0':'')+am,
+      dep:allDeps[i], arr:(ah<10?'0':'')+ah+':'+(am<10?'0':'')+am,
       dur:minsToStr(dur),
       tlv:getRouteTurb(dep,arr),
       from:dep, fromCity:selAP.f.city, to:arr, toCity:selAP.t.city,
       rows:ac.rows, cols:ac.cols, biz:ac.biz, ws:ac.ws, we:ac.we
     };
   });
-  renderF(false, notice||'Showing sample flights — live data not available for this route/date');
+  renderF(false, notice||'No live flight data available — showing typical airlines for this route');
 }
 
 document.getElementById('go-btn').addEventListener('click', function() {
