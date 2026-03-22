@@ -1221,30 +1221,58 @@ function parseFlightTime(endpoint) {
   return '??:??';
 }
 
+// ── HAVERSINE FLIGHT TIME ──────────────────────────────────────
+function haversineDist(lat1,lon1,lat2,lon2){
+  var R=6371,dlat=(lat2-lat1)*Math.PI/180,dlon=(lon2-lon1)*Math.PI/180;
+  var a=Math.sin(dlat/2)*Math.sin(dlat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dlon/2)*Math.sin(dlon/2);
+  return R*2*Math.asin(Math.sqrt(a));
+}
+function calcFlightMins(dep,arr){
+  var dc=AP_COORDS[dep],ac=AP_COORDS[arr];
+  if(!dc||!ac) return 120;
+  var dist=haversineDist(dc.lat,dc.lon,ac.lat,ac.lon);
+  var speed,overhead;
+  if(dist<500){speed=700;overhead=30;}
+  else if(dist<1500){speed=800;overhead=35;}
+  else if(dist<4000){speed=850;overhead=40;}
+  else{speed=880;overhead=50;}
+  var mins=Math.round(dist/speed*60)+overhead;
+  var m=Math.round((mins%60)/5)*5;
+  if(m===60){return(Math.floor(mins/60)+1)*60;}
+  return Math.floor(mins/60)*60+m;
+}
+function minsToStr(mins){
+  var h=Math.floor(mins/60),m=mins%60;
+  return h+'h'+(m?' '+m+'m':'');
+}
+
 function calcDur(dpt, arv, depS, arrS) {
   var depT=dpt.actual||dpt.estimated||dpt.scheduled||'';
   var arrT=arv.actual||arv.estimated||arv.scheduled||'';
   if (depT.indexOf('T')>0 && arrT.indexOf('T')>0) {
     var mins=Math.round((new Date(arrT)-new Date(depT))/60000);
-    if (mins>20&&mins<1440) return Math.floor(mins/60)+'h'+(mins%60?' '+mins%60+'m':'');
+    if (mins>20&&mins<1440) return minsToStr(mins);
   }
   if (depS!=='??:??' && arrS!=='??:??') {
     var dp=depS.split(':'), ap=arrS.split(':');
     var dm=parseInt(dp[0])*60+parseInt(dp[1]);
     var am=parseInt(ap[0])*60+parseInt(ap[1]);
     var diff = am>dm ? am-dm : am+1440-dm;
-    if (diff>20&&diff<720) return Math.floor(diff/60)+'h'+(diff%60?' '+diff%60+'m':'');
+    if (diff>20&&diff<720) return minsToStr(diff);
   }
   return '?';
 }
 
 function loadDemoFlights(notice) {
   var dep=selAP.f.c, arr=selAP.t.c;
+  var durMins=calcFlightMins(dep,arr);
   var sh=DEMO_AL.slice().sort(function(){return Math.random()-.5;}).slice(0,4);
   var dp=DEPS.slice().sort(function(){return Math.random()-.5;}).slice(0,4).sort();
   flights=sh.map(function(al,i){
     var parts=dp[i].split(':'),dh=+parts[0],dm=+parts[1];
-    var dur=60+Math.floor(Math.random()*180),at=dh*60+dm+dur;
+    var variation=[-5,0,0,5][Math.floor(Math.random()*4)];
+    var dur=durMins+variation;
+    var at=dh*60+dm+dur;
     var ah=Math.floor(at/60)%24,am=at%60;
     var acType=getFleetAc(al.iata,dep,arr);
     var ac=getAC(acType);
@@ -1252,7 +1280,7 @@ function loadDemoFlights(notice) {
       id:al.iata+(100+Math.floor(Math.random()*899)),
       airline:al.name, alIata:al.iata, acType:acType, acName:ac.name,
       dep:dp[i], arr:(ah<10?'0':'')+ah+':'+(am<10?'0':'')+am,
-      dur:Math.floor(dur/60)+'h'+(dur%60?' '+dur%60+'m':''),
+      dur:minsToStr(dur),
       tlv:getRouteTurb(dep,arr),
       from:dep, fromCity:selAP.f.city, to:arr, toCity:selAP.t.city,
       rows:ac.rows, cols:ac.cols, biz:ac.biz, ws:ac.ws, we:ac.we
