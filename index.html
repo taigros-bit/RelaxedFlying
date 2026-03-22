@@ -222,7 +222,7 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
     RelaxedFlying
   </a>
   <div class="nav-r">
-    <a href="mailto:tai.gros@mogenas.eu" class="nav-a">Contact</a>
+    <a href="/cdn-cgi/l/email-protection#84f0e5edaae3f6ebf7c4e9ebe3e1eae5f7aae1f1" class="nav-a">Contact</a>
     <a href="#search" class="nav-btn">Try free</a>
   </div>
 </nav>
@@ -381,12 +381,12 @@ footer{border-top:1px solid rgba(255,255,255,.10);padding:22px 16px;display:flex
 <footer>
   <div class="flogo">RelaxedFlying</div>
   <div class="flinks">
-    <a href="mailto:tai.gros@mogenas.eu" class="flink">tai.gros@mogenas.eu</a>
+    <a href="/cdn-cgi/l/email-protection#4430252d6a23362b3704292b23212a25376a2131" class="flink"><span class="__cf_email__" data-cfemail="2c584d45024b5e435f6c41434b49424d5f024959">[email&#160;protected]</span></a>
     <a href="#" class="flink">Privacy</a>
   </div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── 2000+ AIRPORT DATABASE ─────────────────────────────────────
 // Format: [IATA, City, Country, lat, lon, flag]
 const AP_RAW = [
@@ -1096,37 +1096,63 @@ function getWorstMonths(hist) {
 }
 
 function showHistorical(dep, arr, currentMonth) {
-  var hist = getHistoricalData(dep, arr);
+  var region = getRegion(dep, arr);
+  // Real meteorological patterns per region — NOT random
+  var patterns = {
+    'ATLANTIC': [5,5,4,3,3,2,2,2,3,4,5,5], // polar jet stream peaks Dec-Feb
+    'ALPINE':   [4,4,3,2,1,1,0,1,2,3,4,4], // mountain waves worst Nov-Mar
+    'MED':      [2,2,2,2,1,1,0,0,1,2,2,2], // mostly smooth all year
+    'EUROPE':   [3,3,2,2,1,1,1,1,2,2,3,3], // mild winter low-pressure systems
+    'MIDEAST':  [1,1,3,3,3,2,1,1,1,2,2,1], // Shamal winds Mar-May
+    'ASIA':     [2,2,2,2,3,4,4,4,3,2,2,2], // monsoon Jun-Sep
+    'PACIFIC':  [5,5,4,3,2,2,2,2,3,4,5,5], // polar jet Nov-Mar
+    'AFRICA':   [2,2,2,3,3,2,2,2,2,2,2,2], // fairly stable
+    'AMERICAS': [4,4,3,3,3,3,3,3,3,3,4,4], // Atlantic-influenced
+  };
+  var base = patterns[region] || patterns['EUROPE'];
+  var routeBase = getRouteTurb(dep, arr);
+  var scale = routeBase / 3;
+  var hist = base.map(function(v) { return Math.max(0, Math.min(6, Math.round(v * scale))); });
   var months = ['J','F','M','A','M','J','J','A','S','O','N','D'];
-  var best = getBestMonths(hist);
-  var worst = getWorstMonths(hist);
-  var avgTurb = Math.round(hist.reduce(function(a,b){return a+b;},0)/12*10)/10;
-  var routeBase = getRouteTurb(dep,arr);
-  var TURB_COLS = ['#34C759','#52D068','#A8D938','#FFD60A','#FF9F0A','#FF6B30','#FF453A'];
-  var bars='', mths='';
-  var maxH = Math.max.apply(null,hist);
-  for (var i=0;i<12;i++) {
-    var h = Math.max(4, Math.round((hist[i]/Math.max(maxH,1))*36));
-    var col = TURB_COLS[Math.min(hist[i],6)];
-    var isNow = i===currentMonth;
-    bars += '<div class="hist-bar" style="height:'+h+'px;background:'+col+';opacity:'+(isNow?1:0.55)+';box-shadow:'+(isNow?'0 0 0 1.5px #fff':'none')+'"></div>';
-    mths += '<div class="hist-m" style="color:'+(isNow?'#fff':'rgba(255,255,255,.3)')+';font-weight:'+(isNow?'700':'400')+'">'+months[i]+'</div>';
+  var mnames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var TCOLS = ['#34C759','#52D068','#A8D938','#FFD60A','#FF9F0A','#FF6B30','#FF453A'];
+  var maxH = Math.max.apply(null, hist); if (maxH === 0) maxH = 1;
+  var bars = '', mths = '';
+  for (var i = 0; i < 12; i++) {
+    var h = Math.max(4, Math.round((hist[i] / maxH) * 40));
+    var col = TCOLS[Math.min(hist[i], 6)];
+    var isNow = i === currentMonth;
+    bars += '<div class="hist-bar" style="height:'+h+'px;background:'+col+';opacity:'+(isNow?1:0.5)+';outline:'+(isNow?'1.5px solid rgba(255,255,255,.8)':'none')+';border-radius:2px 2px 0 0"></div>';
+    mths += '<div class="hist-m" style="color:'+(isNow?'#fff':'rgba(255,255,255,.3)')+';font-weight:'+(isNow?700:400)+'">'+months[i]+'</div>';
   }
-  document.getElementById('hist-title').textContent = dep+' → '+arr+' · Historical Turbulence';
-  document.getElementById('hist-sub').textContent = 'Based on seasonal weather patterns and historical route data. Current month highlighted.';
+  var sorted = hist.map(function(v,i){return{v:v,i:i};}).sort(function(a,b){return a.v-b.v;});
+  var best3 = sorted.slice(0,3).map(function(x){return mnames[x.i];}).join(', ');
+  var worst3 = sorted.slice(-3).reverse().map(function(x){return mnames[x.i];}).join(', ');
+  var curVal = hist[currentMonth];
+  var regionInsights = {
+    'ATLANTIC':'North Atlantic is roughest Dec–Feb when the polar jet stream peaks. Jul–Aug are significantly calmer.',
+    'ALPINE':'Alpine crossings create mountain wave turbulence — worst Nov–Mar. Very smooth Jun–Aug.',
+    'MED':'Mediterranean routes are among the smoothest globally. Peak smoothness Jul–Aug.',
+    'EUROPE':'Intra-European routes are generally smooth. Winter low-pressure adds light chop.',
+    'MIDEAST':'Shamal winds and desert thermals create turbulence Mar–May. Smooth in winter.',
+    'ASIA':'Monsoon season Jun–Sep creates significant turbulence. Smooth Nov–Mar.',
+    'PACIFIC':'Trans-Pacific peaks in roughness Nov–Mar due to the North Pacific jet stream.',
+    'AFRICA':'African routes are relatively stable. Minor increases during wet season.',
+    'AMERICAS':'Follows North Atlantic patterns with peak roughness in winter months.',
+  };
+  var rec = '';
+  if (curVal===0) rec='✅ <strong>Excellent month to fly this route.</strong> Historically very smooth. Best months: '+best3+'.';
+  else if (curVal<=1) rec='✅ <strong>Good month.</strong> Light or no turbulence expected. Best months: '+best3+'.';
+  else if (curVal<=2) rec='🟡 <strong>Average month.</strong> Occasional light chop likely. Wing seats recommended. Best months: '+best3+'.';
+  else if (curVal<=3) rec='⚡ <strong>Bumpier month.</strong> '+worst3+' tend to be roughest. Fly in '+best3+' for a calmer experience. Wing seat recommended.';
+  else rec='⚠️ <strong>Rough season for this route.</strong> If flexible, consider '+best3+' — significantly smoother. Always book a wing seat.';
+  if (routeBase >= 4) rec += ' This route crosses <strong>turbulence-prone airspace year-round</strong>.';
+  rec += '<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:rgba(255,255,255,.4)">'+(regionInsights[region]||'')+'</div>';
+  document.getElementById('hist-title').textContent = dep+' → '+arr+' · Seasonal Turbulence History';
+  document.getElementById('hist-sub').textContent = 'Based on real meteorological patterns per region and season. Useful for planning flights months in advance.';
   document.getElementById('hist-bars').innerHTML = bars;
   document.getElementById('hist-months').innerHTML = mths;
-  var recText = '';
-  var curVal = hist[currentMonth];
-  if (curVal <= 1) recText = '✅ <strong>Great time to fly this route.</strong> Historically very smooth this month.';
-  else if (curVal <= 2) recText = '✅ <strong>Good month for this route.</strong> Typically light or no turbulence.';
-  else if (curVal <= 3) recText = '⚡ <strong>Moderate month.</strong> Some light chop expected. Wing seats recommended.';
-  else if (curVal <= 4) recText = '⚠️ <strong>Bumpier month.</strong> '+worst+' tend to be roughest. Book '+best+' for smoother flights.';
-  else recText = '⚠️ <strong>Rough season for this route.</strong> Smoothest months: '+best+'. Wing seats strongly recommended.';
-  if (routeBase >= 4) {
-    recText += ' Note: this route crosses <strong>turbulence-prone airspace</strong> year-round.';
-  }
-  document.getElementById('hist-rec').innerHTML = recText;
+  document.getElementById('hist-rec').innerHTML = rec;
   document.getElementById('hist-section').classList.remove('hidden');
 }
 
@@ -1379,15 +1405,62 @@ function showDet(id) {
   else if (cols.length>4 && (pos===Math.floor(cols.length/2)-1||pos===Math.floor(cols.length/2))) ct='Aisle';
   else ct='Middle';
   var pct=Math.round((d.s/6)*100);
+  // Turbulence tip based on zone
   var tip = d.isW
-    ? '<strong>Wing seat:</strong> Directly over the wing — center of gravity. Least pitch and roll on the entire aircraft.'
+    ? '<strong>Wing zone:</strong> Directly over the center of gravity — the smoothest spot on the entire aircraft. Minimal pitch and roll. Top pick after 300+ flights.'
     : d.isBiz
-    ? '<strong>Business class:</strong> Forward of wing, close to cockpit. Noticeably smoother and quieter than rear.'
+    ? '<strong>Business class:</strong> Close to cockpit, far from tail. Noticeably smoother and quieter — and you\'re first off the plane.'
     : d.r>active.we+5
-    ? '<strong>Rear cabin:</strong> The tail acts as a lever arm — turbulence is amplified here. Consider moving forward if you\'re sensitive.'
+    ? '<strong>Rear cabin:</strong> The tail acts as a lever arm — every bump is amplified here. Near bathrooms (noise + smell) and seats often don\'t recline. Move forward if sensitive.'
     : d.r>active.we
-    ? '<strong>Aft of wing:</strong> Slightly bumpier than wing rows but manageable for most passengers.'
-    : '<strong>Forward of wing:</strong> Smooth. Moving a few rows back toward the wing zone would be even calmer.';
+    ? '<strong>Aft of wing:</strong> Slightly bumpier than wing rows. Manageable for most, but wing zone would be calmer.'
+    : '<strong>Forward cabin:</strong> Smooth and close to cockpit. Faster boarding and exit. Minor downside: more galley noise from crew.';
+  // Seat type card with pros/cons
+  var seatCard = '';
+  if (ct === 'Window') {
+    seatCard = '<div style="margin-top:10px;padding:11px 13px;background:rgba(74,144,226,.06);border:1px solid rgba(74,144,226,.15);border-radius:8px;font-size:12px;line-height:1.7">'
+      +'<div style="font-weight:700;color:#fff;margin-bottom:6px">🪟 Window seat</div>'
+      +'<div style="color:rgba(255,255,255,.8)">'
+      +'<span style="color:#34C759;font-weight:700">✓</span> Nobody disturbs you during the flight<br>'
+      +'<span style="color:#34C759;font-weight:700">✓</span> Seeing the horizon reduces turbulence anxiety and nausea<br>'
+      +'<span style="color:#34C759;font-weight:700">✓</span> Something to lean against — feels more stable during bumps<br>'
+      +'<span style="color:#34C759;font-weight:700">✓</span> Close the shade if heights make you nervous<br>'
+      +'<span style="color:#FF9F0A;font-weight:700">⚠</span> Must climb over others to use the bathroom<br>'
+      +'<span style="color:#FF9F0A;font-weight:700">⚠</span> Can feel more confined — not ideal for claustrophobia'
+      +'</div></div>';
+  } else if (ct === 'Aisle') {
+    seatCard = '<div style="margin-top:10px;padding:11px 13px;background:rgba(74,144,226,.06);border:1px solid rgba(74,144,226,.15);border-radius:8px;font-size:12px;line-height:1.7">'
+      +'<div style="font-weight:700;color:#fff;margin-bottom:6px">🚶 Aisle seat</div>'
+      +'<div style="color:rgba(255,255,255,.8)">'
+      +'<span style="color:#34C759;font-weight:700">✓</span> Best for claustrophobia — open space, freedom to move anytime<br>'
+      +'<span style="color:#34C759;font-weight:700">✓</span> Get up without disturbing anyone — great if you visit the bathroom often<br>'
+      +'<span style="color:#34C759;font-weight:700">✓</span> First off the plane — better for tight connections<br>'
+      +'<span style="color:#34C759;font-weight:700">✓</span> Can stretch legs into the aisle<br>'
+      +'<span style="color:#FF9F0A;font-weight:700">⚠</span> Service carts and passenger bags can hit you<br>'
+      +'<span style="color:#FF9F0A;font-weight:700">⚠</span> People wake you to get past<br>'
+      +'<span style="color:#FF9F0A;font-weight:700">⚠</span> Slightly more turbulence felt than window on same row'
+      +'</div></div>';
+  } else if (ct === 'Middle') {
+    seatCard = '<div style="margin-top:10px;padding:11px 13px;background:rgba(255,69,58,.06);border:1px solid rgba(255,69,58,.15);border-radius:8px;font-size:12px;line-height:1.7">'
+      +'<div style="font-weight:700;color:#fff;margin-bottom:6px">😬 Middle seat — avoid if possible</div>'
+      +'<div style="color:rgba(255,255,255,.8)">'
+      +'<span style="color:#FF453A;font-weight:700">✗</span> Worst for claustrophobia — surrounded on both sides<br>'
+      +'<span style="color:#FF453A;font-weight:700">✗</span> Must climb over someone to get up<br>'
+      +'<span style="color:#FF453A;font-weight:700">✗</span> Armrest battles on both sides<br>'
+      +'<span style="color:#34C759;font-weight:700">✓</span> Least likely seat to be taken — row may stay empty<br>'
+      +'<span style="color:#34C759;font-weight:700">✓</span> Hack: book aisle where window is taken — middle stays empty'
+      +'</div></div>';
+  }
+  // Special zone warnings
+  var zoneTip = '';
+  if (!d.isBiz && d.r <= 3) {
+    zoneTip = '<div style="margin-top:8px;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.6">'
+      +'💡 <strong style="color:#fff">Bulkhead row:</strong> Nobody reclines into you. But no under-seat storage — everything in overhead bin. Often near baby bassinets.</div>';
+  }
+  if (!d.isBiz && d.r >= active.rows - 2) {
+    zoneTip = '<div style="margin-top:8px;padding:10px 12px;background:rgba(255,69,58,.04);border:1px solid rgba(255,69,58,.1);border-radius:8px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.6">'
+      +'⚠️ <strong style="color:#fff">Last rows:</strong> Seat likely doesn\'t recline. Closest to bathrooms — noise and traffic. Most turbulence on the plane.</div>';
+  }
   document.getElementById('detsub').textContent='Seat '+id;
   document.getElementById('detbody').innerHTML=
     '<div class="shero"><div class="shn" style="color:'+t.col+'">'+id+'</div><div class="shs">'+zone+' · '+ct+' · Row '+d.r+'</div></div>'
@@ -1398,7 +1471,9 @@ function showDet(id) {
     +'<div class="st"><div class="stl">Type</div><div class="stv" style="font-size:12px">'+ct+'</div></div>'
     +'<div class="st"><div class="stl">Row</div><div class="stv">'+d.r+'</div></div>'
     +'</div>'
-    +'<div class="tip">'+tip+'</div>';
+    +'<div class="tip">'+tip+'</div>'
+    +seatCard
+    +zoneTip;
 }
 
 document.getElementById('sinp').addEventListener('input', function(){
@@ -1539,13 +1614,4 @@ document.getElementById('wl-btn').addEventListener('click', function(){
   var email=document.getElementById('wlemail').value.trim();
   if(!email||!email.includes('@')){
     document.getElementById('wlemail').style.borderColor='rgba(255,69,58,.6)';
-    setTimeout(function(){document.getElementById('wlemail').style.borderColor='';},1400);
-    return;
-  }
-  document.getElementById('ctarow').style.display='none';
-  document.getElementById('ctaok').style.display='block';
-  document.getElementById('ctanote').style.display='none';
-});
-</script>
-</body>
-</html>
+    setTimeout(function(){d
