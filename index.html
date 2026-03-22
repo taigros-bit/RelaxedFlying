@@ -1228,43 +1228,61 @@ function getRealisticAirlines(dep, arr) {
 }
 var DEPS=['06:10','07:40','08:55','09:25','10:10','11:50','12:30','13:30','14:15','15:10','16:45','17:45','19:20','19:55','21:10'];
 
+function parseADBTime(raw) {
+  if (!raw) return '??:??';
+  // AeroDataBox format: "2026-03-23 07:40+01:00" or "2026-03-23T07:40:00+01:00"
+  var m = raw.match(/[T ](\d\d):(\d\d)/);
+  if (m) return m[1]+':'+m[2];
+  return '??:??';
+}
+
 function parseLiveFlights(data, dep, arr) {
-  // Handle AeroDataBox format: { flights: [...] }
-  var list = data.flights || data.data || [];
+  // AeroDataBox format: { source:'aerodatabox', departures:[...] }
+  var list = data.departures || data.flights || data.data || [];
   if (!list.length) return [];
-  var out=[];
-  for (var i=0; i<list.length; i++) {
-    var f=list[i];
+  var out = [];
+  for (var i = 0; i < list.length; i++) {
+    var f = list[i];
     try {
-      var al=f.airline||{}, acft=f.aircraft||{};
-      var alIata=(al.iata||'').toUpperCase();
-      var depS=f.dep_time||parseFlightTime(f.departure||{});
-      var arrS=f.arr_time||parseFlightTime(f.arrival||{});
-      // Calculate duration from Haversine if we have coords
-      var durMins=calcFlightMins(dep,arr);
-      var durS=minsToStr(durMins);
-      // Try to get actual duration from timestamps
-      var depFull=(f.departure&&f.departure.scheduledTime&&f.departure.scheduledTime.local)||'';
-      var arrFull=(f.arrival&&f.arrival.scheduledTime&&f.arrival.scheduledTime.local)||'';
-      if (depFull && arrFull) {
-        var diff=Math.round((new Date(arrFull)-new Date(depFull))/60000);
-        if (diff>20&&diff<1440) durS=minsToStr(diff);
+      var al = f.airline || {};
+      var acft = f.aircraft || {};
+      var dpt = f.departure || {};
+      var arv = f.arrival || {};
+
+      var alIata = (al.iata || '').toUpperCase();
+      var alName = al.name || alIata || 'Unknown';
+
+      // AeroDataBox time format: scheduledTimeLocal e.g. "2026-03-23 07:40+01:00"
+      var depS = parseADBTime(dpt.scheduledTimeLocal || dpt.scheduledTimeUtc || '');
+      var arrS = parseADBTime(arv.scheduledTimeLocal || arv.scheduledTimeUtc || '');
+
+      // Duration: use actual timestamps if available, else Haversine
+      var durMins = calcFlightMins(dep, arr);
+      var durS = minsToStr(durMins);
+      if (dpt.scheduledTimeUtc && arv.scheduledTimeUtc) {
+        var diff = Math.round((new Date(arv.scheduledTimeUtc) - new Date(dpt.scheduledTimeUtc)) / 60000);
+        if (diff > 20 && diff < 1440) durS = minsToStr(diff);
       }
-      var acCode=(acft.iata||acft.code||'').toUpperCase();
-      var acType=getAcType(acCode)||getFleetAc(alIata,dep,arr);
-      var ac=getAC(acType);
-      var flId=f.flightNumber||(alIata+(200+Math.floor(Math.random()*700)));
-      if (!alIata && !al.name) continue;
+
+      var acCode = (acft.iata || acft.icao || acft.model || '').toUpperCase().slice(0,4);
+      var acType = getAcType(acCode) || getFleetAc(alIata, dep, arr);
+      var ac = getAC(acType);
+
+      // Flight number e.g. "BA123"
+      var flId = f.number || (alIata + (100 + Math.floor(Math.random()*899)));
+
+      if (!alIata && !alName) continue;
+
       out.push({
-        id:flId, airline:al.name||alIata||'Unknown', alIata:alIata,
-        acType:acType, acName:ac.name,
-        dep:depS, arr:arrS, dur:durS,
-        tlv:getRouteTurb(dep,arr),
-        from:dep, fromCity:selAP.f.city,
-        to:arr, toCity:selAP.t.city,
-        rows:ac.rows, cols:ac.cols, biz:ac.biz, ws:ac.ws, we:ac.we
+        id: flId, airline: alName, alIata: alIata,
+        acType: acType, acName: ac.name,
+        dep: depS, arr: arrS, dur: durS,
+        tlv: getRouteTurb(dep, arr),
+        from: dep, fromCity: selAP.f.city,
+        to: arr, toCity: selAP.t.city,
+        rows: ac.rows, cols: ac.cols, biz: ac.biz, ws: ac.ws, we: ac.we
       });
-    } catch(e){}
+    } catch(e) {}
   }
   return out;
 }
