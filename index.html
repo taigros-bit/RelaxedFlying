@@ -1363,7 +1363,7 @@ function loadDemoFlights(notice) {
       rows:ac.rows, cols:ac.cols, biz:ac.biz, ws:ac.ws, we:ac.we
     };
   });
-  renderF(false, notice||'No live flight data available — showing typical airlines for this route');
+  renderF(false, notice||'Showing typical airlines for this route');
 }
 
 document.getElementById('go-btn').addEventListener('click', function() {
@@ -1405,12 +1405,13 @@ document.getElementById('go-btn').addEventListener('click', function() {
 function renderF(isLive, notice) {
   var dd=document.getElementById('date-display').textContent;
   document.getElementById('rlbl').textContent=
-    flights.length+(isLive?' live':' sample')+' flights · '+dd+' · '+selAP.f.city+' → '+selAP.t.city;
+    flights.length+(isLive?' live':' typical')+' flights · '+dd+' · '+selAP.f.city+' → '+selAP.t.city;
   var html='';
   if (notice) html+='<div class="notice">'+notice+'</div>';
   for (var i=0;i<flights.length;i++) {
     var f=flights[i], t=TURB[Math.min(f.tlv,6)];
-    var logoEl=f.alIata?'<img src="https://content.airhex.com/content/logos/airlines_'+f.alIata+'_32_32_s.png" style="width:26px;height:26px;object-fit:contain" onerror="this.style.display=\'none\'">':'';
+    var _bgC={'BA':'#075AAA','LH':'#05164d','AF':'#002157','KL':'#00A1DE','EK':'#D71920','QR':'#5C0632','EY':'#BE8A3D','SQ':'#F4A223','CX':'#006564','TK':'#C70A0C','U2':'#FF6600','FR':'#073590','W6':'#C8102E','WN':'#304CB2','AA':'#0078D2','UA':'#003087','DL':'#E01933','B6':'#003876','AS':'#01426A','NH':'#122A6E','JL':'#CC0000','KE':'#003478','QF':'#E40000','VA':'#EE2737','JQ':'#FF6600','OS':'#ED1C24','LX':'#E30614','IB':'#D41217','VY':'#FFD700','TP':'#008B5B','SK':'#003B8E','AY':'#003580','VS':'#E01A22','LA':'#DA291C','ET':'#009A44','KQ':'#C8102E','SA':'#006CAE','TG':'#621B4B','MH':'#CC0001','VN':'#003087','FZ':'#E31937','G9':'#FF6600','6E':'#0A3B82','AI':'#F07B2F','LO':'#005CA9','A3':'#003B8E'};
+    var logoEl='';if(f.alIata){var _bg=_bgC[f.alIata]||'#2a2a2a';logoEl='<div style="width:28px;height:28px;background:'+_bg+';border-radius:6px;display:grid;place-items:center;font-size:9px;font-weight:800;color:#fff;letter-spacing:.3px;flex-shrink:0">'+f.alIata+'</div>';}
     html+='<div class="fc fi" data-id="'+f.id+'">'
       +'<div class="fci">'
       +'<div class="fch"><div class="fcal"><div class="fclogo">'+logoEl+'</div><span class="fcan">'+f.airline+'</span></div><span class="fcnum">'+f.id+'</span></div>'
