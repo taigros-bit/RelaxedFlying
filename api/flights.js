@@ -9,30 +9,31 @@ export default async function handler(req, res) {
 
   var key = 'b03cbc2da8mshfd6f5e8ac7c5894p18cc07jsnaabba528fd4a';
 
-  try {
-    var fromDT = date + 'T00:00';
-    var toDT   = date + 'T23:59';
+  async function fetchWindow(from, to) {
     var url = 'https://aerodatabox.p.rapidapi.com/flights/airports/iata/'
-      + dep + '/' + fromDT + '/' + toDT
+      + dep + '/' + from + '/' + to
       + '?withLeg=true&direction=Departure&withCancelled=false&withCodeshared=false&withCargo=false&withPrivate=false&withLocation=false';
-
     var r = await fetch(url, {
       headers: {
         'x-rapidapi-host': 'aerodatabox.p.rapidapi.com',
         'x-rapidapi-key': key
       }
     });
+    if (!r.ok) return [];
+    var data = await r.json();
+    return data.departures || [];
+  }
 
-    var body = await r.text();
+  try {
+    // AeroDataBox max 12h window — split day into two calls
+    var [morning, evening] = await Promise.all([
+      fetchWindow(date + 'T00:00', date + 'T11:59'),
+      fetchWindow(date + 'T12:00', date + 'T23:59')
+    ]);
 
-    if (!r.ok) {
-      return res.status(200).json({error:'AeroDataBox HTTP '+r.status, detail: body.slice(0,500)});
-    }
+    var all = morning.concat(evening);
 
-    var data = JSON.parse(body);
-    var all = data.departures || [];
-
-    // Filter to destination
+    // Filter to our destination
     var filtered = all.filter(function(f) {
       var a = f.arrival && f.arrival.airport && f.arrival.airport.iata;
       return a && a.toUpperCase() === arr;
@@ -49,6 +50,6 @@ export default async function handler(req, res) {
     });
 
   } catch(e) {
-    return res.status(200).json({error: e.message, stack: e.stack ? e.stack.slice(0,300) : ''});
+    return res.status(200).json({error: e.message});
   }
 }
