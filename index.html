@@ -760,9 +760,9 @@ const AIRCRAFT = {
   'A340-3':{ name:'Airbus A340-300', rows:40, cols:['A','B','C','D','E','F','G','H','J'], biz:7, ws:17, we:28 },
   'A340-5':{ name:'Airbus A340-500', rows:42, cols:['A','B','C','D','E','F','G','H','J'], biz:7, ws:18, we:30 },
   'A340-6':{ name:'Airbus A340-600', rows:48, cols:['A','B','C','D','E','F','G','H','J'], biz:7, ws:20, we:33 },
-  'A350-9':{ name:'Airbus A350-900', rows:36, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:16, we:27 },
-  'A350-1':{ name:'Airbus A350-1000', rows:42, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:18, we:30 },
-  'A380':{ name:'Airbus A380-800', rows:58, cols:['A','B','C','D','E','F','G','H','J'], biz:10, ws:23, we:40 },
+  'A350-9':{ name:'Airbus A350-900', rows:42, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:16, we:28 },
+  'A350-1':{ name:'Airbus A350-1000', rows:46, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:18, we:32 },
+  'A380':{ name:'Airbus A380-800', rows:58, cols:['A','B','C','D','E','F','G','H','J','K'], biz:10, ws:23, we:40 },
   // BOEING NARROW
   'B717':{ name:'Boeing 717', rows:24, cols:['A','B','C','D','E'], biz:2, ws:9, we:16 },
   'B727':{ name:'Boeing 727-200', rows:30, cols:['A','B','C','D','E','F'], biz:4, ws:12, we:20 },
@@ -784,18 +784,18 @@ const AIRCRAFT = {
   'B741':{ name:'Boeing 747-100', rows:45, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:18, we:32 },
   'B742':{ name:'Boeing 747-200', rows:45, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:18, we:32 },
   'B743':{ name:'Boeing 747-300', rows:46, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:19, we:33 },
-  'B744':{ name:'Boeing 747-400', rows:50, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:20, we:35 },
-  'B748':{ name:'Boeing 747-8', rows:52, cols:['A','B','C','D','E','F','G','H','J'], biz:9, ws:21, we:37 },
+  'B744':{ name:'Boeing 747-400', rows:50, cols:['A','B','C','D','E','F','G','H','J','K'], biz:8, ws:20, we:35 },
+  'B748':{ name:'Boeing 747-8', rows:52, cols:['A','B','C','D','E','F','G','H','J','K'], biz:9, ws:21, we:37 },
   'B762':{ name:'Boeing 767-200', rows:33, cols:['A','B','C','D','E','F','G'], biz:5, ws:13, we:22 },
   'B763':{ name:'Boeing 767-300ER', rows:36, cols:['A','B','C','D','E','F','G'], biz:6, ws:14, we:24 },
   'B764':{ name:'Boeing 767-400ER', rows:38, cols:['A','B','C','D','E','F','G'], biz:6, ws:15, we:26 },
-  'B772':{ name:'Boeing 777-200ER', rows:40, cols:['A','B','C','D','E','F','G','H','J'], biz:7, ws:18, we:29 },
+  'B772':{ name:'Boeing 777-200ER', rows:45, cols:['A','B','C','D','E','F','G','H','J'], biz:7, ws:18, we:31 },
   'B77L':{ name:'Boeing 777-200LR', rows:40, cols:['A','B','C','D','E','F','G','H','J'], biz:7, ws:18, we:29 },
-  'B773':{ name:'Boeing 777-300ER', rows:52, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:22, we:37 },
+  'B773':{ name:'Boeing 777-300ER', rows:55, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:22, we:38 },
   'B779':{ name:'Boeing 777X-9', rows:52, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:22, we:37 },
-  'B788':{ name:'Boeing 787-8', rows:32, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:14, we:23 },
-  'B789':{ name:'Boeing 787-9', rows:36, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:16, we:26 },
-  'B78X':{ name:'Boeing 787-10', rows:40, cols:['A','B','C','D','E','F','G','H','J'], biz:6, ws:17, we:28 },
+  'B788':{ name:'Boeing 787-8', rows:34, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:14, we:24 },
+  'B789':{ name:'Boeing 787-9', rows:42, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:16, we:28 },
+  'B78X':{ name:'Boeing 787-10', rows:46, cols:['A','B','C','D','E','F','G','H','J'], biz:8, ws:18, we:32 },
   // EMBRAER
   'E135':{ name:'Embraer ERJ-135', rows:14, cols:['A','C','D'], biz:0, ws:5, we:10 },
   'E145':{ name:'Embraer ERJ-145', rows:19, cols:['A','C','D'], biz:0, ws:7, we:13 },
@@ -1530,16 +1530,11 @@ function renderF(isLive, notice) {
   if (notice) html+='<div class="notice">'+notice+'</div>';
   for (var i=0;i<flights.length;i++) {
     var f=flights[i], t=TURB[Math.min(f.tlv,6)];
-    var _bgC={'BA':'#075AAA','LH':'#05164d','AF':'#002157','KL':'#00A1DE','EK':'#D71920','QR':'#5C0632','EY':'#BE8A3D','SQ':'#F4A223','CX':'#006564','TK':'#C70A0C','U2':'#FF6600','FR':'#073590','W6':'#C8102E','WN':'#304CB2','AA':'#0078D2','UA':'#003087','DL':'#E01933','B6':'#003876','AS':'#01426A','NH':'#122A6E','JL':'#CC0000','KE':'#003478','QF':'#E40000','VA':'#EE2737','OS':'#ED1C24','LX':'#E30614','IB':'#D41217','VY':'#FFD700','TP':'#008B5B','SK':'#003B8E','AY':'#003580','VS':'#E01A22','LA':'#DA291C','ET':'#009A44','KQ':'#C8102E','SA':'#006CAE','TG':'#621B4B','MH':'#CC0001','VN':'#003087','FZ':'#E31937','G9':'#FF6600','AI':'#F07B2F','LO':'#005CA9','A3':'#003B8E','EW':'#a50064'};
+    var _bgC={'BA':'#075AAA','LH':'#05164d','AF':'#002157','KL':'#00A1DE','EK':'#D71920','QR':'#5C0632','EY':'#BE8A3D','SQ':'#F4A223','CX':'#006564','TK':'#C70A0C','U2':'#FF6600','FR':'#073590','W6':'#C8102E','WN':'#304CB2','AA':'#0078D2','UA':'#003087','DL':'#E01933','B6':'#003876','AS':'#01426A','NH':'#122A6E','JL':'#CC0000','KE':'#003478','QF':'#E40000','VA':'#EE2737','JQ':'#FF6600','OS':'#ED1C24','LX':'#E30614','IB':'#D41217','VY':'#FFD700','TP':'#008B5B','SK':'#003B8E','AY':'#003580','VS':'#E01A22','LA':'#DA291C','ET':'#009A44','KQ':'#C8102E','SA':'#006CAE','TG':'#621B4B','MH':'#CC0001','VN':'#003087','FZ':'#E31937','G9':'#FF6600','6E':'#0A3B82','AI':'#F07B2F','LO':'#005CA9','A3':'#003B8E','EW':'#a50064','TR':'#6D2077','NZ':'#00529B','AC':'#C8102E'};
     var logoEl='';
     if(f.alIata){
-      var _bg=_bgC[f.alIata]||'#1e1e1e';
-      var _iata=f.alIata;
-      logoEl='<div style="width:30px;height:30px;background:'+_bg+';border-radius:6px;overflow:hidden;display:grid;place-items:center;flex-shrink:0">'
-        +'<img src="https://content.airhex.com/content/logos/airlines_'+_iata+'_30_30_s.png?theme=dark"'
-        +' width="26" height="26" style="object-fit:contain"'
-        +' onerror="this.outerHTML=\'<span style=font-size:8px;font-weight:800;color:#fff>'+_iata+'</span>\'">'
-        +'</div>';
+      var _bg=_bgC[f.alIata]||'#222';
+      logoEl='<div style="width:30px;height:30px;background:'+_bg+';border-radius:6px;display:grid;place-items:center;flex-shrink:0;font-size:9px;font-weight:800;color:#fff;letter-spacing:.3px">'+f.alIata+'</div>';
     }
     html+='<div class="fc fi" data-id="'+f.id+'">'
       +'<div class="fci">'
@@ -1581,13 +1576,34 @@ document.getElementById('flist').addEventListener('click', function(e) {
 
 // ── SEAT MAP ───────────────────────────────────────────────────
 function calcScore(r, ac, tlv) {
-  var p;
-  if (ac.biz>0 && r<=ac.biz) p=-0.5;
-  else if (r>=ac.ws && r<=ac.we) p=0;
-  else if (r<ac.ws) p=(ac.ws-r)*0.18;
-  else p=(r-ac.we)*0.35;
-  var noise = (Math.random()*0.6-0.3);
-  return Math.max(0, Math.min(6, Math.round(tlv+p+noise)));
+  // Physics-based turbulence model
+  // Aircraft behaves like a beam — wing is the pivot point
+  // Amplification increases with distance from wing, most at tail
+  var totalRows = ac.rows;
+  var wingMid = (ac.ws + ac.we) / 2;
+  var amplifier;
+
+  if (r >= ac.ws && r <= ac.we) {
+    // Wing zone: right at center of gravity — smoothest
+    amplifier = 0;
+  } else if (r < ac.ws) {
+    // Forward of wing: moderate amplification (shorter lever arm)
+    var distFwd = (ac.ws - r) / ac.ws;
+    amplifier = distFwd * 0.8;
+  } else {
+    // Rear of wing: strong amplification (longer lever arm + fuselage flex)
+    var distRear = (r - ac.we) / Math.max(1, totalRows - ac.we);
+    amplifier = distRear * 1.8;
+  }
+
+  // Business class: typically in forward section, slightly calmer
+  if (ac.biz > 0 && r <= ac.biz) amplifier = Math.max(amplifier - 0.3, 0);
+
+  // Deterministic small variation per row (not random — consistent for same flight)
+  var rowVariation = ((r * 13 + ac.rows * 7) % 10) / 10 * 0.3 - 0.15;
+
+  var rawScore = tlv + (tlv * amplifier * 0.45) + rowVariation;
+  return Math.max(0, Math.min(6, Math.round(rawScore)));
 }
 
 function buildMap(fl) {
