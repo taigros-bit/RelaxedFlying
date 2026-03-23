@@ -1228,16 +1228,123 @@ function getRealisticAirlines(dep, arr) {
 }
 var DEPS=['06:10','07:40','08:55','09:25','10:10','11:50','12:30','13:30','14:15','15:10','16:45','17:45','19:20','19:55','21:10'];
 
-function parseADBTime(raw) {
+// Full airline name lookup — AeroDataBox returns short names like "Singapore"
+var AIRLINE_NAMES = {
+  'SQ':'Singapore Airlines','EK':'Emirates','QR':'Qatar Airways','EY':'Etihad Airways',
+  'BA':'British Airways','LH':'Lufthansa','AF':'Air France','KL':'KLM','LX':'Swiss',
+  'OS':'Austrian Airlines','TK':'Turkish Airlines','IB':'Iberia','VY':'Vueling',
+  'TP':'TAP Air Portugal','SK':'SAS','AY':'Finnair','LO':'LOT Polish Airlines',
+  'FR':'Ryanair','U2':'easyJet','W6':'Wizz Air','EW':'Eurowings','BT':'airBaltic',
+  'AA':'American Airlines','UA':'United Airlines','DL':'Delta Air Lines',
+  'WN':'Southwest Airlines','B6':'JetBlue','AS':'Alaska Airlines','F9':'Frontier',
+  'NK':'Spirit Airlines','G4':'Allegiant Air',
+  'CX':'Cathay Pacific','NH':'ANA','JL':'Japan Airlines','KE':'Korean Air',
+  'OZ':'Asiana Airlines','CI':'China Airlines','BR':'EVA Air','CZ':'China Southern',
+  'MU':'China Eastern','CA':'Air China','HU':'Hainan Airlines',
+  'TG':'Thai Airways','MH':'Malaysia Airlines','SL':'Thai Lion Air',
+  'TR':'Scoot','FD':'Thai AirAsia','AK':'AirAsia','QZ':'AirAsia Indonesia',
+  'VN':'Vietnam Airlines','VJ':'VietJet Air','BL':'Pacific Airlines',
+  'SQ':'Singapore Airlines','MI':'SilkAir',
+  'GA':'Garuda Indonesia','JT':'Lion Air','ID':'Batik Air',
+  'PR':'Philippine Airlines','5J':'Cebu Pacific','DG':'PAL Express',
+  'QF':'Qantas','VA':'Virgin Australia','JQ':'Jetstar','TT':'Tigerair Australia',
+  'NZ':'Air New Zealand','FJ':'Fiji Airways',
+  'ET':'Ethiopian Airlines','KQ':'Kenya Airways','SA':'South African Airways',
+  'MS':'EgyptAir','AT':'Royal Air Maroc','TU':'Tunisair',
+  'RJ':'Royal Jordanian','GF':'Gulf Air','WY':'Oman Air','SV':'Saudia',
+  'FZ':'flydubai','G9':'Air Arabia','XY':'flynas',
+  'AI':'Air India','6E':'IndiGo','SG':'SpiceJet','IX':'Air India Express',
+  'UL':'SriLankan Airlines','BG':'Biman Bangladesh','RA':'Nepal Airlines',
+};
+
+function parseADBTime(timeObj) {
+  // AeroDataBox structure: { utc: "2026-06-15 16:45Z", local: "2026-06-16 00:45+08:00" }
+  // Can also be a plain string from older format
+  if (!timeObj) return '??:??';
+  var raw = '';
+  if (typeof timeObj === 'object') {
+    raw = timeObj.local || timeObj.utc || '';
+  } else {
+    raw = timeObj;
+  }
   if (!raw) return '??:??';
-  // AeroDataBox format: "2026-03-23 07:40+01:00" or "2026-03-23T07:40:00+01:00"
-  var m = raw.match(/[T ](\d\d):(\d\d)/);
-  if (m) return m[1]+':'+m[2];
+  // Format: "2026-06-16 00:45+08:00" — extract HH:MM after the space/T
+  var m = raw.match(/[\sT](\d{2}):(\d{2})/);
+  if (m) return m[1] + ':' + m[2];
   return '??:??';
 }
 
+// Map AeroDataBox aircraft model string to our internal type
+function modelToAcType(model) {
+  if (!model) return null;
+  var m = model.toLowerCase();
+  if (m.includes('a380')) return 'A380';
+  if (m.includes('a350-1000')) return 'A350-1';
+  if (m.includes('a350')) return 'A350-9';
+  if (m.includes('a340-600')) return 'A340-6';
+  if (m.includes('a340-500')) return 'A340-5';
+  if (m.includes('a340')) return 'A340-3';
+  if (m.includes('a330-900')) return 'A330-9';
+  if (m.includes('a330-800')) return 'A330-8';
+  if (m.includes('a330-300') || (m.includes('a330') && m.includes('300'))) return 'A330-3';
+  if (m.includes('a330-200') || m.includes('a330')) return 'A330-2';
+  if (m.includes('a321xlr')) return 'A321XLR';
+  if (m.includes('a321lr')) return 'A321LR';
+  if (m.includes('a321neo') || m.includes('a321n')) return 'A321N';
+  if (m.includes('a321')) return 'A321';
+  if (m.includes('a320neo') || m.includes('a320n')) return 'A320N';
+  if (m.includes('a320')) return 'A320';
+  if (m.includes('a319neo')) return 'A319N';
+  if (m.includes('a319')) return 'A319';
+  if (m.includes('a318')) return 'A318';
+  if (m.includes('a220-300') || m.includes('cs300')) return 'A220-3';
+  if (m.includes('a220') || m.includes('cs100')) return 'A220-1';
+  if (m.includes('787-10')) return 'B78X';
+  if (m.includes('787-9')) return 'B789';
+  if (m.includes('787-8') || m.includes('787')) return 'B788';
+  if (m.includes('777x') || m.includes('777-9')) return 'B779';
+  if (m.includes('777-300') || m.includes('777-300er')) return 'B773';
+  if (m.includes('777-200lr')) return 'B77L';
+  if (m.includes('777')) return 'B772';
+  if (m.includes('767-400')) return 'B764';
+  if (m.includes('767-300')) return 'B763';
+  if (m.includes('767')) return 'B762';
+  if (m.includes('747-8')) return 'B748';
+  if (m.includes('747')) return 'B744';
+  if (m.includes('757-300')) return 'B753';
+  if (m.includes('757')) return 'B752';
+  if (m.includes('737 max 10') || m.includes('737-10')) return 'B3XM';
+  if (m.includes('737 max 9') || m.includes('737-9 max')) return 'B39M';
+  if (m.includes('737 max 8') || m.includes('737-8 max') || m.includes('737 max')) return 'B38M';
+  if (m.includes('737 max 7')) return 'B37M';
+  if (m.includes('737-900') || m.includes('737-9')) return 'B739';
+  if (m.includes('737-800') || m.includes('737-8')) return 'B738';
+  if (m.includes('737-700') || m.includes('737-7')) return 'B737';
+  if (m.includes('737-600')) return 'B736';
+  if (m.includes('737-500')) return 'B735';
+  if (m.includes('737-400')) return 'B734';
+  if (m.includes('737-300')) return 'B733';
+  if (m.includes('737')) return 'B738';
+  if (m.includes('717')) return 'B717';
+  if (m.includes('e195-e2') || m.includes('e2-195')) return 'E295';
+  if (m.includes('e190-e2') || m.includes('e2-190')) return 'E290';
+  if (m.includes('e195')) return 'E195';
+  if (m.includes('e190')) return 'E190';
+  if (m.includes('e175')) return 'E175';
+  if (m.includes('e170')) return 'E170';
+  if (m.includes('erj-145') || m.includes('e145')) return 'E145';
+  if (m.includes('erj-135') || m.includes('e135')) return 'E135';
+  if (m.includes('crj-1000')) return 'CRJX';
+  if (m.includes('crj-900')) return 'CRJ9';
+  if (m.includes('crj-700')) return 'CRJ7';
+  if (m.includes('crj')) return 'CRJ2';
+  if (m.includes('dash 8-400') || m.includes('q400') || m.includes('dhc-8-400')) return 'DH8D';
+  if (m.includes('atr 72')) return 'AT76';
+  if (m.includes('atr 42')) return 'AT46';
+  return null;
+}
+
 function parseLiveFlights(data, dep, arr) {
-  // AeroDataBox format: { source:'aerodatabox', departures:[...] }
   var list = data.departures || data.flights || data.data || [];
   if (!list.length) return [];
   var out = [];
@@ -1250,28 +1357,37 @@ function parseLiveFlights(data, dep, arr) {
       var arv = f.arrival || {};
 
       var alIata = (al.iata || '').toUpperCase();
-      var alName = al.name || alIata || 'Unknown';
 
-      // AeroDataBox time format: scheduledTimeLocal e.g. "2026-03-23 07:40+01:00"
-      var depS = parseADBTime(dpt.scheduledTimeLocal || dpt.scheduledTimeUtc || '');
-      var arrS = parseADBTime(arv.scheduledTimeLocal || arv.scheduledTimeUtc || '');
+      // Use full name lookup, fall back to API name
+      var alName = AIRLINE_NAMES[alIata] || al.name || alIata || 'Unknown';
 
-      // Duration: use actual timestamps if available, else Haversine
-      var durMins = calcFlightMins(dep, arr);
-      var durS = minsToStr(durMins);
-      if (dpt.scheduledTimeUtc && arv.scheduledTimeUtc) {
-        var diff = Math.round((new Date(arv.scheduledTimeUtc) - new Date(dpt.scheduledTimeUtc)) / 60000);
+      // AeroDataBox actual structure:
+      // dpt.scheduledTime = { utc: "2026-06-15 16:45Z", local: "2026-06-16 00:45+08:00" }
+      var depTimeObj = dpt.scheduledTime || dpt.revisedTime || {};
+      var arrTimeObj = arv.scheduledTime || arv.revisedTime || {};
+      var depS = parseADBTime(depTimeObj);
+      var arrS = parseADBTime(arrTimeObj);
+
+      // Duration from UTC timestamps
+      var durS = minsToStr(calcFlightMins(dep, arr));
+      var depUtc = depTimeObj.utc || '';
+      var arrUtc = arrTimeObj.utc || '';
+      if (depUtc && arrUtc) {
+        // Fix UTC format: "2026-06-15 16:45Z" → "2026-06-15T16:45Z"
+        var d1 = new Date(depUtc.replace(' ', 'T'));
+        var d2 = new Date(arrUtc.replace(' ', 'T'));
+        var diff = Math.round((d2 - d1) / 60000);
         if (diff > 20 && diff < 1440) durS = minsToStr(diff);
       }
 
-      var acCode = (acft.iata || acft.icao || acft.model || '').toUpperCase().slice(0,4);
-      var acType = getAcType(acCode) || getFleetAc(alIata, dep, arr);
+      // Aircraft: AeroDataBox gives model string like "Airbus A380-800"
+      var acModel = acft.model || acft.iata || '';
+      var acType = modelToAcType(acModel) || getAcType((acft.iata||'').toUpperCase()) || getFleetAc(alIata, dep, arr);
       var ac = getAC(acType);
 
-      // Flight number e.g. "BA123"
       var flId = f.number || (alIata + (100 + Math.floor(Math.random()*899)));
 
-      if (!alIata && !alName) continue;
+      if (!alIata) continue;
 
       out.push({
         id: flId, airline: alName, alIata: alIata,
