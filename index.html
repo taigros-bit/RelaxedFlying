@@ -258,7 +258,7 @@ footer{border-top:1px solid var(--border);padding:22px 16px;display:flex;align-i
     </div>RelaxedFlying
   </a>
   <div class="nav-r">
-    <a href="mailto:tai.gros@mogenas.eu" class="nav-a">Contact</a>
+    <a href="mailto:info@relaxedflying.app" class="nav-a">Contact</a>
     <a href="#search" class="nav-btn" onclick="event.preventDefault();document.getElementById('search').scrollIntoView({behavior:'smooth'})">Try free</a>
   </div>
 </nav>
@@ -394,7 +394,7 @@ footer{border-top:1px solid var(--border);padding:22px 16px;display:flex;align-i
 
 <footer>
   <div class="flogo">RelaxedFlying</div>
-  <div class="flinks"><a href="mailto:tai.gros@mogenas.eu" class="flink">tai.gros@mogenas.eu</a><a href="#" class="flink">Privacy</a></div>
+  <div class="flinks"><a href="mailto:info@relaxedflying.app" class="flink">info@relaxedflying.app</a><a href="#" class="flink">Privacy</a></div>
 </footer>
 
 <script>
@@ -1163,7 +1163,7 @@ function calcDur(dpt, arv, depS, arrS) {
 
 const AIRCRAFT = {
   // ── AIRBUS NARROWBODY ──────────────────────────────────────
-  'A318': {name:'Airbus A318', rows:24, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:2, ws:9, we:16,
+  'A318': {name:'Airbus A318', rows:24, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:2, ws:8, we:16,
     cabins:[{cls:'B',r1:1,r2:2},{cls:'E',r1:3,r2:24}]},
   'A319': {name:'Airbus A319', rows:26, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:10, we:17,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:26}]},
@@ -1184,7 +1184,7 @@ const AIRCRAFT = {
   // A220 — 2+3 layout
   'A220-1':{name:'Airbus A220-100', rows:22, cols:['A','B','C','D','E'], aisleAfter:[1], biz:0, ws:7, we:14,
     cabins:[{cls:'E',r1:1,r2:22}]},
-  'A220-3':{name:'Airbus A220-300', rows:29, cols:['A','B','C','D','E'], aisleAfter:[1], biz:2, ws:9, we:18,
+  'A220-3':{name:'Airbus A220-300', rows:29, cols:['A','B','C','D','E'], aisleAfter:[1], biz:2, ws:9, we:17,
     cabins:[{cls:'B',r1:1,r2:2},{cls:'E',r1:3,r2:29}]},
   // ── AIRBUS WIDEBODY ───────────────────────────────────────
   // A330 — 2+4+2 (8 wide): A,B | C,D,E,F | G,H — aisles after B(1) and F(5)
@@ -1192,24 +1192,24 @@ const AIRCRAFT = {
     cabins:[{cls:'B',r1:1,r2:6},{cls:'E',r1:7,r2:40}]},
   'A310': {name:'Airbus A310', rows:38, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:6, ws:14, we:24,
     cabins:[{cls:'B',r1:1,r2:6},{cls:'E',r1:7,r2:38}]},
-  'A330-2':{name:'Airbus A330-200', rows:38, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:6, ws:14, we:24,
+  'A330-2':{name:'Airbus A330-200', rows:38, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:6, ws:15, we:24,
     cabins:[{cls:'B',r1:1,r2:6},{cls:'PE',r1:7,r2:10},{cls:'E',r1:11,r2:38}]},
-  'A330-3':{name:'Airbus A330-300', rows:42, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:6, ws:15, we:27,
+  'A330-3':{name:'Airbus A330-300', rows:42, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:6, ws:16, we:26,
     cabins:[{cls:'B',r1:1,r2:6},{cls:'PE',r1:7,r2:11},{cls:'E',r1:12,r2:42}]},
-  'A330-8':{name:'Airbus A330-800neo', rows:36, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:6, ws:13, we:23,
+  'A330-8':{name:'Airbus A330-800neo', rows:36, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:6, ws:14, we:22,
     cabins:[{cls:'B',r1:1,r2:6},{cls:'PE',r1:7,r2:10},{cls:'E',r1:11,r2:36}]},
-  'A330-9':{name:'Airbus A330-900neo', rows:40, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:6, ws:14, we:26,
+  'A330-9':{name:'Airbus A330-900neo', rows:40, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:6, ws:15, we:25,
     cabins:[{cls:'B',r1:1,r2:6},{cls:'PE',r1:7,r2:10},{cls:'E',r1:11,r2:40}]},
-  'A340-3':{name:'Airbus A340-300', rows:40, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:7, ws:15, we:26,
+  'A340-3':{name:'Airbus A340-300', rows:40, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:7, ws:16, we:26,
     cabins:[{cls:'B',r1:1,r2:7},{cls:'PE',r1:8,r2:11},{cls:'E',r1:12,r2:40}]},
-  'A340-5':{name:'Airbus A340-500', rows:42, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:7, ws:16, we:28,
+  'A340-5':{name:'Airbus A340-500', rows:42, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:7, ws:17, we:27,
     cabins:[{cls:'B',r1:1,r2:7},{cls:'PE',r1:8,r2:12},{cls:'E',r1:13,r2:42}]},
-  'A340-6':{name:'Airbus A340-600', rows:48, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:7, ws:18, we:32,
+  'A340-6':{name:'Airbus A340-600', rows:48, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:7, ws:19, we:30,
     cabins:[{cls:'B',r1:1,r2:7},{cls:'PE',r1:8,r2:12},{cls:'E',r1:13,r2:48}]},
   // A350 — 3+3+3 (9 wide): A,B,C | D,E,F | G,H,J — aisles after C(2) and F(5)
-  'A350-9':{name:'Airbus A350-900', rows:48, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:20, we:33,
+  'A350-9':{name:'Airbus A350-900', rows:48, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:18, we:28,
     cabins:[{cls:'F',r1:1,r2:2},{cls:'B',r1:3,r2:8},{cls:'PE',r1:9,r2:13},{cls:'E',r1:14,r2:48}]},
-  'A350-1':{name:'Airbus A350-1000', rows:54, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:22, we:37,
+  'A350-1':{name:'Airbus A350-1000', rows:54, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:20, we:31,
     cabins:[{cls:'F',r1:1,r2:2},{cls:'B',r1:3,r2:8},{cls:'PE',r1:9,r2:14},{cls:'E',r1:15,r2:54}]},
   // A380 — DUAL DECK
   // Main deck: 3+4+3 (10 wide): A,B,C | D,E,F,G | H,J,K — aisles after C(2) and G(6)
@@ -1226,44 +1226,44 @@ const AIRCRAFT = {
     // UPPER DECK — First + Business + Premium Economy
     upper: {
       rows:30, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:18, ws:21, we:28,
-      cabins:[{cls:'F',r1:1,r2:2},{cls:'B',r1:5,r2:18},{cls:'PE',r1:20,r2:30}],
+      cabins:[{cls:'F',r1:1,r2:4},{cls:'B',r1:5,r2:19},{cls:'PE',r1:20,r2:30}],
       rowOffset:0
     },
     // For compatibility
     rows:42, cols:['A','B','C','D','E','F','G','H','J','K'], aisleAfter:[2,6], biz:10, ws:15, we:32
   },
   // ── BOEING NARROWBODY ──────────────────────────────────────
-  'B717': {name:'Boeing 717', rows:24, cols:['A','B','C','D','E'], aisleAfter:[1], biz:2, ws:9, we:16,
+  'B717': {name:'Boeing 717', rows:24, cols:['A','B','C','D','E'], aisleAfter:[1], biz:2, ws:8, we:15,
     cabins:[{cls:'B',r1:1,r2:2},{cls:'E',r1:3,r2:24}]},
-  'B727': {name:'Boeing 727-200', rows:30, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:4, ws:11, we:20,
+  'B727': {name:'Boeing 727-200', rows:30, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:4, ws:10, we:18,
     cabins:[{cls:'B',r1:1,r2:4},{cls:'E',r1:5,r2:30}]},
-  'B732': {name:'Boeing 737-200', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:10, we:18,
+  'B732': {name:'Boeing 737-200', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:10, we:17,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:28}]},
-  'B733': {name:'Boeing 737-300', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:10, we:18,
+  'B733': {name:'Boeing 737-300', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:10, we:17,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:28}]},
-  'B734': {name:'Boeing 737-400', rows:31, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:11, we:20,
+  'B734': {name:'Boeing 737-400', rows:31, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:11, we:18,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:31}]},
   'B735': {name:'Boeing 737-500', rows:25, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:9, we:16,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:25}]},
   'B736': {name:'Boeing 737-600', rows:26, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:9, we:17,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:26}]},
-  'B737': {name:'Boeing 737-700', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:10, we:18,
+  'B737': {name:'Boeing 737-700', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:10, we:19,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:28}]},
   'B738': {name:'Boeing 737-800', rows:32, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:11, we:21,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:32}]},
   'B739': {name:'Boeing 737-900ER', rows:34, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:12, we:22,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:34}]},
-  'B37M': {name:'Boeing 737 MAX 7', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:10, we:18,
+  'B37M': {name:'Boeing 737 MAX 7', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:10, we:19,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:28}]},
   'B38M': {name:'Boeing 737 MAX 8', rows:32, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:11, we:21,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:32}]},
   'B39M': {name:'Boeing 737 MAX 9', rows:34, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:12, we:22,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:34}]},
-  'B3XM': {name:'Boeing 737 MAX 10', rows:36, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:13, we:23,
+  'B3XM': {name:'Boeing 737 MAX 10', rows:36, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:12, we:23,
     cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:36}]},
-  'B752': {name:'Boeing 757-200', rows:36, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:13, we:23,
+  'B752': {name:'Boeing 757-200', rows:36, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:13, we:21,
     cabins:[{cls:'B',r1:1,r2:5},{cls:'E',r1:6,r2:36}]},
-  'B753': {name:'Boeing 757-300', rows:40, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:14, we:26,
+  'B753': {name:'Boeing 757-300', rows:40, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:14, we:23,
     cabins:[{cls:'B',r1:1,r2:5},{cls:'E',r1:6,r2:40}]},
   // ── BOEING WIDEBODY ───────────────────────────────────────
   // 747 — DUAL DECK
@@ -1298,27 +1298,27 @@ const AIRCRAFT = {
     rows:52, cols:['A','B','C','D','E','F','G','H','J','K'], aisleAfter:[2,6], biz:15, ws:21, we:36
   },
   // 767 — 2+3+2 (7 wide): A,B | C,D,E | F,G — aisles after B(1) and E(4)
-  'B762': {name:'Boeing 767-200', rows:33, cols:['A','B','C','D','E','F','G'], aisleAfter:[1,4], biz:5, ws:12, we:21,
+  'B762': {name:'Boeing 767-200', rows:33, cols:['A','B','C','D','E','F','G'], aisleAfter:[1,4], biz:5, ws:12, we:20,
     cabins:[{cls:'B',r1:1,r2:5},{cls:'PE',r1:6,r2:9},{cls:'E',r1:10,r2:33}]},
-  'B763': {name:'Boeing 767-300ER', rows:36, cols:['A','B','C','D','E','F','G'], aisleAfter:[1,4], biz:6, ws:13, we:23,
+  'B763': {name:'Boeing 767-300ER', rows:36, cols:['A','B','C','D','E','F','G'], aisleAfter:[1,4], biz:6, ws:13, we:21,
     cabins:[{cls:'B',r1:1,r2:6},{cls:'PE',r1:7,r2:10},{cls:'E',r1:11,r2:36}]},
-  'B764': {name:'Boeing 767-400ER', rows:38, cols:['A','B','C','D','E','F','G'], aisleAfter:[1,4], biz:6, ws:14, we:25,
+  'B764': {name:'Boeing 767-400ER', rows:38, cols:['A','B','C','D','E','F','G'], aisleAfter:[1,4], biz:6, ws:14, we:22,
     cabins:[{cls:'B',r1:1,r2:6},{cls:'PE',r1:7,r2:11},{cls:'E',r1:12,r2:38}]},
   // 777 — 3+3+3 (9 wide): A,B,C | D,E,F | G,H,J — aisles after C(2) and F(5)
-  'B772': {name:'Boeing 777-200ER', rows:45, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:7, ws:18, we:31,
+  'B772': {name:'Boeing 777-200ER', rows:45, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:7, ws:18, we:28,
     cabins:[{cls:'B',r1:1,r2:7},{cls:'PE',r1:8,r2:12},{cls:'E',r1:13,r2:45}]},
-  'B77L': {name:'Boeing 777-200LR', rows:45, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:7, ws:18, we:31,
+  'B77L': {name:'Boeing 777-200LR', rows:45, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:7, ws:18, we:28,
     cabins:[{cls:'F',r1:1,r2:3},{cls:'B',r1:4,r2:10},{cls:'PE',r1:11,r2:14},{cls:'E',r1:15,r2:45}]},
-  'B773': {name:'Boeing 777-300ER', rows:52, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:21, we:36,
+  'B773': {name:'Boeing 777-300ER', rows:52, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:20, we:31,
     cabins:[{cls:'F',r1:1,r2:4},{cls:'B',r1:5,r2:12},{cls:'PE',r1:13,r2:16},{cls:'E',r1:17,r2:52}]},
-  'B779': {name:'Boeing 777X-9', rows:52, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:21, we:36,
+  'B779': {name:'Boeing 777X-9', rows:52, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:20, we:31,
     cabins:[{cls:'F',r1:1,r2:4},{cls:'B',r1:5,r2:12},{cls:'PE',r1:13,r2:16},{cls:'E',r1:17,r2:52}]},
   // 787 — 3+3+3 (9 wide): A,B,C | D,E,F | G,H,J — aisles after C(2) and F(5)
-  'B788': {name:'Boeing 787-8', rows:40, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:7, ws:18, we:28,
+  'B788': {name:'Boeing 787-8', rows:40, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:7, ws:16, we:26,
     cabins:[{cls:'B',r1:1,r2:7},{cls:'PE',r1:8,r2:11},{cls:'E',r1:12,r2:40}]},
-  'B789': {name:'Boeing 787-9', rows:57, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:30, we:44,
+  'B789': {name:'Boeing 787-9', rows:57, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:24, we:36,
     cabins:[{cls:'B',r1:1,r2:8},{cls:'PE',r1:9,r2:12},{cls:'E',r1:13,r2:57}]},
-  'B78X': {name:'Boeing 787-10', rows:62, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:32, we:48,
+  'B78X': {name:'Boeing 787-10', rows:62, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:26, we:38,
     cabins:[{cls:'B',r1:1,r2:8},{cls:'PE',r1:9,r2:12},{cls:'E',r1:13,r2:62}]},
   // ── EMBRAER ───────────────────────────────────────────────
   // ERJ: 1+2 layout — A | C,D
@@ -1331,13 +1331,13 @@ const AIRCRAFT = {
     cabins:[{cls:'E',r1:1,r2:18}]},
   'E175': {name:'Embraer E175', rows:20, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:7, we:13,
     cabins:[{cls:'E',r1:1,r2:20}]},
-  'E190': {name:'Embraer E190', rows:25, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:9, we:16,
+  'E190': {name:'Embraer E190', rows:25, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:9, we:15,
     cabins:[{cls:'E',r1:1,r2:25}]},
-  'E195': {name:'Embraer E195', rows:30, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:10, we:19,
+  'E195': {name:'Embraer E195', rows:30, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:10, we:18,
     cabins:[{cls:'E',r1:1,r2:30}]},
-  'E290': {name:'Embraer E190-E2', rows:25, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:9, we:16,
+  'E290': {name:'Embraer E190-E2', rows:25, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:9, we:15,
     cabins:[{cls:'E',r1:1,r2:25}]},
-  'E295': {name:'Embraer E195-E2', rows:30, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:10, we:19,
+  'E295': {name:'Embraer E195-E2', rows:30, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:10, we:18,
     cabins:[{cls:'E',r1:1,r2:30}]},
   'E120': {name:'Embraer EMB-120', rows:10, cols:['A','B','C'], aisleAfter:[0], biz:0, ws:4, we:7,
     cabins:[{cls:'E',r1:1,r2:10}]},
@@ -1346,18 +1346,18 @@ const AIRCRAFT = {
     cabins:[{cls:'E',r1:1,r2:13}]},
   'CRJ7': {name:'Bombardier CRJ-700', rows:16, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:6, we:11,
     cabins:[{cls:'E',r1:1,r2:16}]},
-  'CRJ9': {name:'Bombardier CRJ-900', rows:19, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:7, we:13,
+  'CRJ9': {name:'Bombardier CRJ-900', rows:19, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:7, we:12,
     cabins:[{cls:'E',r1:1,r2:19}]},
-  'CRJX': {name:'Bombardier CRJ-1000', rows:22, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:8, we:15,
+  'CRJX': {name:'Bombardier CRJ-1000', rows:22, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:8, we:14,
     cabins:[{cls:'E',r1:1,r2:22}]},
   // Dash8 — 2+2 layout
   'DH8A': {name:'Dash 8-Q100', rows:9, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:3, we:6,
     cabins:[{cls:'E',r1:1,r2:9}]},
-  'DH8B': {name:'Dash 8-Q200', rows:11, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:4, we:8,
+  'DH8B': {name:'Dash 8-Q200', rows:11, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:4, we:7,
     cabins:[{cls:'E',r1:1,r2:11}]},
-  'DH8C': {name:'Dash 8-Q300', rows:15, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:5, we:10,
+  'DH8C': {name:'Dash 8-Q300', rows:15, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:5, we:9,
     cabins:[{cls:'E',r1:1,r2:15}]},
-  'DH8D': {name:'Dash 8-Q400', rows:19, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:7, we:13,
+  'DH8D': {name:'Dash 8-Q400', rows:19, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:7, we:12,
     cabins:[{cls:'E',r1:1,r2:19}]},
   // ── ATR ───────────────────────────────────────────────────
   'AT43': {name:'ATR 42-300', rows:11, cols:['A','B','C','D'], aisleAfter:[1], biz:0, ws:4, we:8,
@@ -1874,41 +1874,41 @@ function buildMap(fl, deck) {
   var cabins = deckData ? deckData.cabins : (fl.cabins || (acData ? acData.cabins : null));
   var rowOffset = deckData ? (deckData.rowOffset||0) : 0;
 
-  // Build cabin labels lookup
-  var cabinForRow={};
-  if (cabins) {
-    for (var ci=0;ci<cabins.length;ci++) {
-      var cb=cabins[ci];
-      for (var ri=cb.r1;ri<=cb.r2;ri++) {
-        cabinForRow[ri-rowOffset]=cb.cls;
+  // Determine effective cabin list — fall back to all-Economy if none
+  var effectiveCabins = cabins && cabins.length ? cabins : [{cls:'E', r1:1+rowOffset, r2:rows+rowOffset}];
+
+  // Render cabin by cabin — no gap possible
+  var wo = false;
+  for (var ci = 0; ci < effectiveCabins.length; ci++) {
+    var cab = effectiveCabins[ci];
+    var cls = cab.cls;
+    var isBiz = (cls==='F' || cls==='B');
+    var isFirst = (cls==='F');
+    var sepLabel = cls==='F'?'First Class':cls==='B'?'Business Class':cls==='PE'?'Premium Economy':'Economy';
+    var sepCls = cls==='F'?'first':cls==='B'?'biz':cls==='PE'?'peco':'';
+    cabin.innerHTML += '<div class="csep '+sepCls+'">'+sepLabel+'</div>';
+
+    // r1/r2 are ABSOLUTE row numbers; convert to local r (1-based)
+    var r1local = cab.r1 - rowOffset;
+    var r2local = cab.r2 - rowOffset;
+    // clamp to actual deck rows
+    r1local = Math.max(1, r1local);
+    r2local = Math.min(rows, r2local);
+
+    for (var r = r1local; r <= r2local; r++) {
+      var actualRow = r + rowOffset;
+      // Wing zone start marker
+      if (ws > 0 && r === ws) {
+        cabin.innerHTML += '<div class="wing-bar">&#9992; Wing zone &middot; smoothest seats</div>';
+        wo = true;
+      }
+      cabin.innerHTML += mkRow(r, actualRow, cols, aisleAfter, fl, ws, we, isBiz, isFirst, deck);
+      // Wing zone end marker
+      if (we > 0 && r === we && wo) {
+        cabin.innerHTML += '<div class="wing-bar" style="background:transparent;border-color:rgba(255,255,255,.05);color:rgba(255,255,255,.2)">end of wing zone</div>';
+        wo = false;
       }
     }
-  }
-
-  var wo=false;
-  var lastCls='';
-  for (var r=1;r<=rows;r++) {
-    var actualRow = r + rowOffset;
-    var cls = cabinForRow[r] || 'E';
-    // Section separator
-    if (cls !== lastCls) {
-      var sepLabel = cls==='F'?'First Class':cls==='B'?'Business Class':cls==='PE'?'Premium Economy':'Economy';
-      var sepCls = cls==='F'?'first':cls==='B'?'biz':cls==='PE'?'peco':'';
-      cabin.innerHTML+='<div class="csep '+sepCls+'">'+sepLabel+'</div>';
-      lastCls=cls;
-    }
-    // Wing zone markers
-    if (ws>0 && r===ws) {
-      cabin.innerHTML+='<div class="wing-bar">&#9992; Wing zone &middot; smoothest seats</div>';
-      wo=true;
-    }
-    if (we>0 && r===we+1 && wo) {
-      cabin.innerHTML+='<div class="wing-bar" style="background:transparent;border-color:rgba(255,255,255,.05);color:rgba(255,255,255,.2)">end of wing zone</div>';
-      wo=false;
-    }
-    var isBiz = (cls==='F'||cls==='B');
-    var isLarger = (cls==='F');
-    cabin.innerHTML+=mkRow(r, actualRow, cols, aisleAfter, fl, ws, we, isBiz, isLarger, deck);
   }
 }
 
