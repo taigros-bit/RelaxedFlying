@@ -1109,72 +1109,6 @@ function modelToAcType(model) {
   return null;
 }
 
-function parseLiveFlights(data, dep, arr) {
-  var list = data.departures || data.flights || data.data || [];
-  if (!list.length) return [];
-  var out = [];
-  for (var i = 0; i < list.length; i++) {
-    var f = list[i];
-    try {
-      var al = f.airline || {};
-      var acft = f.aircraft || {};
-      var dpt = f.departure || {};
-      var arv = f.arrival || {};
-
-      var alIata = (al.iata || '').toUpperCase();
-
-      // Use full name lookup, fall back to API name
-      var alName = AIRLINE_NAMES[alIata] || al.name || alIata || 'Unknown';
-
-      // AeroDataBox actual structure:
-      // dpt.scheduledTime = { utc: "2026-06-15 16:45Z", local: "2026-06-16 00:45+08:00" }
-      var depTimeObj = dpt.scheduledTime || dpt.revisedTime || {};
-      var arrTimeObj = arv.scheduledTime || arv.revisedTime || {};
-      var depS = parseADBTime(depTimeObj);
-      var arrS = parseADBTime(arrTimeObj);
-
-      // Duration from UTC timestamps
-      var durS = minsToStr(calcFlightMins(dep, arr));
-      var depUtc = depTimeObj.utc || '';
-      var arrUtc = arrTimeObj.utc || '';
-      if (depUtc && arrUtc) {
-        // Fix UTC format: "2026-06-15 16:45Z" → "2026-06-15T16:45Z"
-        var d1 = new Date(depUtc.replace(' ', 'T'));
-        var d2 = new Date(arrUtc.replace(' ', 'T'));
-        var diff = Math.round((d2 - d1) / 60000);
-        if (diff > 20 && diff < 1440) durS = minsToStr(diff);
-      }
-
-      // Aircraft: AeroDataBox gives model string like "Airbus A380-800"
-      var acModel = acft.model || acft.iata || '';
-      var acType = modelToAcType(acModel) || getAcType((acft.iata||'').toUpperCase()) || getFleetAc(alIata, dep, arr);
-      var ac = getAC(acType, alIata);
-
-      var flId = f.number || (alIata + (100 + Math.floor(Math.random()*899)));
-
-      if (!alIata) continue;
-
-      out.push({
-        id: flId, airline: alName, alIata: alIata,
-        acType: acType, acName: ac.name,
-        dep: depS, arr: arrS, dur: durS,
-        tlv: getRouteTurb(dep, arr),
-        from: dep, fromCity: selAP.f.city,
-        to: arr, toCity: selAP.t.city,
-        rows: ac.rows, cols: ac.cols, biz: ac.biz, ws: ac.ws, we: ac.we
-      });
-    } catch(e) {}
-  }
-  return out;
-}
-
-function parseFlightTime(endpoint) {
-  var raw = endpoint.actual || endpoint.estimated || endpoint.scheduled || endpoint.scheduledTime || endpoint.time || '';
-  if (!raw) return '??:??';
-  if (raw.indexOf('T') > 0) { var tp = raw.slice(11,16); if (tp && tp.indexOf(':')>0) return tp; }
-  if (raw.indexOf(':') > 0 && raw.length <= 8) return raw.slice(0,5);
-  return '??:??';
-}
 
 // ── HAVERSINE FLIGHT TIME ──────────────────────────────────────
 function haversineDist(lat1,lon1,lat2,lon2){
@@ -1484,37 +1418,42 @@ var TURB = [
 function calcScore(r, ac, tlv, deck) {
   var ws = ac.ws, we = ac.we, totalRows = ac.rows;
   
-  // Upper deck (A380/747): First + Business = smoother, no engine noise
+  // Upper deck (A380/747): premium cabins always smoother
   if (deck === 'upper') {
-    var v2 = ((r * 7 + 3) % 10) / 10 * 0.4 - 0.2;
-    return Math.max(0, Math.min(6, Math.round(Math.max(0, tlv - 1) + v2)));
+    return Math.max(0, Math.min(6, Math.round(Math.max(0, tlv - 1))));
   }
   
-  // Physics model: lever arm from wing root
-  // Wing zone = 0 amplification (pivot point)
-  // Forward = moderate (shorter lever arm, ~0.5-1x)  
-  // Rear = strong (longer lever arm + fuselage flex, ~1.5-3x)
-  var amplifier;
+  // PHYSICS: Aircraft = beam fixed at wing root (center of lift/gravity)
+  // Displacement amplifies with distance from wing
+  // We use a 0-6 scale where:
+  //   Wing zone = absolute base (best seat on the plane)
+  //   Rear tail = worst (longest lever arm + fuselage flexibility)
+  //
+  // KEY INSIGHT: even on smooth routes (tlv=1), rear feels noticeably worse
+  // We add ABSOLUTE scores per zone, not just relative amplification
+
+  var score;
   if (r >= ws && r <= we) {
-    amplifier = 0;
+    // Wing zone: smooth regardless of route — this is the reference point
+    // Score = max(0, tlv - 1) so wing is always at least 1 better than base
+    score = Math.max(0, tlv - 1);
   } else if (r < ws) {
-    var distFwd = (ws - r) / ws;
-    // Front rows get slightly MORE turbulence than mid-forward due to nose pitching
-    amplifier = 0.3 + distFwd * 0.7; // 0.3 to ~1.0
+    // Forward of wing: moderate. Nose pitches but shorter lever arm.
+    var distFwd = (ws - r) / Math.max(1, ws); // 0=just fwd of wing, 1=row 1
+    // Absolute addition: 1-2 points above wing depending on how far forward
+    score = Math.max(0, tlv - 1) + 1 + distFwd * 1;
   } else {
-    var distRear = (r - we) / Math.max(1, totalRows - we);
-    amplifier = 0.5 + distRear * 2.5; // 0.5 to ~3.0 at tail
+    // Rear of wing: strongest. Tail lever arm 2-3x longer than nose.
+    var distRear = (r - we) / Math.max(1, totalRows - we); // 0=just aft, 1=last row
+    // Absolute addition: 2-4 points above wing — clearly visible gradient
+    score = Math.max(0, tlv - 1) + 2 + distRear * 2.5;
   }
   
-  // Base score uses route turbulence as floor
-  // Minimum score = max(0, tlv-1) for wing, tlv for middle, tlv+amplification for rear
-  var base = Math.max(0, tlv - (r >= ws && r <= we ? 1 : 0));
-  var added = amplifier * Math.max(1, tlv * 0.6); // scale amplification with route roughness
+  // Tiny deterministic variation per row for realism (not random)
+  var rowVar = ((r * 13 + totalRows * 7) % 10) / 10 * 0.3 - 0.15;
+  score += rowVar;
   
-  // Deterministic variation per row (not random — same flight = same map)
-  var rowVar = ((r * 13 + ac.rows * 7) % 10) / 10 * 0.4 - 0.2;
-  
-  return Math.max(0, Math.min(6, Math.round(base + added + rowVar)));
+  return Math.max(0, Math.min(6, Math.round(score)));
 }
 
 function getRouteTurb(dep,arr) {
@@ -2157,9 +2096,11 @@ function drawRouteMap(depAP, arrAP) {
   var p1 = proj(d1.lat, d1.lon);
   var p2 = proj(d2.lat, d2.lon);
 
-  // Great circle midpoint approximation (average lat/lon, pulled slightly poleward)
-  var midLat = (d1.lat + d2.lat) / 2 + 8; // slight polar bulge for great circle effect
-  var midLon = (d1.lon + d2.lon) / 2;
+  // Great circle midpoint — polar bulge (longer routes bulge more)
+  var dist = Math.sqrt(Math.pow(d2.lat-d1.lat,2)+Math.pow(d2.lon-d1.lon,2));
+  var poleward = Math.min(dist * 0.15, 12); // scale with distance
+  var midLat = (d1.lat + d2.lat) / 2 + poleward;
+  var midLon = (d1.lon + d2.lon) / 2; // FIX: use d1.lon not d1.lat
   var pm = proj(midLat, midLon);
 
   // Handle dateline crossing
