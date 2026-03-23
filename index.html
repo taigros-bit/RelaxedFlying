@@ -2075,7 +2075,31 @@ document.getElementById('fcast').addEventListener('click',function(e){
   document.querySelectorAll('[data-fp]').forEach(function(f){f.classList.remove('on');});fp.classList.add('on');
 });
 
-// ── ROUTE MAP (SVG with great circle arc) ────────────────────
+// ── ROUTE MAP ────────────────────────────────────────────────
+// Simplified continent outlines (key coastline points, equirectangular)
+var COASTLINES = [
+  // Europe
+  'M-10,36 L-9,39 L-8,38 L-9,43 L-2,44 L3,43 L5,48 L3,51 L4,52 L8,53 L10,55 L12,56 L18,57 L20,60 L25,65 L28,70 L30,68 L27,62 L30,60 L25,55 L22,54 L18,54 L14,54 L12,53 L8,51 L3,46 L8,44 L5,43 L3,44 L0,43 L-2,44 L-5,40 L-8,37 L-10,36Z',
+  // Balkan/Italy/Greece  
+  'M8,44 L12,44 L14,42 L15,38 L16,38 L18,40 L20,38 L24,36 L26,38 L28,36 L26,36 L22,38 L18,38 L16,40 L14,40 L12,42 L8,44Z',
+  // North Africa outline
+  'M-6,36 L0,37 L5,37 L10,37 L15,37 L20,37 L25,37 L30,37 L35,36 L36,31 L33,27 L25,20 L20,15 L15,12 L10,12 L5,14 L0,16 L-5,20 L-10,28 L-10,32 L-6,36Z',
+  // British Isles
+  'M-5,50 L-3,51 L0,51 L2,52 L1,54 L-1,57 L-3,58 L-5,57 L-4,55 L-5,54 L-4,52 L-5,50Z',
+  // Scandinavia
+  'M5,57 L8,58 L10,58 L12,58 L14,56 L18,56 L22,58 L25,62 L28,70 L24,68 L20,63 L18,62 L15,60 L12,58 L8,58 L5,57Z',
+  // Middle East
+  'M28,37 L33,35 L36,30 L42,30 L45,25 L50,22 L55,23 L58,22 L60,24 L57,25 L55,27 L52,30 L50,30 L46,30 L43,32 L40,36 L36,37 L33,36 L28,37Z',
+  // Americas West coast  
+  'M-80,0 L-77,1 L-75,2 L-72,5 L-70,10 L-67,12 L-65,18 L-64,23 L-67,28 L-70,32 L-72,34 L-74,40 L-71,42 L-70,46 L-67,47 L-64,45 L-61,47 L-60,47',
+  // Americas East coast
+  'M-60,47 L-63,46 L-65,43 L-68,42 L-70,40 L-72,38 L-75,35 L-77,34 L-80,32 L-81,28 L-80,25 L-82,24 L-83,20 L-85,16 L-87,15 L-90,15 L-92,16 L-95,20 L-100,20',
+].map(function(pathStr) {
+  // Convert the simplified lon/lat path to equirectangular SVG coords  
+  // Each M/L command has lon,lat values that we convert
+  return pathStr;
+}); // Note: these are in lon,lat format for conversion
+
 function drawRouteMap(depAP, arrAP) {
   if (!depAP || !arrAP) return;
   var wrap = document.getElementById('route-map-wrap');
@@ -2084,72 +2108,144 @@ function drawRouteMap(depAP, arrAP) {
   document.getElementById('route-map-title').textContent = depAP.c + ' \u2192 ' + arrAP.c;
   document.getElementById('route-map-sub').textContent = depAP.city + ' \u2192 ' + arrAP.city + ' \xB7 ' + minsToStr(calcFlightMins(depAP.c, arrAP.c));
 
-  var W=400, H=200;
-  // Project lat/lon to SVG coords (simple equirectangular)
+  // Canvas: fixed 400x200
+  var W = 400, H = 200;
+  
+  // Determine zoom region: center on route midpoint with padding
+  var cLat = (depAP.lat + arrAP.lat) / 2;
+  var cLon = (depAP.lon + arrAP.lon) / 2;
+  
+  // Route extent
+  var dLat = Math.abs(depAP.lat - arrAP.lat);
+  var dLon = Math.abs(depAP.lon - arrAP.lon);
+  
+  // Pad enough to show geographic context (at least 15° in each direction)
+  var padLat = Math.max(dLat * 1.5, 15);
+  var padLon = Math.max(dLon * 1.5, padLat * 2); // wider than tall
+  
+  // Viewport bounds in geographic coords
+  var minLat = cLat - padLat;
+  var maxLat = cLat + padLat;
+  var minLon = cLon - padLon;
+  var maxLon = cLon + padLon;
+  
+  // Project: maps [minLon..maxLon] -> [0..W], [maxLat..minLat] -> [0..H]
   function proj(lat, lon) {
-    var x = (lon + 180) / 360 * W;
-    var y = (90 - lat) / 180 * H;
-    return {x:x, y:y};
+    var x = (lon - minLon) / (maxLon - minLon) * W;
+    var y = (maxLat - lat) / (maxLat - minLat) * H;
+    return {x: x, y: y};
+  }
+  
+  // Inverse: check if coords are in view
+  function inView(lat, lon) {
+    return lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon;
   }
 
-  var d1 = depAP, d2 = arrAP;
-  var p1 = proj(d1.lat, d1.lon);
-  var p2 = proj(d2.lat, d2.lon);
-
-  // Great circle midpoint — polar bulge (longer routes bulge more)
-  var dist = Math.sqrt(Math.pow(d2.lat-d1.lat,2)+Math.pow(d2.lon-d1.lon,2));
-  var poleward = Math.min(dist * 0.15, 12); // scale with distance
-  var midLat = (d1.lat + d2.lat) / 2 + poleward;
-  var midLon = (d1.lon + d2.lon) / 2; // FIX: use d1.lon not d1.lat
-  var pm = proj(midLat, midLon);
-
-  // Handle dateline crossing
-  var dx = p2.x - p1.x;
-  if (Math.abs(dx) > W/2) {
-    // Crosses dateline — draw two segments
-    if (p1.x < p2.x) { p1.x += W; } else { p2.x += W; }
+  var p1 = proj(depAP.lat, depAP.lon);
+  var p2 = proj(arrAP.lat, arrAP.lon);
+  
+  // Great circle midpoint with polar bulge
+  var gc_dist = Math.sqrt(Math.pow(arrAP.lat-depAP.lat,2)+Math.pow(arrAP.lon-depAP.lon,2));
+  var poleward = Math.min(gc_dist * 0.15, 10);
+  var pm = proj((depAP.lat + arrAP.lat)/2 + poleward, (depAP.lon + arrAP.lon)/2);
+  
+  // Build SVG
+  var out = '';
+  
+  // Background
+  out += '<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#0d1117"/>';
+  
+  // Ocean grid lines
+  for (var lo = Math.ceil(minLon/10)*10; lo <= maxLon; lo += 10) {
+    var px = (lo - minLon) / (maxLon - minLon) * W;
+    out += '<line x1="'+px.toFixed(1)+'" y1="0" x2="'+px.toFixed(1)+'" y2="'+H+'" stroke="rgba(74,144,226,.06)" stroke-width="0.5"/>';
   }
-
-  // Pan/zoom to fit route — ensure minimum visual spread
-  var pad = 30;
-  var minSpread = 60; // minimum visual distance in SVG units
-  var minX = Math.min(p1.x, p2.x, pm.x) - pad;
-  var maxX = Math.max(p1.x, p2.x, pm.x) + pad;
-  var minY = Math.min(p1.y, p2.y, pm.y) - pad;
-  var maxY = Math.max(p1.y, p2.y, pm.y) + pad;
-  var vbW = maxX - minX, vbH = maxY - minY;
-  // Ensure minimum spread so nearby airports don't stack
-  if (vbW < minSpread) { var exW = (minSpread-vbW)/2; minX -= exW; maxX += exW; vbW = minSpread; }
-  if (vbH < minSpread*0.4) { var exH = (minSpread*0.4-vbH)/2; minY -= exH; maxY += exH; vbH = minSpread*0.4; }
-  // Ensure aspect ratio
-  if (vbH < vbW * 0.35) { var extra = vbW * 0.35 - vbH; minY -= extra/2; maxY += extra/2; vbH = maxY - minY; }
-
-  svg.setAttribute('viewBox', minX+' '+minY+' '+vbW+' '+vbH);
-
-  // Draw world outline (simplified)
-  var worldPath = 'M0,0 L'+W+',0 L'+W+','+H+' L0,'+H+' Z';
-
-  svg.innerHTML =
-    // Background
-    '<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#0a0a0a"/>'
-    // Simple lat/lon grid
-    + (function(){
-        var g='';
-        for(var lo=-180;lo<=180;lo+=30){var p=proj(0,lo);g+='<line x1="'+p.x+'" y1="0" x2="'+p.x+'" y2="'+H+'" stroke="rgba(255,255,255,.04)" stroke-width="0.5"/>';}
-        for(var la=-60;la<=90;la+=30){var p=proj(la,0);g+='<line x1="0" y1="'+p.y+'" x2="'+W+'" y2="'+p.y+'" stroke="rgba(255,255,255,.04)" stroke-width="0.5"/>';}
-        return g;
-      })()
-    // Great circle route (quadratic bezier approximation)
-    + '<path d="M'+p1.x+','+p1.y+' Q'+pm.x+','+pm.y+' '+p2.x+','+p2.y+'" fill="none" stroke="rgba(74,144,226,.3)" stroke-width="1" stroke-dasharray="3,2"/>'
-    + '<path d="M'+p1.x+','+p1.y+' Q'+pm.x+','+pm.y+' '+p2.x+','+p2.y+'" fill="none" stroke="#4A90E2" stroke-width="1.5" stroke-dasharray="6,3"/>'
-    // Departure dot
-    + '<circle cx="'+p1.x+'" cy="'+p1.y+'" r="4" fill="#34C759" stroke="#fff" stroke-width="1"/>'
-    + '<text x="'+(p1.x+7)+'" y="'+(p1.y+4)+'" font-family="Inter,sans-serif" font-size="9" font-weight="700" fill="#fff">'+d1.c+'</text>'
-    // Arrival dot
-    + '<circle cx="'+p2.x+'" cy="'+p2.y+'" r="4" fill="#FF9F0A" stroke="#fff" stroke-width="1"/>'
-    + '<text x="'+(p2.x+7)+'" y="'+(p2.y+4)+'" font-family="Inter,sans-serif" font-size="9" font-weight="700" fill="#fff">'+d2.c+'</text>'
-    // Plane icon at midpoint
-    + '<text x="'+(pm.x-5)+'" y="'+(pm.y+4)+'" font-family="Arial" font-size="12" fill="#4A90E2">&#9992;</text>';
+  for (var la = Math.ceil(minLat/10)*10; la <= maxLat; la += 10) {
+    var py = (maxLat - la) / (maxLat - minLat) * H;
+    out += '<line x1="0" y1="'+py.toFixed(1)+'" x2="'+W+'" y2="'+py.toFixed(1)+'" stroke="rgba(74,144,226,.06)" stroke-width="0.5"/>';
+  }
+  
+  // Simple land polygons — Europe/Mediterranean region
+  // These are arrays of [lon, lat] pairs
+  var LANDS = [
+    // Iberian Peninsula
+    [[-9,44],[-1,44],[3,43],[5,43],[3,37],[0,36],[-2,37],[-5,38],[-9,39],[-9,44]],
+    // France + Benelux
+    [[-2,44],[3,43],[8,44],[8,48],[6,49],[3,51],[0,51],[-2,49],[-2,44]],
+    // British Isles
+    [[-5,50],[0,51],[2,52],[0,55],[-2,58],[-4,58],[-5,57],[-4,55],[-5,54],[-4,52],[-5,50]],
+    // Scandinavia
+    [[5,57],[8,58],[12,57],[18,56],[22,58],[28,70],[24,68],[18,62],[12,58],[8,58],[5,57]],
+    // Germany + Alps region
+    [[8,48],[15,49],[18,50],[15,54],[12,54],[8,53],[8,51],[8,48]],
+    // Italy
+    [[8,44],[13,44],[15,38],[16,37],[14,38],[14,42],[12,46],[8,46],[8,44]],
+    // Balkans + Greece
+    [[14,46],[22,48],[26,48],[28,44],[26,40],[24,38],[22,36],[20,38],[18,38],[15,40],[14,42],[14,46]],
+    // Aegean + Turkey west
+    [[26,40],[28,41],[32,42],[36,38],[32,36],[28,36],[26,38],[26,40]],
+    // North Africa
+    [[-6,36],[0,37],[10,37],[15,37],[25,37],[35,36],[35,30],[30,20],[20,15],[10,12],[0,16],[-5,20],[-6,26],[-6,36]],
+    // Middle East coast
+    [[28,37],[36,37],[40,36],[43,32],[46,30],[50,30],[55,23],[50,20],[45,22],[40,20],[36,22],[34,28],[33,30],[32,32],[32,35],[30,34],[28,37]],
+    // Black Sea coast
+    [[28,41],[32,42],[36,42],[42,42],[44,44],[40,46],[36,44],[32,44],[28,41]],
+    // Central Europe
+    [[15,49],[22,48],[24,50],[18,54],[15,54],[12,54],[12,51],[15,49]],
+    // Scandinavia detail
+    [[15,56],[18,56],[20,58],[24,60],[28,62],[26,60],[22,58],[18,56],[15,56]],
+    // Ireland
+    [[-10,52],[-6,52],[-6,54],[-8,56],[-10,54],[-10,52]],
+    // Baltic states area
+    [[20,54],[24,54],[28,56],[24,58],[20,58],[18,56],[18,54],[20,54]],
+    // Poland + Czech
+    [[14,50],[18,50],[24,50],[24,54],[18,54],[14,54],[12,51],[14,50]],
+    // Ukraine / Romania
+    [[22,48],[30,47],[34,47],[36,48],[34,52],[28,52],[24,50],[22,48]],
+  ];
+  
+  // Draw land
+  for (var li = 0; li < LANDS.length; li++) {
+    var poly = LANDS[li];
+    var pts = '';
+    var hasVisible = false;
+    for (var pi = 0; pi < poly.length; pi++) {
+      var pp = proj(poly[pi][1], poly[pi][0]);
+      pts += (pi===0?'M':'L') + pp.x.toFixed(1) + ',' + pp.y.toFixed(1);
+      if (pp.x >= -20 && pp.x <= W+20 && pp.y >= -20 && pp.y <= H+20) hasVisible = true;
+    }
+    if (hasVisible) {
+      out += '<path d="'+pts+'Z" fill="#1e2a1e" stroke="rgba(80,120,80,.5)" stroke-width="0.8"/>';
+    }
+  }
+  
+  // Route line
+  out += '<path d="M'+p1.x.toFixed(1)+','+p1.y.toFixed(1)+' Q'+pm.x.toFixed(1)+','+pm.y.toFixed(1)+' '+p2.x.toFixed(1)+','+p2.y.toFixed(1)+'" fill="none" stroke="rgba(74,144,226,.35)" stroke-width="2" stroke-dasharray="6,3"/>';
+  out += '<path d="M'+p1.x.toFixed(1)+','+p1.y.toFixed(1)+' Q'+pm.x.toFixed(1)+','+pm.y.toFixed(1)+' '+p2.x.toFixed(1)+','+p2.y.toFixed(1)+'" fill="none" stroke="#4A90E2" stroke-width="1.5" stroke-dasharray="none" opacity="0.7"/>';
+  
+  // Airport dots + labels
+  var r = 5;
+  // DEP
+  out += '<circle cx="'+p1.x.toFixed(1)+'" cy="'+p1.y.toFixed(1)+'" r="'+r+'" fill="#34C759" stroke="#fff" stroke-width="1.5"/>';
+  var lx1 = p1.x > W*0.7 ? p1.x - 8 : p1.x + r + 4;
+  var anchor1 = p1.x > W*0.7 ? 'end' : 'start';
+  out += '<text x="'+lx1.toFixed(1)+'" y="'+(p1.y+4).toFixed(1)+'" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="'+anchor1+'">'+depAP.c+'</text>';
+  out += '<text x="'+lx1.toFixed(1)+'" y="'+(p1.y+15).toFixed(1)+'" font-family="Inter,sans-serif" font-size="8" fill="rgba(255,255,255,.5)" text-anchor="'+anchor1+'">'+depAP.city+'</text>';
+  
+  // ARR
+  out += '<circle cx="'+p2.x.toFixed(1)+'" cy="'+p2.y.toFixed(1)+'" r="'+r+'" fill="#FF9F0A" stroke="#fff" stroke-width="1.5"/>';
+  var lx2 = p2.x > W*0.7 ? p2.x - 8 : p2.x + r + 4;
+  var anchor2 = p2.x > W*0.7 ? 'end' : 'start';
+  out += '<text x="'+lx2.toFixed(1)+'" y="'+(p2.y+4).toFixed(1)+'" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="'+anchor2+'">'+arrAP.c+'</text>';
+  out += '<text x="'+lx2.toFixed(1)+'" y="'+(p2.y+15).toFixed(1)+'" font-family="Inter,sans-serif" font-size="8" fill="rgba(255,255,255,.5)" text-anchor="'+anchor2+'">'+arrAP.city+'</text>';
+  
+  // Aircraft at midpoint
+  var pmx = pm.x, pmy = pm.y;
+  var angle = Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180 / Math.PI;
+  out += '<text x="'+pmx.toFixed(1)+'" y="'+pmy.toFixed(1)+'" font-family="Arial" font-size="14" fill="#4A90E2" text-anchor="middle" transform="rotate('+angle.toFixed(0)+','+pmx.toFixed(1)+','+pmy.toFixed(1)+')">&#9992;</text>';
+  
+  svg.setAttribute('viewBox', '0 0 '+W+' '+H);
+  svg.innerHTML = out;
 }
 
 // ── WEATHER ───────────────────────────────────────────────────
