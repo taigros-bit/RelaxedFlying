@@ -1148,7 +1148,7 @@ function parseLiveFlights(data, dep, arr) {
       // Aircraft: AeroDataBox gives model string like "Airbus A380-800"
       var acModel = acft.model || acft.iata || '';
       var acType = modelToAcType(acModel) || getAcType((acft.iata||'').toUpperCase()) || getFleetAc(alIata, dep, arr);
-      var ac = getAC(acType);
+      var ac = getAC(acType, alIata);
 
       var flId = f.number || (alIata + (100 + Math.floor(Math.random()*899)));
 
@@ -1453,7 +1453,19 @@ function getFleetAc(alIata,dep,arr) {
   var f=FLEET[alIata]; if(!f) return 'A320';
   return f.routes[dep+'-'+arr]||f.routes[arr+'-'+dep]||f.def;
 }
-function getAC(type) { return AIRCRAFT[type]||AIRCRAFT['A320']; }
+// Airlines with no business/first class — all economy
+var LCC_AIRLINES = {'FR':1,'U2':1,'W6':1,'VY':1,'W9':1,'G9':1,'6E':1,'SG':1,'JT':1,'TR':1,'D8':1,'HV':1,'TOM':1,'BY':1,'LS':1,'MT':1,'FC':1,'JA':1};
+
+function getAC(type, alIata) {
+  var ac = AIRCRAFT[type] || AIRCRAFT['A320'];
+  // For LCCs: override to all-economy (biz=0)
+  if (alIata && LCC_AIRLINES[alIata]) {
+    ac = Object.assign({}, ac);
+    ac.cabins = [{cls:'E', r1:1, r2:ac.rows}];
+    ac.biz = 0;
+  }
+  return ac;
+}
 
 
 // ── TURBULENCE ───────────────────────────────────────────────
@@ -1471,27 +1483,38 @@ var TURB = [
 // Wing = pivot point, amplification increases with lever arm distance
 function calcScore(r, ac, tlv, deck) {
   var ws = ac.ws, we = ac.we, totalRows = ac.rows;
-  // For dual-deck aircraft, use deck-specific wing references
+  
+  // Upper deck (A380/747): First + Business = smoother, no engine noise
   if (deck === 'upper') {
-    // Upper deck: business/first class, generally smoother
-    var rawScore = Math.max(0, tlv - 1.5 + ((r * 7 + 3) % 10) / 10 * 0.3 - 0.15);
-    return Math.max(0, Math.min(6, Math.round(rawScore)));
+    var v2 = ((r * 7 + 3) % 10) / 10 * 0.4 - 0.2;
+    return Math.max(0, Math.min(6, Math.round(Math.max(0, tlv - 1) + v2)));
   }
+  
+  // Physics model: lever arm from wing root
+  // Wing zone = 0 amplification (pivot point)
+  // Forward = moderate (shorter lever arm, ~0.5-1x)  
+  // Rear = strong (longer lever arm + fuselage flex, ~1.5-3x)
   var amplifier;
   if (r >= ws && r <= we) {
-    amplifier = 0; // Wing zone: pivot point
+    amplifier = 0;
   } else if (r < ws) {
-    // Forward: shorter lever arm
     var distFwd = (ws - r) / ws;
-    amplifier = distFwd * 0.8;
+    // Front rows get slightly MORE turbulence than mid-forward due to nose pitching
+    amplifier = 0.3 + distFwd * 0.7; // 0.3 to ~1.0
   } else {
-    // Rear: longest lever arm + fuselage flex
     var distRear = (r - we) / Math.max(1, totalRows - we);
-    amplifier = distRear * 1.8;
+    amplifier = 0.5 + distRear * 2.5; // 0.5 to ~3.0 at tail
   }
-  // Deterministic small variation (consistent per row)
-  var v = ((r * 13 + ac.rows * 7) % 10) / 10 * 0.3 - 0.15;
-  return Math.max(0, Math.min(6, Math.round(tlv + tlv * amplifier * 0.45 + v)));
+  
+  // Base score uses route turbulence as floor
+  // Minimum score = max(0, tlv-1) for wing, tlv for middle, tlv+amplification for rear
+  var base = Math.max(0, tlv - (r >= ws && r <= we ? 1 : 0));
+  var added = amplifier * Math.max(1, tlv * 0.6); // scale amplification with route roughness
+  
+  // Deterministic variation per row (not random — same flight = same map)
+  var rowVar = ((r * 13 + ac.rows * 7) % 10) / 10 * 0.4 - 0.2;
+  
+  return Math.max(0, Math.min(6, Math.round(base + added + rowVar)));
 }
 
 function getRouteTurb(dep,arr) {
@@ -1676,12 +1699,15 @@ function parseLiveFlights(data, dep, arr) {
       }
       var acModel=acft.model||acft.iata||'';
       var acType=modelToAcType(acModel)||getAcType((acft.iata||'').toUpperCase())||getFleetAc(alIata,dep,arr);
-      var ac=getAC(acType);
+      var ac=getAC(acType, al ? (al.iata||al.alIata||"").toUpperCase() : "");
       var flId=f.number||(alIata+(100+Math.floor(Math.random()*899)));
       if(!alIata)continue;
+      // Build cabins respecting LCC override
+      var cabinsToUse = ac.cabins || [{cls:'E',r1:1,r2:ac.rows}];
       out.push({id:flId,airline:alName,alIata:alIata,acType:acType,acName:ac.name,dep:depS,arr:arrS,dur:durS,
         tlv:getRouteTurb(dep,arr),from:dep,fromCity:selAP.f.city,to:arr,toCity:selAP.t.city,
-        rows:ac.rows,cols:ac.cols,aisleAfter:ac.aisleAfter,biz:ac.biz,ws:ac.ws,we:ac.we,dualDeck:ac.dualDeck||false});
+        rows:ac.rows,cols:ac.cols,aisleAfter:ac.aisleAfter,biz:ac.biz,ws:ac.ws,we:ac.we,
+        dualDeck:ac.dualDeck||false,cabins:cabinsToUse});
     } catch(e){}
   }
   return out;
@@ -1700,11 +1726,13 @@ function loadDemoFlights(notice) {
     var parts=allDeps[i].split(':'),dh=+parts[0],dm=+parts[1];
     var dur=durMins+([-5,0,0,5][Math.floor(Math.random()*4)]);
     var at=dh*60+dm+dur,ah=Math.floor(at/60)%24,am=at%60;
-    var acType=getFleetAc(al.iata,dep,arr),ac=getAC(acType);
+    var acType=getFleetAc(al.iata,dep,arr),ac=getAC(acType,al.iata);
+    var cabinsD = ac.cabins || [{cls:'E',r1:1,r2:ac.rows}];
     return {id:al.iata+(100+Math.floor(Math.random()*899)),airline:al.name,alIata:al.iata,
       acType:acType,acName:ac.name,dep:allDeps[i],arr:(ah<10?'0':'')+ah+':'+(am<10?'0':'')+am,
       dur:minsToStr(dur),tlv:getRouteTurb(dep,arr),from:dep,fromCity:selAP.f.city,to:arr,toCity:selAP.t.city,
-      rows:ac.rows,cols:ac.cols,aisleAfter:ac.aisleAfter,biz:ac.biz,ws:ac.ws,we:ac.we,dualDeck:ac.dualDeck||false};
+      rows:ac.rows,cols:ac.cols,aisleAfter:ac.aisleAfter,biz:ac.biz,ws:ac.ws,we:ac.we,
+      dualDeck:ac.dualDeck||false,cabins:cabinsD};
   });
   renderF(false,notice||'Showing typical airlines for this route');
 }
@@ -1904,7 +1932,7 @@ function buildMap(fl, deck) {
   var ws = deckData ? deckData.ws : fl.ws;
   var we = deckData ? deckData.we : fl.we;
   var rows = deckData ? deckData.rows : fl.rows;
-  var cabins = deckData ? deckData.cabins : (acData ? acData.cabins : null);
+  var cabins = deckData ? deckData.cabins : (fl.cabins || (acData ? acData.cabins : null));
   var rowOffset = deckData ? (deckData.rowOffset||0) : 0;
 
   // Build cabin labels lookup
@@ -2141,17 +2169,19 @@ function drawRouteMap(depAP, arrAP) {
     if (p1.x < p2.x) { p1.x += W; } else { p2.x += W; }
   }
 
-  // Pan/zoom to fit route
-  var pad = 40;
+  // Pan/zoom to fit route — ensure minimum visual spread
+  var pad = 30;
+  var minSpread = 60; // minimum visual distance in SVG units
   var minX = Math.min(p1.x, p2.x, pm.x) - pad;
   var maxX = Math.max(p1.x, p2.x, pm.x) + pad;
   var minY = Math.min(p1.y, p2.y, pm.y) - pad;
   var maxY = Math.max(p1.y, p2.y, pm.y) + pad;
   var vbW = maxX - minX, vbH = maxY - minY;
-  if (vbH < vbW * 0.3) { // too flat — add vertical padding
-    var extra = vbW * 0.3 - vbH;
-    minY -= extra/2; maxY += extra/2; vbH = maxY - minY;
-  }
+  // Ensure minimum spread so nearby airports don't stack
+  if (vbW < minSpread) { var exW = (minSpread-vbW)/2; minX -= exW; maxX += exW; vbW = minSpread; }
+  if (vbH < minSpread*0.4) { var exH = (minSpread*0.4-vbH)/2; minY -= exH; maxY += exH; vbH = minSpread*0.4; }
+  // Ensure aspect ratio
+  if (vbH < vbW * 0.35) { var extra = vbW * 0.35 - vbH; minY -= extra/2; maxY += extra/2; vbH = maxY - minY; }
 
   svg.setAttribute('viewBox', minX+' '+minY+' '+vbW+' '+vbH);
 
