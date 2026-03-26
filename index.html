@@ -175,7 +175,7 @@ h1{font-size:44px;font-weight:900;letter-spacing:-2.5px;line-height:1.02;margin-
 /* Exit row seats — green border */
 .seat.exit-row{border-color:rgba(52,199,89,.55)!important}
 /* Blocked middle (eurobiz) */
-.seat.blocked{opacity:.2;cursor:default;pointer-events:none}
+.seat.blocked{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.08)!important;color:rgba(255,255,255,.15)!important;cursor:not-allowed;}
 /* First class larger */
 .seat.fc-seat{width:28px;height:28px;border-radius:6px 6px 4px 4px;}
 .seat.fc-seat::before{top:-4px;left:4px;right:4px;height:6px;}
@@ -790,6 +790,9 @@ const FLEET = {
   'AM':{ def:'B737', routes:{'MEX-JFK':'B789','MEX-MAD':'B788'} },
   'A3':{ def:'A320A3', routes:{} },
   'OA':{ def:'A320A3', routes:{} },
+  'AC':{ def:'A330AC', routes:{'YYZ-LHR':'A330AC','YYZ-CDG':'A330AC','YUL-LHR':'A330AC'} },
+  'EI':{ def:'A330EI', routes:{'DUB-JFK':'A321XLREI','DUB-BOS':'A321XLREI','DUB-ORD':'A321XLREI','DUB-LHR':'A320F'} },
+  'AS':{ def:'B737AS', routes:{} },
 };
 
 const ROUTE_TURB = {
@@ -1535,6 +1538,108 @@ const AIRCRAFT = {
       29:'Last row — near lavatories, may not recline'
     }
   },
+
+  // ── AIR CANADA ──────────────────────────────────────────────
+  // A330-343 Type 1: 32J + 24PE + 241E = 297 seats
+  // Signature Class 1-2-1 (Collins Super Diamond lie-flat)
+  // Premium Economy 2-4-2 rows 12-15
+  // Economy 2-4-2 rows 20-50
+  // IFE: Panasonic eX3, WiFi: Intelsat 2Ku satellite
+  'A330AC': {name:'Airbus A330-343 (Air Canada)', rows:50, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:11, ws:20, we:32,
+    cabins:[{cls:'B',r1:1,r2:11},{cls:'PE',r1:12,r2:15},{cls:'E',r1:16,r2:50}],
+    wifi:true, screens:true, power:true,
+    note:'Signature Class: 1-2-1 Collins Super Diamond lie-flat, direct aisle access all seats. Premium Economy: 2-4-2 rows 12-15. Economy: 2-4-2. Intelsat 2Ku satellite WiFi gate-to-gate.',
+    legroom:{
+      1:'Signature Class — 1-2-1 lie-flat bed ~198cm. Collins Super Diamond. All seats have direct aisle access.',
+      12:'Premium Economy — 2-4-2, ~97cm pitch, wider seat, bigger screen',
+      16:'Economy bulkhead — 2-4-2 layout, ~79cm pitch',
+      20:'Overwing — smoothest ride zone',
+      50:'Last row — near rear lavatories'
+    }
+  },
+
+  // ── AER LINGUS ──────────────────────────────────────────────
+  // A330-302 Type 2: 30J + 283E = 313 seats
+  // Business: herringbone 1-2-1, rows 1-7
+  // Economy: 2-4-2, rows 8+
+  // IFE: Panasonic eX2, Satellite WiFi
+  'A330EI': {name:'Airbus A330-302 (Aer Lingus)', rows:46, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:7, ws:18, we:28,
+    cabins:[{cls:'B',r1:1,r2:7},{cls:'E',r1:8,r2:46}],
+    wifi:true, screens:true, power:true,
+    note:'Business: staggered herringbone layout, direct aisle access all seats, fully flat bed. Economy: 2-4-2. Panasonic eX2 IFE + satellite WiFi.',
+    legroom:{
+      1:'Business — staggered herringbone, fully flat ~186cm. Direct aisle access.',
+      8:'Economy bulkhead — 2-4-2, ~79cm pitch',
+      18:'Overwing zone — smoothest seats'
+    }
+  },
+
+  // A321XLR (Aer Lingus): 16J + 168E = 184 seats
+  // Business: staggered 2-2 lie-flat, rows 2-6
+  // Economy: 3-3, rows 7+
+  // Airbus Airspace interior, AVOD, satellite WiFi
+  'A321XLREI': {name:'Airbus A321XLR (Aer Lingus)', rows:35, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:6, ws:13, we:22,
+    cabins:[{cls:'B',r1:1,r2:6},{cls:'E',r1:7,r2:35}],
+    wifi:true, screens:true, power:true,
+    note:'A321XLR transatlantic narrowbody. Business: staggered 2-2 lie-flat seats. Economy: 3-3. Airbus Airspace interior — wider cabin, larger overhead bins.',
+    legroom:{
+      1:'Business bulkhead — staggered lie-flat ~180cm',
+      7:'Economy bulkhead — ~79cm pitch',
+      11:'Overwing exit — extra legroom',
+      12:'Overwing exit — extra legroom'
+    }
+  },
+
+  // ── ALASKA AIRLINES ─────────────────────────────────────────
+  // 737-790: 12F + 112M = 124 seats
+  // First: 2-2 recliner rows 1-3
+  // Main Cabin: 3-3 rows 6-36, 18 Premium Class seats (tan)
+  // IFE: streamed to device, Gogo ATG-4 WiFi
+  'B737AS': {name:'Boeing 737-700 (Alaska Airlines)', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:11, we:19,
+    cabins:[{cls:'F',r1:1,r2:3},{cls:'E',r1:4,r2:28}],
+    wifi:true, screens:false, power:true,
+    note:'First Class: 2-2 recliner seats rows 1-3. Main Cabin: 3-3. 18 Premium Class seats with extra legroom (designated rows). IFE streamed to personal device via Gogo ATG-4 WiFi.',
+    legroom:{
+      1:'First Class — 2-2 recliner, ~96cm pitch. Priority boarding.',
+      4:'Economy/Premium Class bulkhead',
+      12:'Overwing exit — extra legroom',
+      13:'Overwing exit — extra legroom',
+      28:'Last row — near rear lavatories'
+    }
+  },
+
+  // ── AIR FRANCE HOP / TRANSAVIA ───────────────────────────────
+  // E190 100CM: 20J + 80E = 100 seats
+  // 2-2 THROUGHOUT — no middle seat on entire aircraft
+  // Business rows 1-5, Economy rows 6-25
+  'E190AF': {name:'Embraer E190 (Air France HOP!)', rows:25, cols:['A','C','D','F'], aisleAfter:[1], biz:5, ws:9, we:16,
+    cabins:[{cls:'B',r1:1,r2:5},{cls:'E',r1:6,r2:25}],
+    wifi:false, screens:false, power:false,
+    note:'2-2 layout THROUGHOUT — no middle seat anywhere on this aircraft! Every seat is either window or aisle. Business rows 1-5. Economy rows 6-25. Being replaced by 112CM config.',
+    legroom:{
+      1:'Business — 2-2, ~84cm pitch. No middle seat.',
+      6:'Economy — 2-2, ~79cm pitch. Window or aisle only.',
+      10:'Overwing exit — extra legroom',
+      25:'Last row — near rear lavatories'
+    }
+  },
+
+  // ── AEGEAN A320 TYPE 2 (tail SX-DGD/E) ──────────────────────
+  // Same as Type 1 but business rows 1-6 only (shorter biz section)
+  // Economy from row 7
+  'A320A3T2': {name:'Airbus A320 Type 2 (Aegean Airlines)', rows:29, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:6, ws:10, we:18,
+    cabins:[{cls:'B',r1:1,r2:6},{cls:'E',r1:7,r2:29}],
+    wifi:false, screens:false, power:false,
+    note:'Applies to registrations SX-DGD and SX-DGE. Business rows 1-6, dynamic curtain. Economy rows 7-29.',
+    legroom:{
+      1:'Business bulkhead — ~84cm pitch, blocked middle',
+      7:'Economy bulkhead',
+      10:'Overwing start',
+      11:'Overwing EXIT — extra legroom',
+      12:'Overwing EXIT — extra legroom',
+      29:'Last row — near lavatories'
+    }
+  }
 };
 function getAcType(apiCode) {
   if (!apiCode) return null;
@@ -1562,21 +1667,47 @@ var LCC_AIRLINES = {
   'DP':1,'7C':1,'LJ':1,'TW':1,'MM':1,'GK':1,'ZG':1,'ZL':1
 };
 
+// Airline-specific aircraft type overrides
+// Format: 'IATA+ACTYPE': 'specific_type'
+var AIRLINE_AC_MAP = {
+  // Aegean Airlines
+  'A3+A320': 'A320A3',   'A3+A320N': 'A320A3',  'OA+A320': 'A320A3',
+  // Air Canada
+  'AC+A330': 'A330AC',   'AC+A333': 'A330AC',   'AC+A332': 'A330AC',
+  // Aer Lingus
+  'EI+A330': 'A330EI',   'EI+A333': 'A330EI',
+  'EI+A321': 'A321XLREI','EI+A321XLR': 'A321XLREI',
+  // Alaska Airlines
+  'AS+B737': 'B737AS',   'AS+B737F': 'B737AS',
+  // Air France HOP
+  'A5+E190': 'E190AF',   'HOP+E190': 'E190AF',
+};
+
 function getAC(type, alIata) {
+  // 1. Check airline-specific override first
+  if (alIata) {
+    var specificKey = alIata + '+' + type;
+    if (AIRLINE_AC_MAP[specificKey] && AIRCRAFT[AIRLINE_AC_MAP[specificKey]]) {
+      return AIRCRAFT[AIRLINE_AC_MAP[specificKey]];
+    }
+  }
+
   var ac = AIRCRAFT[type] || AIRCRAFT['A320'];
-  // For LCCs: override to all-economy (biz=0)
-  // But only if the aircraft isn't already all-economy (LCC-specific types)
+
+  // 2. For LCCs: strip business class
   if (alIata && LCC_AIRLINES[alIata] && ac.biz > 0) {
     ac = Object.assign({}, ac);
-    // Deep copy cabins
     ac.cabins = [{cls:'E', r1:1, r2:ac.rows}];
     ac.biz = 0;
+    return ac;
   }
-  // Full-service on narrowbody: use F-suffixed variant if available
+
+  // 3. Full-service narrowbody: use F-suffix variant (blocked middle)
   if (alIata && !LCC_AIRLINES[alIata]) {
     var fsType = type + 'F';
-    if (AIRCRAFT[fsType]) ac = AIRCRAFT[fsType];
+    if (AIRCRAFT[fsType]) return AIRCRAFT[fsType];
   }
+
   return ac;
 }
 
@@ -2140,6 +2271,7 @@ function mkRow(r, displayRow, cols, aisleAfter, fl, ws, we, isBiz, isFirst, deck
 
 document.getElementById('cabin').addEventListener('click', function(e) {
   var seat=e.target.closest('.seat');if(!seat)return;
+  if(seat.classList.contains('blocked'))return; // ignore blocked middle seats
   var id=seat.getAttribute('data-sid');
   document.getElementById('cabin').querySelectorAll('.seat.sel').forEach(function(s){s.classList.remove('sel');});
   ssel=id;seat.classList.add('sel');showDet(id);
