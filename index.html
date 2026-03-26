@@ -1065,18 +1065,18 @@ var AIRLINE_NAMES = {
 };
 
 function parseADBTime(timeObj) {
-  // Handles multiple formats:
-  // { local: "2026-06-16 00:45+08:00" }  <- full AeroDataBox datetime
-  // { local: "06:30" }                    <- already extracted HH:MM
-  // "06:30"                               <- plain string
   if (!timeObj) return '';
   var raw = typeof timeObj === 'object'
     ? (timeObj.local || timeObj.utc || '')
     : String(timeObj);
   if (!raw) return '';
-  // Match HH:MM with optional preceding T/space (or at start of string)
-  var m = raw.match(/(?:^|[\sT])(\d{2}):(\d{2})/);
-  if (m) return m[1] + ':' + m[2];
+  // Extract HH:MM from any datetime format
+  // Handles: "2026-03-28 10:25+01:00", "2026-03-28T10:25:00Z", "10:25", "10:25+01:00"
+  var m = raw.match(/(\d{2}):(\d{2})/);
+  if (m) {
+    var h = parseInt(m[1]), mn = parseInt(m[2]);
+    if (h >= 0 && h <= 23 && mn >= 0 && mn <= 59) return m[1] + ':' + m[2];
+  }
   return '';
 }
 
@@ -1915,14 +1915,6 @@ setToday();
 
 
 // ── AeroDataBox PARSER ────────────────────────────────────────
-function parseADBTime(timeObj) {
-  if (!timeObj) return '??:??';
-  var raw = typeof timeObj === 'object' ? (timeObj.local || timeObj.utc || '') : String(timeObj);
-  if (!raw) return '??:??';
-  var m = raw.match(/[\sT](\d{2}):(\d{2})/);
-  if (m) return m[1]+':'+m[2];
-  return '??:??';
-}
 
 function parseLiveFlights(data, dep, arr) {
   var list = data.departures || data.flights || data.data || [];
