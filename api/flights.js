@@ -86,10 +86,26 @@ async function fids(iata, from, to, dir) {
   const url = `${BASE}/flights/airports/iata/${iata}/${from}/${to}?${p}`;
   const data = await safeFetch(url);
   if (!data) return [];
-  return [
+  const results = [
     ...(data.departures || []),
     ...(data.arrivals   || []),
   ];
+  // Log first result to debug time fields
+  if (results.length > 0) {
+    const f = results[0];
+    console.log(`[FIDS ${iata} ${dir}] count=${results.length} sample:`, JSON.stringify({
+      num: f.number,
+      dep_sched: f.departure?.scheduledTime,
+      dep_revised: f.departure?.revisedTime,
+      dep_actual: f.departure?.actualTime,
+      movement_sched: f.movement?.scheduledTime,
+      arr_sched: f.arrival?.scheduledTime,
+      arr_ap: f.arrival?.airport?.iata,
+    }));
+  } else {
+    console.log(`[FIDS ${iata} ${dir}] count=0`);
+  }
+  return results;
 }
 
 // ── Normalise one ADB flight → our format ───────────────────
