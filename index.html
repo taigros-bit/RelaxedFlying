@@ -1934,9 +1934,12 @@ function parseLiveFlights(data, dep, arr) {
       var al=f.airline||{}, acft=f.aircraft||{}, dpt=f.departure||{}, arv=f.arrival||{};
       var alIata=(al.iata||'').toUpperCase();
       var alName=AIRLINE_NAMES[alIata]||al.name||alIata||'Unknown';
-      var depTO=dpt.scheduledTime||dpt.revisedTime||{};
-      var arrTO=arv.scheduledTime||arv.revisedTime||{};
-      var depS=parseADBTime(depTO), arrS=parseADBTime(arrTO);
+      // Try all possible time field locations AeroDataBox uses
+      var depTO = dpt.scheduledTime || dpt.revisedTime || dpt.actualTime
+        || f.movement?.scheduledTime || {};
+      var arrTO = arv.scheduledTime || arv.revisedTime || arv.actualTime || {};
+      var depS = parseADBTime(depTO);
+      var arrS = parseADBTime(arrTO);
       var durS=minsToStr(calcFlightMins(dep,arr));
       var du=(typeof depTO==='object'?depTO.utc:''), au=(typeof arrTO==='object'?arrTO.utc:'');
       if(du&&au){
@@ -2524,149 +2527,129 @@ var COASTLINES = [
 function drawRouteMap(depAP, arrAP) {
   if (!depAP || !arrAP) return;
   var wrap = document.getElementById('route-map-wrap');
-  var svg = document.getElementById('route-map-svg');
+  var svg  = document.getElementById('route-map-svg');
   wrap.style.display = 'block';
   document.getElementById('route-map-title').textContent = depAP.c + ' \u2192 ' + arrAP.c;
-  document.getElementById('route-map-sub').textContent = depAP.city + ' \u2192 ' + arrAP.city + ' \xB7 ' + minsToStr(calcFlightMins(depAP.c, arrAP.c));
+  document.getElementById('route-map-sub').textContent   = depAP.city + ' \u2192 ' + arrAP.city + ' \xB7 ' + minsToStr(calcFlightMins(depAP.c, arrAP.c));
 
-  // Canvas: fixed 400x200
   var W = 400, H = 200;
-  
-  // Determine zoom region: center on route midpoint with padding
+
+  // Geographic bounds — center on route with generous padding
   var cLat = (depAP.lat + arrAP.lat) / 2;
   var cLon = (depAP.lon + arrAP.lon) / 2;
-  
-  // Route extent
   var dLat = Math.abs(depAP.lat - arrAP.lat);
   var dLon = Math.abs(depAP.lon - arrAP.lon);
-  
-  // Pad enough to show geographic context (at least 15° in each direction)
-  var padLat = Math.max(dLat * 1.5, 15);
-  var padLon = Math.max(dLon * 1.5, padLat * 2); // wider than tall
-  
-  // Viewport bounds in geographic coords
-  var minLat = cLat - padLat;
-  var maxLat = cLat + padLat;
-  var minLon = cLon - padLon;
-  var maxLon = cLon + padLon;
-  
-  // Project: maps [minLon..maxLon] -> [0..W], [maxLat..minLat] -> [0..H]
+
+  // Ensure MINIMUM spread so airports aren't on top of each other
+  var spanLat = Math.max(dLat * 2.5, 18);
+  var spanLon = Math.max(dLon * 2.5, spanLat * 2.2);
+
+  var minLat = cLat - spanLat / 2;
+  var maxLat = cLat + spanLat / 2;
+  var minLon = cLon - spanLon / 2;
+  var maxLon = cLon + spanLon / 2;
+
   function proj(lat, lon) {
-    var x = (lon - minLon) / (maxLon - minLon) * W;
-    var y = (maxLat - lat) / (maxLat - minLat) * H;
-    return {x: x, y: y};
-  }
-  
-  // Inverse: check if coords are in view
-  function inView(lat, lon) {
-    return lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon;
+    return {
+      x: (lon - minLon) / (maxLon - minLon) * W,
+      y: (maxLat - lat) / (maxLat - minLat) * H
+    };
   }
 
-  var p1 = proj(depAP.lat, depAP.lon);
-  var p2 = proj(arrAP.lat, arrAP.lon);
-  
-  // Great circle midpoint with polar bulge
-  var gc_dist = Math.sqrt(Math.pow(arrAP.lat-depAP.lat,2)+Math.pow(arrAP.lon-depAP.lon,2));
-  var poleward = Math.min(gc_dist * 0.15, 10);
-  var pm = proj((depAP.lat + arrAP.lat)/2 + poleward, (depAP.lon + arrAP.lon)/2);
-  
-  // Build SVG
+  var p1 = proj(depAP.lat, depAP.lon); // departure = GREEN
+  var p2 = proj(arrAP.lat, arrAP.lon); // arrival   = ORANGE
+
+  // Great circle midpoint with poleward bulge
+  var gc  = Math.sqrt(Math.pow(arrAP.lat-depAP.lat,2)+Math.pow(arrAP.lon-depAP.lon,2));
+  var pm  = proj((depAP.lat+arrAP.lat)/2 + Math.min(gc*0.12, 8), (depAP.lon+arrAP.lon)/2);
+
   var out = '';
-  
+
   // Background
   out += '<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#0d1117"/>';
-  
-  // Ocean grid lines
-  for (var lo = Math.ceil(minLon/10)*10; lo <= maxLon; lo += 10) {
-    var px = (lo - minLon) / (maxLon - minLon) * W;
-    out += '<line x1="'+px.toFixed(1)+'" y1="0" x2="'+px.toFixed(1)+'" y2="'+H+'" stroke="rgba(74,144,226,.06)" stroke-width="0.5"/>';
+
+  // Grid
+  var gStep = spanLon > 60 ? 20 : spanLon > 20 ? 10 : 5;
+  for (var lo = Math.ceil(minLon/gStep)*gStep; lo <= maxLon; lo += gStep) {
+    var gx = (lo-minLon)/(maxLon-minLon)*W;
+    out += '<line x1="'+gx.toFixed(1)+'" y1="0" x2="'+gx.toFixed(1)+'" y2="'+H+'" stroke="rgba(74,144,226,.06)" stroke-width="0.5"/>';
   }
-  for (var la = Math.ceil(minLat/10)*10; la <= maxLat; la += 10) {
-    var py = (maxLat - la) / (maxLat - minLat) * H;
-    out += '<line x1="0" y1="'+py.toFixed(1)+'" x2="'+W+'" y2="'+py.toFixed(1)+'" stroke="rgba(74,144,226,.06)" stroke-width="0.5"/>';
+  for (var la = Math.ceil(minLat/gStep)*gStep; la <= maxLat; la += gStep) {
+    var gy = (maxLat-la)/(maxLat-minLat)*H;
+    out += '<line x1="0" y1="'+gy.toFixed(1)+'" x2="'+W+'" y2="'+gy.toFixed(1)+'" stroke="rgba(74,144,226,.06)" stroke-width="0.5"/>';
   }
-  
-  // Simple land polygons — Europe/Mediterranean region
-  // These are arrays of [lon, lat] pairs
+
+  // Land polygons
   var LANDS = [
-    // Iberian Peninsula
-    [[-9,44],[-1,44],[3,43],[5,43],[3,37],[0,36],[-2,37],[-5,38],[-9,39],[-9,44]],
-    // France + Benelux
-    [[-2,44],[3,43],[8,44],[8,48],[6,49],[3,51],[0,51],[-2,49],[-2,44]],
-    // British Isles
+    [[-9,44],[-1,44],[3,43],[8,44],[8,48],[6,49],[3,51],[0,51],[-2,49],[-2,44],[-9,44]],
     [[-5,50],[0,51],[2,52],[0,55],[-2,58],[-4,58],[-5,57],[-4,55],[-5,54],[-4,52],[-5,50]],
-    // Scandinavia
     [[5,57],[8,58],[12,57],[18,56],[22,58],[28,70],[24,68],[18,62],[12,58],[8,58],[5,57]],
-    // Germany + Alps region
-    [[8,48],[15,49],[18,50],[15,54],[12,54],[8,53],[8,51],[8,48]],
-    // Italy
+    [[8,48],[15,49],[18,50],[24,50],[24,54],[18,54],[15,54],[12,54],[8,53],[8,51],[8,48]],
     [[8,44],[13,44],[15,38],[16,37],[14,38],[14,42],[12,46],[8,46],[8,44]],
-    // Balkans + Greece
     [[14,46],[22,48],[26,48],[28,44],[26,40],[24,38],[22,36],[20,38],[18,38],[15,40],[14,42],[14,46]],
-    // Aegean + Turkey west
     [[26,40],[28,41],[32,42],[36,38],[32,36],[28,36],[26,38],[26,40]],
-    // North Africa
     [[-6,36],[0,37],[10,37],[15,37],[25,37],[35,36],[35,30],[30,20],[20,15],[10,12],[0,16],[-5,20],[-6,26],[-6,36]],
-    // Middle East coast
     [[28,37],[36,37],[40,36],[43,32],[46,30],[50,30],[55,23],[50,20],[45,22],[40,20],[36,22],[34,28],[33,30],[32,32],[32,35],[30,34],[28,37]],
-    // Black Sea coast
     [[28,41],[32,42],[36,42],[42,42],[44,44],[40,46],[36,44],[32,44],[28,41]],
-    // Central Europe
-    [[15,49],[22,48],[24,50],[18,54],[15,54],[12,54],[12,51],[15,49]],
-    // Scandinavia detail
-    [[15,56],[18,56],[20,58],[24,60],[28,62],[26,60],[22,58],[18,56],[15,56]],
-    // Ireland
-    [[-10,52],[-6,52],[-6,54],[-8,56],[-10,54],[-10,52]],
-    // Baltic states area
-    [[20,54],[24,54],[28,56],[24,58],[20,58],[18,56],[18,54],[20,54]],
-    // Poland + Czech
     [[14,50],[18,50],[24,50],[24,54],[18,54],[14,54],[12,51],[14,50]],
-    // Ukraine / Romania
     [[22,48],[30,47],[34,47],[36,48],[34,52],[28,52],[24,50],[22,48]],
+    [[-10,52],[-6,52],[-6,54],[-8,56],[-10,54],[-10,52]],
+    [[20,54],[24,54],[28,56],[24,58],[20,58],[18,56],[18,54],[20,54]],
+    [[15,56],[18,56],[20,58],[24,60],[28,62],[26,60],[22,58],[18,56],[15,56]],
+    // North America
+    [[-140,60],[-120,55],[-100,50],[-80,45],[-70,42],[-60,47],[-55,50],[-60,55],[-80,60],[-100,65],[-120,65],[-140,60]],
+    [[-80,25],[-70,20],[-65,18],[-60,10],[-70,5],[-80,5],[-90,15],[-95,20],[-90,25],[-80,25]],
+    // Central Asia
+    [[40,36],[48,36],[60,36],[70,35],[80,30],[75,25],[65,22],[55,22],[45,25],[38,32],[40,36]],
+    [[60,36],[70,40],[80,42],[90,45],[100,50],[105,52],[100,55],[90,55],[80,50],[70,45],[60,36]],
+    // East Asia
+    [[100,20],[110,18],[120,20],[125,25],[125,30],[120,35],[115,40],[105,40],[100,35],[100,20]],
+    // Australia
+    [[114,-22],[125,-14],[136,-12],[140,-18],[148,-20],[153,-27],[150,-38],[140,-38],[130,-32],[115,-32],[114,-22]],
   ];
-  
-  // Draw land
+
   for (var li = 0; li < LANDS.length; li++) {
-    var poly = LANDS[li];
-    var pts = '';
-    var hasVisible = false;
+    var poly = LANDS[li], pts = '', vis = false;
     for (var pi = 0; pi < poly.length; pi++) {
       var pp = proj(poly[pi][1], poly[pi][0]);
-      pts += (pi===0?'M':'L') + pp.x.toFixed(1) + ',' + pp.y.toFixed(1);
-      if (pp.x >= -20 && pp.x <= W+20 && pp.y >= -20 && pp.y <= H+20) hasVisible = true;
+      pts += (pi===0?'M':'L') + pp.x.toFixed(1)+','+pp.y.toFixed(1);
+      if (pp.x>-30&&pp.x<W+30&&pp.y>-30&&pp.y<H+30) vis=true;
     }
-    if (hasVisible) {
-      out += '<path d="'+pts+'Z" fill="#1e2a1e" stroke="rgba(80,120,80,.5)" stroke-width="0.8"/>';
-    }
+    if (vis) out += '<path d="'+pts+'Z" fill="#1a2e1a" stroke="rgba(60,100,60,.45)" stroke-width="0.7"/>';
   }
-  
-  // Route line
-  out += '<path d="M'+p1.x.toFixed(1)+','+p1.y.toFixed(1)+' Q'+pm.x.toFixed(1)+','+pm.y.toFixed(1)+' '+p2.x.toFixed(1)+','+p2.y.toFixed(1)+'" fill="none" stroke="rgba(74,144,226,.35)" stroke-width="2" stroke-dasharray="6,3"/>';
-  out += '<path d="M'+p1.x.toFixed(1)+','+p1.y.toFixed(1)+' Q'+pm.x.toFixed(1)+','+pm.y.toFixed(1)+' '+p2.x.toFixed(1)+','+p2.y.toFixed(1)+'" fill="none" stroke="#4A90E2" stroke-width="1.5" stroke-dasharray="none" opacity="0.7"/>';
-  
-  // Airport dots + labels
-  var r = 5;
-  var r = 5;
-  // Smart label placement: avoid edge clipping
-  function placeLabel(px, py, iata, city, color) {
-    // Put label on whichever side has more space
-    var onRight = px < W * 0.6;
+
+  // Route arc
+  out += '<path d="M'+p1.x.toFixed(1)+','+p1.y.toFixed(1)+' Q'+pm.x.toFixed(1)+','+pm.y.toFixed(1)+' '+p2.x.toFixed(1)+','+p2.y.toFixed(1)+'" fill="none" stroke="rgba(74,144,226,.25)" stroke-width="2.5" stroke-dasharray="8,4"/>';
+  out += '<path d="M'+p1.x.toFixed(1)+','+p1.y.toFixed(1)+' Q'+pm.x.toFixed(1)+','+pm.y.toFixed(1)+' '+p2.x.toFixed(1)+','+p2.y.toFixed(1)+'" fill="none" stroke="#4A90E2" stroke-width="1.5" opacity="0.8"/>';
+
+  // Dots + labels — smart placement to avoid overlap
+  var angle = Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180/Math.PI;
+  var dist  = Math.sqrt(Math.pow(p2.x-p1.x,2)+Math.pow(p2.y-p1.y,2));
+
+  function airportLabel(px, py, iata, city, color, isDep) {
+    var r = 5.5;
+    // Label always goes AWAY from the other airport
+    var dx = isDep ? (px - p2.x) : (px - p1.x);
+    var onRight = dx >= 0 ? true : false;
+    // Edge clipping
+    if (px < W * 0.2) onRight = true;
+    if (px > W * 0.8) onRight = false;
     var lx = onRight ? px + r + 5 : px - r - 5;
     var anchor = onRight ? 'start' : 'end';
+    var bgX = onRight ? lx - 2 : lx - 64;
+
     return '<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+r+'" fill="'+color+'" stroke="#fff" stroke-width="1.5"/>'
-      + '<rect x="'+(onRight?lx:lx-60).toFixed(1)+'" y="'+(py-11).toFixed(1)+'" width="60" height="22" rx="4" fill="rgba(10,22,40,0.75)"/>'
-      + '<text x="'+lx.toFixed(1)+'" y="'+(py+1).toFixed(1)+'" font-family="Inter,sans-serif" font-size="10" font-weight="800" fill="#fff" text-anchor="'+anchor+'">'+iata+'</text>'
-      + '<text x="'+lx.toFixed(1)+'" y="'+(py+11).toFixed(1)+'" font-family="Inter,sans-serif" font-size="7.5" fill="rgba(255,255,255,.55)" text-anchor="'+anchor+'">'+city+'</text>';
+      + '<rect x="'+bgX.toFixed(1)+'" y="'+(py-13).toFixed(1)+'" width="66" height="24" rx="4" fill="rgba(10,18,40,0.82)"/>'
+      + '<text x="'+lx.toFixed(1)+'" y="'+(py-1).toFixed(1)+'" font-family="Inter,sans-serif" font-size="10.5" font-weight="800" fill="'+color+'" text-anchor="'+anchor+'">'+iata+'</text>'
+      + '<text x="'+lx.toFixed(1)+'" y="'+(py+10).toFixed(1)+'" font-family="Inter,sans-serif" font-size="7.5" fill="rgba(255,255,255,.55)" text-anchor="'+anchor+'">'+city+'</text>';
   }
 
-  out += placeLabel(p1.x, p1.y, depAP.c, depAP.city, '#34C759');
-  out += placeLabel(p2.x, p2.y, arrAP.c, arrAP.city, '#FF9F0A');
+  out += airportLabel(p1.x, p1.y, depAP.c, depAP.city, '#34C759', true);
+  out += airportLabel(p2.x, p2.y, arrAP.c, arrAP.city, '#FF9F0A', false);
 
-  // Plane icon rotated toward destination
-  var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-  // Adjust: ✈ unicode points right by default (0°), so rotation is correct
-  out += '<text x="'+pm.x.toFixed(1)+'" y="'+pm.y.toFixed(1)+'" font-family="Arial" font-size="13" fill="#4A90E2" text-anchor="middle" dominant-baseline="middle" transform="rotate('+angle.toFixed(0)+','+pm.x.toFixed(1)+','+pm.y.toFixed(1)+')">&#9992;</text>';
-  
+  // Plane at midpoint, rotated toward destination
+  out += '<text x="'+pm.x.toFixed(1)+'" y="'+pm.y.toFixed(1)+'" font-family="Arial" font-size="14" fill="#4A90E2" text-anchor="middle" dominant-baseline="middle" transform="rotate('+angle.toFixed(0)+','+pm.x.toFixed(1)+','+pm.y.toFixed(1)+')">&#9992;</text>';
+
   svg.setAttribute('viewBox', '0 0 '+W+' '+H);
   svg.innerHTML = out;
 }
