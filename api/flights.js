@@ -1,55 +1,82 @@
+// Vercel serverless function — /api/flights
+// AeroDataBox via RapidAPI — correct implementation
+// Max window: 12h, so we split 24h into two calls
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
-  var dep = (req.query.dep || '').toUpperCase().trim();
-  var arr = (req.query.arr || '').toUpperCase().trim();
-  var date = req.query.date || new Date().toISOString().slice(0,10);
+  const { dep, arr, date, fn } = req.query;
+  const RAPIDAPI_KEY = 'b03cbc2da8mshfd6f5e8ac7c5894p18cc07jsnaabba528fd4a';
 
-  if (!dep || !arr) return res.status(400).json({error:'Missing dep/arr'});
+  const headers = {
+    'x-rapidapi-host': 'aerodatabox.p.rapidapi.com',
+    'x-rapidapi-key': RAPIDAPI_KEY,
+  };
 
-  var key = 'b03cbc2da8mshfd6f5e8ac7c5894p18cc07jsnaabba528fd4a';
+  // ── FLIGHT NUMBER SEARCH ───────────────────────────────────
+  if (fn && date) {
+    try {
+      const fnClean = fn.toUpperCase().replace(/\s/g, '');
+      const url = `https://aerodatabox.p.rapidapi.com/flights/${fnClean}/${date}`;
+      const r = await fetch(url, { headers });
+      if (!r.ok) return res.status(502).json({ error: `ADB error ${r.status}`, departures: [] });
+      const data = await r.json();
+      // ADB returns array for flight number search
+      const flights = Array.isArray(data) ? data : [data];
+      return res.status(200).json({ departures: flights, source: 'aerodatabox_fn' });
+    } catch (e) {
+      return res.status(500).json({ error: e.message, departures: [] });
+    }
+  }
 
-  async function fetchWindow(from, to) {
-    var url = 'https://aerodatabox.p.rapidapi.com/flights/airports/iata/'
-      + dep + '/' + from + '/' + to
-      + '?withLeg=true&direction=Departure&withCancelled=false&withCodeshared=false&withCargo=false&withPrivate=false&withLocation=false';
-    var r = await fetch(url, {
-      headers: {
-        'x-rapidapi-host': 'aerodatabox.p.rapidapi.com',
-        'x-rapidapi-key': key
-      }
-    });
-    if (!r.ok) return [];
-    var data = await r.json();
-    return data.departures || [];
+  // ── ROUTE SEARCH ──────────────────────────────────────────
+  if (!dep || !arr || !date) {
+    return res.status(400).json({ error: 'Missing dep, arr, or date' });
   }
 
   try {
-    // AeroDataBox max 12h window — split day into two calls
-    var [morning, evening] = await Promise.all([
-      fetchWindow(date + 'T00:00', date + 'T11:59'),
-      fetchWindow(date + 'T12:00', date + 'T23:59')
+    // AeroDataBox max window = 12h — split into AM and PM
+    const params = '?withLeg=true&direction=Departure&withCancelled=false&withCodeshared=false&withCargo=false&withPrivate=false&withLocation=false';
+
+    const [rAM, rPM] = await Promise.all([
+      fetch(`https://aerodatabox.p.rapidapi.com/flights/airports/iata/${dep}/${date}T00:00/${date}T11:59${params}`, { headers }),
+      fetch(`https://aerodatabox.p.rapidapi.com/flights/airports/iata/${dep}/${date}T12:00/${date}T23:59${params}`, { headers }),
     ]);
 
-    var all = morning.concat(evening);
+    const [dAM, dPM] = await Promise.all([
+      rAM.ok ? rAM.json() : { departures: [] },
+      rPM.ok ? rPM.json() : { departures: [] },
+    ]);
 
-    // Filter to our destination
-    var filtered = all.filter(function(f) {
-      var a = f.arrival && f.arrival.airport && f.arrival.airport.iata;
-      return a && a.toUpperCase() === arr;
+    // Combine both windows
+    const all = [
+      ...(dAM.departures || dAM.arrivals || []),
+      ...(dPM.departures || dPM.arrivals || []),
+    ];
+
+    // Filter to flights going to our destination airport
+    const filtered = all.filter(f => {
+      // AeroDataBox structure for FIDS:
+      // f.arrival.airport.iata OR f.movement.airport.iata (destination)
+      const dest = (
+        f?.arrival?.airport?.iata ||
+        f?.movement?.airport?.iata ||
+        ''
+      ).toUpperCase();
+      return dest === arr.toUpperCase();
     });
 
+    // Return in format index.html expects (parseLiveFlights reads .departures[])
     return res.status(200).json({
+      departures: filtered,
       source: 'aerodatabox',
-      dep: dep,
-      arr: arr,
-      date: date,
-      total_departures: all.length,
-      count: filtered.length,
-      departures: filtered
+      total: all.length,
+      filtered: filtered.length,
     });
 
-  } catch(e) {
-    return res.status(200).json({error: e.message});
+  } catch (e) {
+    return res.status(500).json({ error: e.message, departures: [] });
   }
 }
