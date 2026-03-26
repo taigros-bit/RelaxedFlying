@@ -1065,20 +1065,19 @@ var AIRLINE_NAMES = {
 };
 
 function parseADBTime(timeObj) {
-  // AeroDataBox structure: { utc: "2026-06-15 16:45Z", local: "2026-06-16 00:45+08:00" }
-  // Can also be a plain string from older format
-  if (!timeObj) return '??:??';
-  var raw = '';
-  if (typeof timeObj === 'object') {
-    raw = timeObj.local || timeObj.utc || '';
-  } else {
-    raw = timeObj;
-  }
-  if (!raw) return '??:??';
-  // Format: "2026-06-16 00:45+08:00" — extract HH:MM after the space/T
-  var m = raw.match(/[\sT](\d{2}):(\d{2})/);
+  // Handles multiple formats:
+  // { local: "2026-06-16 00:45+08:00" }  <- full AeroDataBox datetime
+  // { local: "06:30" }                    <- already extracted HH:MM
+  // "06:30"                               <- plain string
+  if (!timeObj) return '';
+  var raw = typeof timeObj === 'object'
+    ? (timeObj.local || timeObj.utc || '')
+    : String(timeObj);
+  if (!raw) return '';
+  // Match HH:MM with optional preceding T/space (or at start of string)
+  var m = raw.match(/(?:^|[\sT])(\d{2}):(\d{2})/);
   if (m) return m[1] + ':' + m[2];
-  return '??:??';
+  return '';
 }
 
 // Map AeroDataBox aircraft model string to our internal type
