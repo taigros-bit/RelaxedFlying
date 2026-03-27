@@ -2331,7 +2331,7 @@ function getFleetAc(alIata,dep,arr) {
 // Airlines with no business/first class — all economy
 // Airlines with no business class per Tai's spec:
 // Ryanair, easyJet, Wizz Air, Norwegian, Transavia, Jet2, TUI, Pegasus,
-// Volaris, AirAsia, Spirit, Frontier, Vueling (has Space One but it's eco seat)
+// Volaris, AirAsia, Spirit, Frontier, Vueling (has Space One but it\u2019s eco seat)
 var LCC_AIRLINES = {
   'FR':1,'U2':1,'W6':1,'W9':1,'DY':1,'HV':1,'LS':1,'BY':1,'PC':1,
   'Y4':1,'AK':1,'NK':1,'F9':1,'VY':1,'G4':1,'SY':1,'WN':1,
@@ -2438,80 +2438,117 @@ var TURB = [
 
 // Physics-based turbulence score
 // Wing = pivot point, amplification increases with lever arm distance
-// ── Aircraft type damper ────────────────────────────────────
-// Wider/heavier aircraft dampen turbulence more than regional jets
-function getAcDamper(acName) {
-  if (!acName) return 1.0;
+// ══════════════════════════════════════════════════════════════
+// TURBULENCE PHYSICS ENGINE
+// ══════════════════════════════════════════════════════════════
+
+// ── Aircraft class → damper + geometry ───────────────────────
+function getAcProfile(acName) {
+  if (!acName) return { damper: 1.0, rearMult: 2.8, fwdMult: 1.0, wingBonus: 1.0 };
   var n = acName.toLowerCase();
-  // Supertransport / very large widebody
-  if (n.indexOf('a380') >= 0 || n.indexOf('747-8') >= 0) return 0.65;
-  // Large widebody
-  if (n.indexOf('777') >= 0 || n.indexOf('747') >= 0) return 0.72;
-  // Modern widebody
-  if (n.indexOf('787') >= 0 || n.indexOf('a350') >= 0 || n.indexOf('a330') >= 0 || n.indexOf('a340') >= 0) return 0.80;
-  // Narrowbody
-  if (n.indexOf('a320') >= 0 || n.indexOf('a321') >= 0 || n.indexOf('a319') >= 0 ||
-      n.indexOf('737') >= 0 || n.indexOf('757') >= 0) return 1.0;
-  // A220 / E-series regional jets
-  if (n.indexOf('a220') >= 0 || n.indexOf('e190') >= 0 || n.indexOf('e175') >= 0 ||
-      n.indexOf('e170') >= 0 || n.indexOf('crj') >= 0) return 1.30;
-  // Turboprops
-  if (n.indexOf('atr') >= 0 || n.indexOf('q400') >= 0 || n.indexOf('dash') >= 0) return 1.75;
-  return 1.0;
+  // Superjumbo: A380, 747-8
+  // Mass × wing span = maximum damping. Upper deck even smoother.
+  if (n.indexOf('a380') >= 0 || n.indexOf('747-8') >= 0)
+    return { damper: 0.62, rearMult: 2.2, fwdMult: 0.7, wingBonus: 1.2 };
+  // Large widebody: 777, 747-400
+  if (n.indexOf('777') >= 0 || (n.indexOf('747') >= 0 && n.indexOf('747-8') < 0))
+    return { damper: 0.70, rearMult: 2.4, fwdMult: 0.8, wingBonus: 1.1 };
+  // Modern widebody: 787, A350, A330, A340
+  if (n.indexOf('787') >= 0 || n.indexOf('a350') >= 0 ||
+      n.indexOf('a330') >= 0 || n.indexOf('a340') >= 0)
+    return { damper: 0.78, rearMult: 2.6, fwdMult: 0.9, wingBonus: 1.1 };
+  // A220: unusually rigid fuselage for its size
+  if (n.indexOf('a220') >= 0)
+    return { damper: 1.10, rearMult: 2.4, fwdMult: 1.0, wingBonus: 1.0 };
+  // Regional E-jets: lighter, more responsive to gusts
+  if (n.indexOf('e190') >= 0 || n.indexOf('e195') >= 0 ||
+      n.indexOf('e175') >= 0 || n.indexOf('e170') >= 0)
+    return { damper: 1.28, rearMult: 3.0, fwdMult: 1.1, wingBonus: 1.0 };
+  // CRJ family: very short fuselage, rear is close, less lever arm
+  if (n.indexOf('crj') >= 0)
+    return { damper: 1.35, rearMult: 2.5, fwdMult: 1.1, wingBonus: 1.0 };
+  // Turboprops: most sensitive, prop vibration adds baseline noise
+  if (n.indexOf('atr') >= 0 || n.indexOf('q400') >= 0 ||
+      n.indexOf('dash') >= 0 || n.indexOf('saab') >= 0)
+    return { damper: 1.72, rearMult: 2.8, fwdMult: 1.2, wingBonus: 0.9 };
+  // Standard narrowbody: A320 family, 737, 757 — reference class
+  return { damper: 1.0, rearMult: 2.8, fwdMult: 1.0, wingBonus: 1.0 };
 }
 
-function calcScore(r, ac, tlv, deck, turbData) {
-  var ws = ac.ws, we = ac.we, totalRows = ac.rows;
-  var acDamper = getAcDamper(ac.name || '');
+// ── Column position modifier ──────────────────────────────────
+// Physics: window seat = tighter against rigid fuselage skin → slightly
+// less lateral sway than aisle. Difference is real but small (~0.2 pts).
+// Middle seats: same physics as aisle but psychologically worse (confined).
+function getColModifier(colType) {
+  if (colType === 'W') return -0.20;  // window: fuselage rigidity bonus
+  if (colType === 'A') return  0.10;  // aisle: slightly more lateral motion
+  return                        0.15; // middle: same as aisle + claustrophobia
+}
 
-  // Upper deck (A380/747): premium cabins always smoother
+// ── Main scoring function ─────────────────────────────────────
+function calcScore(r, ac, tlv, deck, turbData, colType) {
+  var ws = ac.ws || 0, we = ac.we || ac.rows, totalRows = ac.rows;
+  var prof = getAcProfile(ac.name || '');
+
+  // Upper deck (A380/747): higher position = more yaw but shorter lever
+  // Net result: roughly same as lower mid-cabin, so apply 0.85× damper bonus
   if (deck === 'upper') {
-    return Math.max(0, Math.min(6, Math.round(Math.max(0, tlv - 1) * acDamper)));
+    var baseTlv = turbData ? (turbData.cruiseRaw * 0.6 * 0.65 + turbData.climbRaw * 0.6 * 0.2 + turbData.descentRaw * 0.6 * 0.15) : tlv;
+    return Math.max(0, Math.min(6, Math.round(baseTlv * prof.damper * 0.85)));
   }
 
-  // ── Use phase-based turbulence if available ───────────────
-  // Cruise dominates seat feel (60%), climb/descent matter less
-  // This matters for seat scoring: climb = nose matters, descent = nose too
-  var effectiveTlv;
+  // ── Effective turbulence: phase-weighted ───────────────────
+  var eff;
   if (turbData && turbData.cruiseRaw !== undefined) {
-    // Convert raw 0-10 to 0-6 scale
-    var cruiseT  = turbData.cruiseRaw  * 0.6;
-    var climbT   = turbData.climbRaw   * 0.6;
-    var descentT = turbData.descentRaw * 0.6;
-    // Weighted effective turbulence: cruise is main factor for seat
-    effectiveTlv = cruiseT * 0.65 + climbT * 0.2 + descentT * 0.15;
-    effectiveTlv = Math.max(0, Math.min(6, effectiveTlv));
+    // Scale raw 0-10 → 0-6 per phase
+    var cT  = Math.min(6, turbData.cruiseRaw  * 0.60);
+    var clT = Math.min(6, turbData.climbRaw   * 0.60);
+    var dT  = Math.min(6, turbData.descentRaw * 0.60);
+    // Weighted: cruise dominates seat experience
+    eff = cT * 0.65 + clT * 0.20 + dT * 0.15;
   } else {
-    effectiveTlv = tlv;
+    eff = Math.max(0, tlv);
   }
 
-  // ── Apply aircraft damper to effective turbulence ─────────
-  effectiveTlv = effectiveTlv * acDamper;
+  // Apply aircraft mass/size damper
+  eff = eff * prof.damper;
+  eff = Math.max(0, Math.min(6, eff));
 
-  // ── PHYSICS: lever arm model ──────────────────────────────
-  // Wing zone = fulcrum (zero displacement)
-  // Distance from wing → amplitude increases linearly
-  var score;
-  if (r >= ws && r <= we) {
-    // Wing zone: always best — reference point
-    score = Math.max(0, effectiveTlv - 1);
+  // ── Longitudinal position (lever arm model) ────────────────
+  var longScore;
+  if (ws > 0 && r >= ws && r <= we) {
+    // Wing zone: fulcrum — minimal displacement
+    // The wing box is the stiffest part of the airframe.
+    // Best seats on ANY aircraft regardless of turbulence.
+    longScore = Math.max(0, eff - prof.wingBonus);
+
   } else if (r < ws) {
-    // Forward: nose pitches up/down — noticeable but less than rear
-    // Also: during climb (pitch up) nose bounces more
-    var distFwd = (ws - r) / Math.max(1, ws);
-    var climbPenalty = turbData ? (turbData.climbRaw || 0) * 0.08 : 0;
-    score = Math.max(0, effectiveTlv - 1) + 0.8 + distFwd * 1.0 + climbPenalty;
+    // Forward of wing: nose pitches → vertical + pitch motion
+    // Lever arm = ws - r rows. More pronounced on climb (pitch-up attitude).
+    var distFwd = Math.min(1, (ws - r) / Math.max(1, ws));
+    var climbPitch = turbData ? (turbData.climbRaw || 0) * 0.06 : 0;
+    longScore = Math.max(0, eff - 0.5) + (0.6 + distFwd * prof.fwdMult) + climbPitch;
+
   } else {
-    // Rear: longest lever arm, fuselage flexibility adds yaw/roll
-    var distRear = (r - we) / Math.max(1, totalRows - we);
-    score = Math.max(0, effectiveTlv - 1) + 2.0 + distRear * 2.8;
+    // Rear of wing: tail strikes longest lever arm.
+    // Combined pitch, yaw and roll all amplify toward the tail.
+    // Also: engines on many aircraft (A320, 737) are under/ahead of wing
+    // so rear avoids engine noise but gets max structural flex.
+    var distRear = Math.min(1, (r - we) / Math.max(1, totalRows - we));
+    // Non-linear: last 10% of aircraft is MUCH worse than first 10% aft of wing
+    var rearCurve = distRear < 0.5 ? distRear * 1.4 : 0.7 + (distRear - 0.5) * 2.2;
+    longScore = Math.max(0, eff - 0.3) + (1.8 + rearCurve * prof.rearMult);
   }
 
-  // Tiny deterministic variation per row (not random — same every render)
-  var rowVar = ((r * 13 + totalRows * 7) % 10) / 10 * 0.25 - 0.12;
-  score += rowVar;
+  // ── Lateral position (window vs aisle vs middle) ───────────
+  var colMod = getColModifier(colType || 'M');
 
-  return Math.max(0, Math.min(6, Math.round(score)));
+  // ── Deterministic micro-variation per row ──────────────────
+  // Prevents "all rows look identical" — uses row number as seed
+  var microVar = ((r * 17 + totalRows * 11) % 10) / 10 * 0.20 - 0.10;
+
+  var final = longScore + colMod + microVar;
+  return Math.max(0, Math.min(6, Math.round(final)));
 }
 
 function getRouteTurb(dep,arr) {
@@ -3066,34 +3103,151 @@ function guessAisleAfter(n) {
 }
 
 
+// ── AI SEAT RECOMMENDATION (Claude API) ──────────────────────
+// Calls Claude with full context: aircraft, turbulence data, seat layout
+// Returns a specific seat recommendation with reasoning
+var aiRecCache = {};  // Cache per flight ID
+
+function getAISeatRecommendation(fl, turbData, sdataSnapshot, callback) {
+  // Cache check
+  var cacheKey = fl.id + '-' + (turbData ? turbData.overall : 'x');
+  if (aiRecCache[cacheKey]) { callback(aiRecCache[cacheKey]); return; }
+
+  // Build context for Claude
+  var bestSeats = findBestSeats(sdataSnapshot, 4);
+  var bestList = [];
+  bestSeats.forEach(function(id) {
+    var d = sdataSnapshot[id];
+    if (d) bestList.push({
+      id: id,
+      row: d.displayRow,
+      col: d.colType === 'W' ? 'window' : d.colType === 'A' ? 'aisle' : 'middle',
+      zone: d.isW ? 'wing' : d.r < (fl.ws || 0) ? 'forward' : 'rear',
+      score: d.s,
+      isExit: d.isExit
+    });
+  });
+
+  // Aircraft info
+  var acInfo = AIRCRAFT[fl.acType] || {};
+  var turbLabel = turbData ? TURB[Math.min(turbData.overall,6)].l : 'Unknown';
+  var climbLabel = turbData ? TURB[Math.min(turbData.climb,6)].l : '';
+  var descentLabel = turbData ? TURB[Math.min(turbData.descent,6)].l : '';
+
+  var promptParts = [
+    'You are a flight comfort expert for RelaxedFlying.app, helping nervous flyers choose seats.',
+    '',
+    'FLIGHT: ' + fl.id + ' | ' + fl.airline + ' | ' + fl.acName,
+    'ROUTE: ' + fl.from + ' (' + fl.fromCity + ') to ' + fl.to + ' (' + fl.toCity + ')',
+    'DURATION: ' + fl.dur,
+    'AIRCRAFT: ' + fl.acName + ' | ' + fl.rows + ' rows | columns: ' + (fl.cols||[]).join(''),
+    'WING ZONE: rows ' + (fl.ws||'?') + '-' + (fl.we||'?') + ' (center of gravity, smoothest)',
+    'CABIN: ' + fl.cabins.map(function(c){return c.cls+'(r'+c.r1+'-'+c.r2+')';}).join(', '),
+    'TURBULENCE: ' + turbLabel + (climbLabel?' | Climb:'+climbLabel:'') + (turbData?' | Cruise:'+TURB[Math.min(turbData.cruise||2,6)].l+' | Descent:'+descentLabel:''),
+    (turbData&&turbData.hist?'HISTORICAL: avg='+turbData.hist.avgRaw.toFixed(1)+'/10 '+(turbData.hist.worsening?'WORSENING':turbData.hist.improving?'IMPROVING':'stable'):''),
+    'AMENITIES: WiFi='+(acInfo.wifi?'yes':'no')+' Screens='+(acInfo.screens?'yes':'no')+' Power='+(acInfo.power?'yes':'no'),
+    '',
+    'BEST SEATS (physics model):',
+    bestList.map(function(s){return 'Seat '+s.id+': '+s.zone+' zone, '+s.col+', row '+s.row+(s.isExit?' exit-row':'')+', score '+s.score+'/6';}).join(' | '),
+    '',
+    'Give a SHORT recommendation (3-4 sentences). Name the EXACT seat ID. Explain WHY for a nervous flyer. Mention expected turbulence. No bullet points. Be reassuring.'
+  ];
+  var prompt = promptParts.filter(function(p){return p!==undefined;}).join('\n');
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 200,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var text = (data.content && data.content[0] && data.content[0].text) || '';
+    if (!text) { callback(null); return; }
+    aiRecCache[cacheKey] = text;
+    callback(text);
+  })
+  .catch(function() { callback(null); });
+}
+
+// ── Show AI recommendation panel in seat detail ─────────────
+function showAIRec(seatId) {
+  if (!active || !sdata[seatId]) return;
+  var recEl = document.getElementById('ai-rec-box');
+  if (!recEl) return;
+
+  recEl.innerHTML = '<div style="font-size:11px;color:rgba(255,255,255,.4);padding:10px;text-align:center">✦ Asking AI for recommendation...</div>';
+
+  getAISeatRecommendation(active, active.turb, sdata, function(text) {
+    if (!text) {
+      recEl.style.display = 'none';
+      return;
+    }
+    recEl.innerHTML =
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">'
+      + '<span style="font-size:14px">✦</span>'
+      + '<span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5)">AI Recommendation</span>'
+      + '</div>'
+      + '<div style="font-size:12.5px;line-height:1.65;color:rgba(255,255,255,.85)">' + text + '</div>';
+  });
+}
+
 // ── BEST SEAT FINDER ─────────────────────────────────────────
 // After all sdata is populated, find seats with lowest score
 // that are not blocked. Returns Set of seat IDs.
 function findBestSeats(sdata, maxBadges) {
+  // sdata keys: { r, displayRow, c, s, isW(=overwing), isBiz, colType('W'=window col),
+  //               isBlocked, isExit, isBulkhead, deck }
   var candidates = [];
   Object.keys(sdata).forEach(function(id) {
     var d = sdata[id];
-    if (d.isBlocked) return;          // skip blocked middle seats
-    if (d.isBiz || d.isFirst) return; // badge only in economy
-    candidates.push({ id: id, score: d.s, isW: d.isW, isExit: d.isExit, colType: d.colType });
+    if (d.isBlocked) return;   // skip blocked middle seats (eurobiz etc)
+    if (d.isBiz) return;       // badge economy only
+    if (d.s >= 5) return;      // score 5-6 = rough, never badge these
+    candidates.push({
+      id: id,
+      score: d.s,
+      isOverwing: d.isW,       // d.isW = overwing zone
+      isWindowCol: d.colType === 'W', // colType 'W' = window column (A/last)
+      isAisleCol: d.colType === 'A',
+      isExit: d.isExit
+    });
   });
   if (!candidates.length) return new Set();
 
-  // Sort: lower score = better; prefer window (isW) then aisle ('W'/'A')
+  // Sort priority:
+  // 1. Lowest turbulence score
+  // 2. Overwing preferred (best zone regardless of column)
+  // 3. Window column preferred over aisle
+  // 4. Exit rows (extra legroom) as tiebreaker
   candidates.sort(function(a, b) {
     if (a.score !== b.score) return a.score - b.score;
-    // Tie-break: window > aisle > middle
-    var rank = function(d) { return d.isW ? 0 : (d.colType === 'A' ? 1 : 2); };
-    return rank(a) - rank(b);
+    // Prefer overwing
+    if (a.isOverwing !== b.isOverwing) return a.isOverwing ? -1 : 1;
+    // Prefer window column
+    if (a.isWindowCol !== b.isWindowCol) return a.isWindowCol ? -1 : 1;
+    // Prefer exit rows (extra legroom)
+    if (a.isExit !== b.isExit) return a.isExit ? -1 : 1;
+    // Prefer aisle over middle
+    if (a.isAisleCol !== b.isAisleCol) return a.isAisleCol ? -1 : 1;
+    return 0;
   });
 
-  // Take top N, but spread across at least 2 different scores
   var best = new Set();
   var minScore = candidates[0].score;
-  var n = maxBadges || 3;
+  var n = maxBadges || 4;
   for (var i = 0; i < candidates.length && best.size < n; i++) {
-    // Only badge seats within 1 point of the absolute best
-    if (candidates[i].score <= minScore + 1) best.add(candidates[i].id);
+    // Badge seats within 0 points of best (exact best only, unless ties)
+    if (candidates[i].score <= minScore) best.add(candidates[i].id);
+  }
+  // If fewer than 2 badges, allow +1 score to ensure at least something shows
+  if (best.size < 2) {
+    for (var i = 0; i < candidates.length && best.size < n; i++) {
+      if (candidates[i].score <= minScore + 1) best.add(candidates[i].id);
+    }
   }
   return best;
 }
@@ -3112,7 +3266,12 @@ function mkRow(r, displayRow, cols, aisleAfter, fl, ws, we, isBiz, isFirst, deck
   var h='<div class="srow"><span class="rn'+(isW?' wr':'')+'">'+displayRow+rnExtra+'</span>';
   for(var i=0;i<cols.length;i++){
     if(aisleAfter.indexOf(i-1)>=0) h+='<div class="aisle"></div>';
-    var c=cols[i], s=calcScore(r,fl,fl.tlv,deck,fl.turb), id=displayRow+c;
+    var c=cols[i];
+    // Pre-compute column type for physics scoring
+    var colT='M';
+    if(i===0||i===cols.length-1) colT='W';
+    else if(aisleAfter.indexOf(i-1)>=0||aisleAfter.indexOf(i)>=0) colT='A';
+    var s=calcScore(r,fl,fl.tlv,deck,fl.turb,colT), id=displayRow+c;
     var colType='M';
     if(i===0||i===cols.length-1) colType='W';
     else if(aisleAfter.indexOf(i-1)>=0||aisleAfter.indexOf(i)>=0) colType='A';
@@ -3169,18 +3328,45 @@ function showDet(id) {
     return best.has(id);
   }());
 
-  // Turbulence tip
+  // Turbulence tip — based on zone + column type + aircraft
   var turbTip;
-  if(d.isW&&d.s<=1){
-    turbTip='<strong>First/Business Class:</strong> Forward, close to cockpit. Excellent damping and far from the tail lever arm. Smoothest and quietest cabin.';
-  } else if(d.isW){
-    turbTip='<strong>Wing zone \u2014 center of gravity:</strong> The wing root is the aircraft\'s pivot point. Pitch and roll are minimal here. This is universally the smoothest zone on any aircraft.';
-  } else if(zone==='Rear Cabin'){
-    turbTip='<strong>Rear cabin:</strong> The tail acts as a long lever arm \u2014 every bump is amplified 2\u20133\xD7 here. Seats in the last rows often don\'t recline. Closest to bathrooms means more noise and traffic.';
-  } else if(zone==='Aft of Wing'){
-    turbTip='<strong>Aft of wing:</strong> Slightly bumpier than wing zone, manageable. Moving forward toward the wing would improve comfort.';
+  var isWindowSeat = d.colType === 'W';
+  var isAisleSeat  = d.colType === 'A';
+  var acDamperNote = '';
+  if (active && active.acName) {
+    var n = active.acName.toLowerCase();
+    if (n.indexOf('a380')>=0||n.indexOf('747-8')>=0)
+      acDamperNote = ' The ' + active.acName + ' is one of the heaviest aircraft ever built — its mass absorbs gusts significantly better than smaller planes.';
+    else if (n.indexOf('777')>=0||n.indexOf('747')>=0)
+      acDamperNote = ' As a large widebody, the ' + active.acName + ' handles turbulence better than narrowbodies.';
+    else if (n.indexOf('atr')>=0||n.indexOf('q400')>=0||n.indexOf('dash')>=0)
+      acDamperNote = ' Turboprops like the ' + active.acName + ' are more sensitive to turbulence — the propellers also add vibration even in smooth air.';
+    else if (n.indexOf('e190')>=0||n.indexOf('e175')>=0||n.indexOf('crj')>=0)
+      acDamperNote = ' Regional jets are lighter and feel gusts more than mainline narrowbodies.';
+  }
+
+  if (d.isW && d.s <= 1) {
+    turbTip = '<strong>Wing zone — optimal:</strong> The wing root is the aircraft\u2019s structural center. Pitch, roll and yaw are minimized here. This is the smoothest zone on any aircraft — universally recommended for nervous flyers.' + acDamperNote;
+  } else if (d.isW) {
+    turbTip = '<strong>Wing zone:</strong> Even with turbulence on this route, the wing zone remains the best available option. Sit by the window to see the horizon — this reduces anxiety and nausea.' + acDamperNote;
+  } else if (zone === 'Rear Cabin') {
+    turbTip = '<strong>Rear cabin — most turbulence:</strong> The tail acts as a lever arm — every bump is amplified 2–3× here versus the wing zone.'
+      + (isWindowSeat ? ' Your window seat gives you a slight structural advantage over aisle seats on the same row.' : '')
+      + ' Last rows often don\u2019t recline, and bathroom proximity adds noise and traffic.' + acDamperNote;
+  } else if (zone === 'Aft of Wing') {
+    turbTip = '<strong>Aft of wing:</strong> Slightly more motion than the wing zone, but manageable. '
+      + (isWindowSeat ? 'Window seat gives you a small advantage — the fuselage skin here is stiffer than at the aisle.' : '')
+      + ' Moving one or two rows forward toward the wing would improve comfort.' + acDamperNote;
   } else {
-    turbTip='<strong>Forward cabin:</strong> Smooth ride close to the cockpit. More galley noise but significantly less turbulence than rear.';
+    turbTip = '<strong>Forward cabin:</strong> Close to the cockpit — nose pitches during turbulence but the lever arm is short. Smooth ride, especially in cruise.'
+      + (isWindowSeat ? ' Window seat: seeing the horizon during bumps significantly reduces anxiety.' : '')
+      + acDamperNote;
+  }
+  // Add window/aisle note if not already mentioned
+  if (!isWindowSeat && !d.isW && zone !== 'Rear Cabin') {
+    if (isWindowSeat) {
+      turbTip += ' <em>Window seats feel marginally more stable than aisle seats on the same row — the fuselage skin is stiffer than the cabin core.</em>';
+    }
   }
 
   // Seat type card
@@ -3260,7 +3446,9 @@ function showDet(id) {
     +'<div class="st"><div class="stl">Row</div><div class="stv">'+d.displayRow+'</div></div>'
     +'</div>'
     +'<div class="tip">'+turbTip+'</div>'
-    +amenities+stc+zn+lrNote;
+    +amenities+stc+zn+lrNote
+    +'<div id="ai-rec-box" style="margin-top:12px;padding:12px;background:rgba(88,86,214,.08);border:1px solid rgba(88,86,214,.2);border-radius:10px;"></div>';
+  showAIRec(id);
 }
 
 document.getElementById('sinp').addEventListener('input', function(){
@@ -3612,16 +3800,60 @@ function fetchWeather(dep, arr, date) {
       ]
     };
 
-    // ── Apply to all flights ──────────────────────────────────
-    for (var i = 0; i < flights.length; i++) {
-      flights[i].tlv = turbResult.overall;
-      flights[i].turb = turbResult;
-    }
-    if (active) {
-      active.tlv  = turbResult.overall;
-      active.turb = turbResult;
-      buildFcast(active);
-    }
+    // ── Historical comparison: fetch ERA5 for past 3 years ──────
+    fetchHistoricalWeather(dep, arr, date, function(hist) {
+      if (hist) {
+        turbResult.hist = hist;
+        // If historical avg is higher than current live forecast → adjust up
+        // If flight is far in future (>16d) → historical IS the primary source
+        var daysOut = getDaysUntilFlight(date);
+        if (daysOut > 16) {
+          // Future flight: blend 30% live extended + 70% historical
+          var blendRaw = overallRaw * 0.3 + hist.avgRaw * 0.7;
+          turbResult.overall = Math.max(0, Math.min(6, Math.round(blendRaw * 0.6)));
+          turbResult.note = 'Based on historical ERA5 data (' + hist.years.join(', ') + ')';
+        } else if (hist.worsening) {
+          // Route getting worse year-over-year → bump score up by 0.5
+          turbResult.overall = Math.min(6, turbResult.overall + 1);
+          turbResult.note = 'Route shows increasing turbulence trend';
+        } else if (hist.improving) {
+          turbResult.note = 'Route shows improving trend in recent years';
+        }
+      }
+
+      // ── Apply to all flights ────────────────────────────────
+      for (var i = 0; i < flights.length; i++) {
+        flights[i].tlv = turbResult.overall;
+        flights[i].turb = turbResult;
+      }
+      if (active) {
+        active.tlv  = turbResult.overall;
+        active.turb = turbResult;
+        buildFcast(active);
+        // Refresh seat map with new turbulence data
+        if (active) buildMap(active, currentDeck);
+      }
+
+      // ── Update forecast bar ───────────────────────────────
+      var items = document.querySelectorAll('[data-fp]');
+      for (var ii = 0; ii < items.length && ii < turbResult.profile.length; ii++) {
+        var s = turbResult.profile[ii];
+        var tObj = TURB[Math.min(s, 6)];
+        var h = Math.max(3, Math.round((s / 6) * 26));
+        var bar = items[ii].querySelector('.fpfill');
+        var lbl = items[ii].querySelector('.fpw');
+        if (bar) { bar.style.height = h + 'px'; bar.style.background = tObj.col; }
+        if (lbl) { lbl.textContent = (s===0?'Calm':s<=2?'Smooth':s<=3?'Light':s<=4?'Mod':'Rough'); lbl.style.color = tObj.col; }
+      }
+
+      showWeatherPanel({
+        turbulenceScore: turbResult.overall,
+        turb: turbResult,
+        jetStreamSpeed: turbResult.jetSpeed,
+        departure: ds[5],
+        arrival:   ds[6]
+      }, dep, arr);
+    });
 
     // ── Update forecast bar ───────────────────────────────────
     var items = document.querySelectorAll('[data-fp]');
@@ -3650,34 +3882,6 @@ function fetchWeather(dep, arr, date) {
 }
 
 
-function buildFcast(fl) {
-  // Use real per-phase profile from fetchWeather if available
-  // Otherwise fall back to static pattern from tlv
-  var profile;
-  if (fl.turb && fl.turb.profile) {
-    profile = fl.turb.profile;
-  } else {
-    var base = {0:[0,0,1,0,0,1,0],1:[1,1,2,1,1,2,1],2:[2,2,3,2,2,3,2],
-                3:[3,3,4,3,3,4,3],4:[4,4,5,4,4,5,4],5:[5,5,6,5,5,6,5],6:[6,6,6,6,6,6,6]};
-    profile = base[Math.min(fl.tlv || 2, 6)] || base[2];
-  }
-  var ph = ['Dep','+20m','+45m','+1h','+80m','+100m','Arr'];
-  var html = '';
-  for (var i = 0; i < 7; i++) {
-    var s = profile[i] || 0;
-    var t = TURB[Math.min(s, 6)];
-    var h = Math.max(3, Math.round((s / 6) * 26));
-    html += '<div class="fp ' + (i === 0 ? 'on' : '') + '" data-fp="1">'
-          + '<div class="fpt">' + ph[i] + '</div>'
-          + '<div class="fpbar"><div class="fpfill" style="height:' + h + 'px;background:' + t.col + '"></div></div>'
-          + '<div class="fpw" style="color:' + t.col + '">' + (s === 0 ? 'Calm' : s <= 2 ? 'Smooth' : s <= 3 ? 'Light' : s <= 4 ? 'Mod' : 'Rough') + '</div></div>';
-  }
-  document.getElementById('fcast').innerHTML = html;
-}
-document.getElementById('fcast').addEventListener('click',function(e){
-  var fp=e.target.closest('[data-fp]');if(!fp)return;
-  document.querySelectorAll('[data-fp]').forEach(function(f){f.classList.remove('on');});fp.classList.add('on');
-});
 
 // ── ROUTE MAP ────────────────────────────────────────────────
 // Simplified continent outlines (key coastline points, equirectangular)
@@ -3704,176 +3908,91 @@ var COASTLINES = [
   return pathStr;
 }); // Note: these are in lon,lat format for conversion
 
-function drawRouteMap(depAP, arrAP) {
-  if (!depAP || !arrAP) return;
-  var wrap = document.getElementById('route-map-wrap');
-  var svg  = document.getElementById('route-map-svg');
-  wrap.style.display = 'block';
-  document.getElementById('route-map-title').textContent = depAP.c + ' \u2192 ' + arrAP.c;
-  document.getElementById('route-map-sub').textContent   = depAP.city + ' \u2192 ' + arrAP.city + ' \xB7 ' + minsToStr(calcFlightMins(depAP.c, arrAP.c));
-
-  var W = 400, H = 200;
-
-  // Geographic bounds — center on route with generous padding
-  var cLat = (depAP.lat + arrAP.lat) / 2;
-  var cLon = (depAP.lon + arrAP.lon) / 2;
-  var dLat = Math.abs(depAP.lat - arrAP.lat);
-  var dLon = Math.abs(depAP.lon - arrAP.lon);
-
-  // Ensure MINIMUM spread so airports aren't on top of each other
-  var spanLat = Math.max(dLat * 2.5, 18);
-  var spanLon = Math.max(dLon * 2.5, spanLat * 2.2);
-
-  var minLat = cLat - spanLat / 2;
-  var maxLat = cLat + spanLat / 2;
-  var minLon = cLon - spanLon / 2;
-  var maxLon = cLon + spanLon / 2;
-
-  function proj(lat, lon) {
-    return {
-      x: (lon - minLon) / (maxLon - minLon) * W,
-      y: (maxLat - lat) / (maxLat - minLat) * H
-    };
-  }
-
-  var p1 = proj(depAP.lat, depAP.lon); // departure = GREEN
-  var p2 = proj(arrAP.lat, arrAP.lon); // arrival   = ORANGE
-
-  // Great circle midpoint with poleward bulge
-  var gc  = Math.sqrt(Math.pow(arrAP.lat-depAP.lat,2)+Math.pow(arrAP.lon-depAP.lon,2));
-  var pm  = proj((depAP.lat+arrAP.lat)/2 + Math.min(gc*0.12, 8), (depAP.lon+arrAP.lon)/2);
-
-  var out = '';
-
-  // Background
-  out += '<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#0d1117"/>';
-
-  // Grid
-  var gStep = spanLon > 60 ? 20 : spanLon > 20 ? 10 : 5;
-  for (var lo = Math.ceil(minLon/gStep)*gStep; lo <= maxLon; lo += gStep) {
-    var gx = (lo-minLon)/(maxLon-minLon)*W;
-    out += '<line x1="'+gx.toFixed(1)+'" y1="0" x2="'+gx.toFixed(1)+'" y2="'+H+'" stroke="rgba(74,144,226,.06)" stroke-width="0.5"/>';
-  }
-  for (var la = Math.ceil(minLat/gStep)*gStep; la <= maxLat; la += gStep) {
-    var gy = (maxLat-la)/(maxLat-minLat)*H;
-    out += '<line x1="0" y1="'+gy.toFixed(1)+'" x2="'+W+'" y2="'+gy.toFixed(1)+'" stroke="rgba(74,144,226,.06)" stroke-width="0.5"/>';
-  }
-
-  // Land polygons
-  var LANDS = [
-    [[-9,44],[-1,44],[3,43],[8,44],[8,48],[6,49],[3,51],[0,51],[-2,49],[-2,44],[-9,44]],
-    [[-5,50],[0,51],[2,52],[0,55],[-2,58],[-4,58],[-5,57],[-4,55],[-5,54],[-4,52],[-5,50]],
-    [[5,57],[8,58],[12,57],[18,56],[22,58],[28,70],[24,68],[18,62],[12,58],[8,58],[5,57]],
-    [[8,48],[15,49],[18,50],[24,50],[24,54],[18,54],[15,54],[12,54],[8,53],[8,51],[8,48]],
-    [[8,44],[13,44],[15,38],[16,37],[14,38],[14,42],[12,46],[8,46],[8,44]],
-    [[14,46],[22,48],[26,48],[28,44],[26,40],[24,38],[22,36],[20,38],[18,38],[15,40],[14,42],[14,46]],
-    [[26,40],[28,41],[32,42],[36,38],[32,36],[28,36],[26,38],[26,40]],
-    [[-6,36],[0,37],[10,37],[15,37],[25,37],[35,36],[35,30],[30,20],[20,15],[10,12],[0,16],[-5,20],[-6,26],[-6,36]],
-    [[28,37],[36,37],[40,36],[43,32],[46,30],[50,30],[55,23],[50,20],[45,22],[40,20],[36,22],[34,28],[33,30],[32,32],[32,35],[30,34],[28,37]],
-    [[28,41],[32,42],[36,42],[42,42],[44,44],[40,46],[36,44],[32,44],[28,41]],
-    [[14,50],[18,50],[24,50],[24,54],[18,54],[14,54],[12,51],[14,50]],
-    [[22,48],[30,47],[34,47],[36,48],[34,52],[28,52],[24,50],[22,48]],
-    [[-10,52],[-6,52],[-6,54],[-8,56],[-10,54],[-10,52]],
-    [[20,54],[24,54],[28,56],[24,58],[20,58],[18,56],[18,54],[20,54]],
-    [[15,56],[18,56],[20,58],[24,60],[28,62],[26,60],[22,58],[18,56],[15,56]],
-    // North America
-    [[-140,60],[-120,55],[-100,50],[-80,45],[-70,42],[-60,47],[-55,50],[-60,55],[-80,60],[-100,65],[-120,65],[-140,60]],
-    [[-80,25],[-70,20],[-65,18],[-60,10],[-70,5],[-80,5],[-90,15],[-95,20],[-90,25],[-80,25]],
-    // Central Asia
-    [[40,36],[48,36],[60,36],[70,35],[80,30],[75,25],[65,22],[55,22],[45,25],[38,32],[40,36]],
-    [[60,36],[70,40],[80,42],[90,45],[100,50],[105,52],[100,55],[90,55],[80,50],[70,45],[60,36]],
-    // East Asia
-    [[100,20],[110,18],[120,20],[125,25],[125,30],[120,35],[115,40],[105,40],[100,35],[100,20]],
-    // Australia
-    [[114,-22],[125,-14],[136,-12],[140,-18],[148,-20],[153,-27],[150,-38],[140,-38],[130,-32],[115,-32],[114,-22]],
-  ];
-
-  for (var li = 0; li < LANDS.length; li++) {
-    var poly = LANDS[li], pts = '', vis = false;
-    for (var pi = 0; pi < poly.length; pi++) {
-      var pp = proj(poly[pi][1], poly[pi][0]);
-      pts += (pi===0?'M':'L') + pp.x.toFixed(1)+','+pp.y.toFixed(1);
-      if (pp.x>-30&&pp.x<W+30&&pp.y>-30&&pp.y<H+30) vis=true;
-    }
-    if (vis) out += '<path d="'+pts+'Z" fill="#1a2e1a" stroke="rgba(60,100,60,.45)" stroke-width="0.7"/>';
-  }
-
-  // Route arc
-  out += '<path d="M'+p1.x.toFixed(1)+','+p1.y.toFixed(1)+' Q'+pm.x.toFixed(1)+','+pm.y.toFixed(1)+' '+p2.x.toFixed(1)+','+p2.y.toFixed(1)+'" fill="none" stroke="rgba(74,144,226,.25)" stroke-width="2.5" stroke-dasharray="8,4"/>';
-  out += '<path d="M'+p1.x.toFixed(1)+','+p1.y.toFixed(1)+' Q'+pm.x.toFixed(1)+','+pm.y.toFixed(1)+' '+p2.x.toFixed(1)+','+p2.y.toFixed(1)+'" fill="none" stroke="#4A90E2" stroke-width="1.5" opacity="0.8"/>';
-
-  // Dots + labels — smart placement to avoid overlap
-  var angle = Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180/Math.PI;
-  var dist  = Math.sqrt(Math.pow(p2.x-p1.x,2)+Math.pow(p2.y-p1.y,2));
-
-  function airportLabel(px, py, iata, city, color, isDep) {
-    var r = 5.5;
-    // Label always goes AWAY from the other airport
-    var dx = isDep ? (px - p2.x) : (px - p1.x);
-    var onRight = dx >= 0 ? true : false;
-    // Edge clipping
-    if (px < W * 0.2) onRight = true;
-    if (px > W * 0.8) onRight = false;
-    var lx = onRight ? px + r + 5 : px - r - 5;
-    var anchor = onRight ? 'start' : 'end';
-    var bgX = onRight ? lx - 2 : lx - 64;
-
-    return '<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+r+'" fill="'+color+'" stroke="#fff" stroke-width="1.5"/>'
-      + '<rect x="'+bgX.toFixed(1)+'" y="'+(py-13).toFixed(1)+'" width="66" height="24" rx="4" fill="rgba(10,18,40,0.82)"/>'
-      + '<text x="'+lx.toFixed(1)+'" y="'+(py-1).toFixed(1)+'" font-family="Inter,sans-serif" font-size="10.5" font-weight="800" fill="'+color+'" text-anchor="'+anchor+'">'+iata+'</text>'
-      + '<text x="'+lx.toFixed(1)+'" y="'+(py+10).toFixed(1)+'" font-family="Inter,sans-serif" font-size="7.5" fill="rgba(255,255,255,.55)" text-anchor="'+anchor+'">'+city+'</text>';
-  }
-
-  out += airportLabel(p1.x, p1.y, depAP.c, depAP.city, '#34C759', true);
-  out += airportLabel(p2.x, p2.y, arrAP.c, arrAP.city, '#FF9F0A', false);
-
-  // Plane at midpoint, rotated toward destination
-  out += '<text x="'+pm.x.toFixed(1)+'" y="'+pm.y.toFixed(1)+'" font-family="Arial" font-size="14" fill="#4A90E2" text-anchor="middle" dominant-baseline="middle" transform="rotate('+angle.toFixed(0)+','+pm.x.toFixed(1)+','+pm.y.toFixed(1)+')">&#9992;</text>';
-
-  svg.setAttribute('viewBox', '0 0 '+W+' '+H);
-  svg.innerHTML = out;
-}
 
 // ── WEATHER ───────────────────────────────────────────────────
-function fetchWeather(dep, arr, date) {
-  var dc=AP_COORDS[dep],ac=AP_COORDS[arr];
-  if(!dc||!ac)return;
-  var midLat=(dc.lat+ac.lat)/2,midLon=(dc.lon+ac.lon)/2;
-  var routeUrl='https://api.open-meteo.com/v1/forecast?latitude='+midLat+'&longitude='+midLon
-    +'&hourly=windspeed_250hPa&wind_speed_unit=kmh&timezone=auto&start_date='+date+'&end_date='+date;
-  var depUrl='https://api.open-meteo.com/v1/forecast?latitude='+dc.lat+'&longitude='+dc.lon
-    +'&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max&timezone=auto&start_date='+date+'&end_date='+date;
-  var arrUrl='https://api.open-meteo.com/v1/forecast?latitude='+ac.lat+'&longitude='+ac.lon
-    +'&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max&timezone=auto&start_date='+date+'&end_date='+date;
-  Promise.all([fetch(routeUrl),fetch(depUrl),fetch(arrUrl)])
-    .then(function(rs){return Promise.all(rs.map(function(r){return r.json();}));})
-    .then(function(ds){
-      var winds=ds[0].hourly&&ds[0].hourly.windspeed_250hPa?ds[0].hourly.windspeed_250hPa:[];
-      var avgWind=winds.length?winds.reduce(function(a,b){return a+b;},0)/winds.length:80;
-      var ts;if(avgWind<60)ts=0;else if(avgWind<90)ts=1;else if(avgWind<120)ts=2;
-      else if(avgWind<150)ts=3;else if(avgWind<180)ts=4;else if(avgWind<220)ts=5;else ts=6;
-      var rb=getRouteTurb(dep,arr);
-      ts=Math.max(0,Math.min(6,Math.round(ts*0.6+rb*0.4)));
-      for(var i=0;i<flights.length;i++)flights[i].tlv=ts;
-      if(active){active.tlv=ts;buildFcast(active);}
-      var step=Math.floor(Math.max(winds.length,1)/7)||1;
-      var profile=[];
-      for(var j=0;j<7;j++){
-        var w=winds[j*step]||avgWind,ps;
-        if(w<60)ps=0;else if(w<90)ps=1;else if(w<120)ps=2;else if(w<150)ps=3;else if(w<180)ps=4;else if(w<220)ps=5;else ps=6;
-        profile.push(Math.max(0,Math.min(6,Math.round(ps*0.6+rb*0.4))));
-      }
-      var items=document.querySelectorAll('[data-fp]');
-      for(var i=0;i<items.length&&i<profile.length;i++){
-        var s=profile[i],t=TURB[Math.min(s,6)],h=Math.max(3,Math.round((s/6)*26));
-        var bar=items[i].querySelector('.fpfill'),lbl=items[i].querySelector('.fpw');
-        if(bar){bar.style.height=h+'px';bar.style.background=t.col;}
-        if(lbl){lbl.textContent=(s===0?'Calm':s<=2?'Smooth':s<=3?'Light':s<=4?'Mod':'Rough');lbl.style.color=t.col;}
-      }
-      showWeatherPanel({turbulenceScore:ts,jetStreamSpeed:Math.round(avgWind),departure:ds[1],arrival:ds[2]},dep,arr);
-    })
-    .catch(function(){});
+
+// ── HISTORICAL WEATHER COMPARISON (ERA5 via Open-Meteo Archive) ──
+// Fetches same date -1, -2, -3 years to build a trend
+// Returns: { avgTurb, trend, years }
+function fetchHistoricalWeather(dep, arr, date, callback) {
+  var dc = AP_COORDS[dep], ac = AP_COORDS[arr];
+  if (!dc || !ac) { callback(null); return; }
+
+  var midLat = (dc.lat + ac.lat) / 2;
+  var midLon = (dc.lon + ac.lon) / 2;
+
+  // Parse date and generate -1, -2, -3 year equivalents
+  var parts = date.split('-');
+  var year = parseInt(parts[0]);
+  var mmdd = parts[1] + '-' + parts[2];
+
+  // For future dates (>16 days), use historical as primary forecast
+  // For recent dates, use as trend validation
+  var years = [year-1, year-2, year-3];
+  var archiveBase = 'https://archive-api.open-meteo.com/v1/archive';
+
+  function archiveUrl(y) {
+    var d = y + '-' + mmdd;
+    return archiveBase
+      + '?latitude=' + midLat.toFixed(3)
+      + '&longitude=' + midLon.toFixed(3)
+      + '&hourly=windspeed_250hPa,windspeed_300hPa,windspeed_500hPa,cape'
+      + '&wind_speed_unit=kmh&timezone=UTC'
+      + '&start_date=' + d + '&end_date=' + d;
+  }
+
+  function avg(arr) {
+    if (!arr || !arr.length) return 0;
+    return arr.reduce(function(a,b){return a+(b||0);},0) / arr.length;
+  }
+
+  function turbScore(d) {
+    if (!d || !d.hourly) return 2;
+    var w250 = avg(d.hourly.windspeed_250hPa);
+    var w300 = avg(d.hourly.windspeed_300hPa);
+    var cape  = avg(d.hourly.cape);
+    var jet   = w250 > 220?4:w250>180?3.5:w250>140?3:w250>100?2:w250>70?1.2:0.6;
+    var shear = Math.abs(w250-w300);
+    var sh    = shear>80?3:shear>50?2.2:shear>30?1.5:shear>15?0.8:0.2;
+    var cv    = cape>2000?3:cape>1000?2:cape>400?1.2:cape>100?0.5:0;
+    return Math.min(10, jet + sh + cv);
+  }
+
+  Promise.all(years.map(function(y) {
+    return fetch(archiveUrl(y))
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .catch(function() { return null; });
+  })).then(function(results) {
+    var scores = results.map(turbScore);
+    var avg3 = scores.reduce(function(a,b){return a+b;},0) / scores.length;
+
+    // Trend: is turbulence increasing year over year?
+    // Compare oldest to newest: positive = getting worse
+    var trend = 0;
+    if (scores.length === 3) {
+      trend = (scores[0] - scores[2]); // year-1 minus year-3 (positive = worsening)
+    }
+
+    callback({
+      years: years,
+      scores: scores,
+      avgRaw: avg3,       // 0-10 raw
+      avg6: Math.min(6, Math.round(avg3 * 0.6)), // 0-6 scale
+      trend: trend,       // positive = getting worse, negative = improving
+      worsening: trend > 0.8,
+      improving: trend < -0.8
+    });
+  }).catch(function() { callback(null); });
 }
+
+// ── SMART DATE ROUTING ─────────────────────────────────────────
+// Decides whether to use live forecast, blend, or historical-only
+function getDaysUntilFlight(dateStr) {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var flight = new Date(dateStr);
+  return Math.round((flight - today) / 86400000);
+}
+
 
 function showWeatherPanel(data,dep,arr){
   var ex=document.getElementById('wx-panel');if(ex)ex.remove();
