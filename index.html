@@ -793,6 +793,13 @@ const FLEET = {
   'AC':{ def:'A330AC', routes:{'YYZ-LHR':'A330AC','YYZ-CDG':'A330AC','YUL-LHR':'A330AC'} },
   'EI':{ def:'A330EI', routes:{'DUB-JFK':'A321XLREI','DUB-BOS':'A321XLREI','DUB-ORD':'A321XLREI','DUB-LHR':'A320F'} },
   'AS':{ def:'B737AS', routes:{} },
+  'LH':{ def:'A320LH', routes:{} },
+  'LX':{ def:'A223LX', routes:{} },
+  'LO':{ def:'B38MLO', routes:{} },
+  'UA':{ def:'A320UA', routes:{} },
+  'DL':{ def:'A321DL', routes:{} },
+  'AA':{ def:'A321AA', routes:{} },
+  'NK':{ def:'A320NK', routes:{} },
 };
 
 const ROUTE_TURB = {
@@ -1638,6 +1645,396 @@ const AIRCRAFT = {
       12:'Overwing EXIT — extra legroom',
       29:'Last row — near lavatories'
     }
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // LUFTHANSA (LH) — Full fleet
+  // ══════════════════════════════════════════════════════════════
+  // A319 — ~138 seats, 3-3, Business = blocked middle
+  'A319LH': {name:'Airbus A319 (Lufthansa)', rows:23, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:4, ws:8, we:16,
+    cabins:[{cls:'B',r1:1,r2:4},{cls:'E',r1:5,r2:23}],
+    blockedMiddle:true, wifi:true, screens:false, power:false,
+    note:'Lufthansa European Business: 3-3 with middle seat blocked. FlyNet WiFi on most. IFE via portal.',
+    legroom:{1:'Business bulkhead — blocked middle seat',8:'Exit row',9:'Exit row'}
+  },
+  // A320 — ~168 seats
+  'A320LH': {name:'Airbus A320 (Lufthansa)', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:10, we:18,
+    cabins:[{cls:'B',r1:1,r2:5},{cls:'E',r1:6,r2:28}],
+    blockedMiddle:true, wifi:true, screens:false, power:false,
+    note:'Lufthansa European Business: blocked middle, FlyNet WiFi. IFE streaming via portal.',
+    legroom:{1:'Business',11:'Exit row',12:'Exit row',28:'Last row'}
+  },
+  // A320neo — ~180 seats
+  'A20NLH': {name:'Airbus A320neo (Lufthansa)', rows:30, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:11, we:19,
+    cabins:[{cls:'B',r1:1,r2:5},{cls:'E',r1:6,r2:30}],
+    blockedMiddle:true, wifi:true, screens:false, power:true,
+    note:'New generation. USB at all seats. FlyNet WiFi. Blocked middle in Business.',
+    legroom:{1:'Business',12:'Exit row',13:'Exit row'}
+  },
+  // A321 — ~200 seats
+  'A321LH': {name:'Airbus A321 (Lufthansa)', rows:33, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:6, ws:12, we:21,
+    cabins:[{cls:'B',r1:1,r2:6},{cls:'E',r1:7,r2:33}],
+    blockedMiddle:true, wifi:true, screens:false, power:false,
+    note:'Lufthansa A321, busier European routes. Blocked middle Business. WiFi on most.',
+    legroom:{1:'Business',13:'Exit row',14:'Exit row'}
+  },
+  // A321neo — ~215 seats
+  'A21NLH': {name:'Airbus A321neo (Lufthansa)', rows:36, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:6, ws:13, we:22,
+    cabins:[{cls:'B',r1:1,r2:6},{cls:'E',r1:7,r2:36}],
+    blockedMiddle:true, wifi:true, screens:false, power:true,
+    note:'High-density European. USB at all seats. FlyNet WiFi. Blocked middle in Business.',
+    legroom:{1:'Business',14:'Exit row',15:'Exit row'}
+  },
+  // A330-300 — J/W/Y long-haul
+  'A333LH': {name:'Airbus A330-300 (Lufthansa)', rows:50, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:11, ws:20, we:32,
+    cabins:[{cls:'B',r1:1,r2:11},{cls:'PE',r1:12,r2:15},{cls:'E',r1:16,r2:50}],
+    wifi:true, screens:true, power:true,
+    note:'Long-haul: 2-2-2 Business lie-flat, 2-3-2 Premium Economy, 2-4-2 Economy. FlyNet WiFi + IFE.',
+    legroom:{1:'Business 2-2-2 lie-flat ~155cm',12:'Premium Economy 2-3-2',16:'Economy bulkhead'}
+  },
+  // A340-300 — ~279 seats
+  'A343LH': {name:'Airbus A340-300 (Lufthansa)', rows:46, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:9, ws:18, we:30,
+    cabins:[{cls:'B',r1:1,r2:9},{cls:'PE',r1:10,r2:13},{cls:'E',r1:14,r2:46}],
+    wifi:true, screens:true, power:true,
+    note:'2-2-2 Business, 2-3-2 PE, 2-4-2 Economy. FlyNet WiFi.',
+    legroom:{1:'Business 2-2-2',10:'Premium Economy'}
+  },
+  // A340-600 — 8F + 80J + 32W + 244Y
+  'A346LH': {name:'Airbus A340-600 (Lufthansa)', rows:52, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:10, ws:20, we:33,
+    cabins:[{cls:'F',r1:1,r2:2},{cls:'B',r1:3,r2:12},{cls:'PE',r1:13,r2:16},{cls:'E',r1:17,r2:52}],
+    wifi:true, screens:true, power:true,
+    note:'First 1-2-1, Business 2-2-2, PE 2-3-2, Economy 2-4-2. WiFi + IFE.',
+    legroom:{1:'First Class 1-2-1 ~200cm',3:'Business 2-2-2',13:'Premium Economy'}
+  },
+  // A350-900 — 48J+21W+224Y
+  'A359LH': {name:'Airbus A350-900 (Lufthansa)', rows:50, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:13, ws:20, we:33,
+    cabins:[{cls:'B',r1:1,r2:13},{cls:'PE',r1:14,r2:17},{cls:'E',r1:18,r2:50}],
+    wifi:true, screens:true, power:true,
+    note:'1-2-1 Business direct aisle, 2-3-2 PE, 3-3-3 Economy. USB-C + WiFi throughout.',
+    legroom:{1:'Business 1-2-1',14:'Premium Economy 2-3-2',18:'Economy bulkhead'}
+  },
+  // 747-8i — 8F+80J+32W+244Y
+  'B748LH': {name:'Boeing 747-8i (Lufthansa)', rows:58, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:14, ws:22, we:36,
+    cabins:[{cls:'F',r1:1,r2:2},{cls:'B',r1:3,r2:16},{cls:'PE',r1:17,r2:20},{cls:'E',r1:21,r2:58}],
+    wifi:true, screens:true, power:true,
+    note:'Iconic 747. First 1-2-1 lower deck, Business 2-2-2 upper+lower, PE 2-4-2, Economy 3-4-3.',
+    legroom:{1:'First Class 1-2-1',3:'Business 2-2-2',17:'Premium Economy',21:'Economy bulkhead'}
+  },
+  // 787-9 — ~280 seats
+  'B789LH': {name:'Boeing 787-9 (Lufthansa)', rows:50, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:10, ws:18, we:30,
+    cabins:[{cls:'B',r1:1,r2:10},{cls:'PE',r1:11,r2:14},{cls:'E',r1:15,r2:50}],
+    wifi:true, screens:true, power:true,
+    note:'New gen 1-2-1 Business lie-flat, 2-3-2 PE, 3-3-3 Economy. USB-C + 4K IFE + WiFi.',
+    legroom:{1:'Business 1-2-1 lie-flat',11:'Premium Economy',15:'Economy'}
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // SWISS (LX)
+  // ══════════════════════════════════════════════════════════════
+  // A220-100 — 2-3, ~125 seats
+  'A221LX': {name:'Airbus A220-100 (SWISS)', rows:25, cols:['A','B','C','D','E'], aisleAfter:[1], biz:4, ws:9, we:16,
+    cabins:[{cls:'B',r1:1,r2:4},{cls:'E',r1:5,r2:25}],
+    blockedMiddle:true, wifi:true, screens:false, power:true,
+    note:'A220 unique 2-3 layout — Business has no true middle seat. USB at all seats. Streaming IFE.',
+    legroom:{1:'Business 2-2 (blocked middle)',8:'Exit row'}
+  },
+  // A220-300 — 2-3, ~145 seats
+  'A223LX': {name:'Airbus A220-300 (SWISS)', rows:29, cols:['A','B','C','D','E'], aisleAfter:[1], biz:5, ws:10, we:18,
+    cabins:[{cls:'B',r1:1,r2:5},{cls:'E',r1:6,r2:29}],
+    blockedMiddle:true, wifi:true, screens:false, power:true,
+    note:'SWISS flagship narrowbody. Wider seats (18in). USB everywhere. Streaming WiFi IFE.',
+    legroom:{1:'Business 2-2',9:'Exit row'}
+  },
+  // A320 — ~168 seats
+  'A320LX': {name:'Airbus A320 (SWISS)', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:4, ws:10, we:18,
+    cabins:[{cls:'B',r1:1,r2:4},{cls:'E',r1:5,r2:28}],
+    blockedMiddle:true, wifi:true, screens:false, power:false,
+    note:'Business: 3-3 blocked middle. WiFi streaming IFE. USB on some seats.',
+    legroom:{1:'Business',11:'Exit row'}
+  },
+  // A320neo — ~180 seats
+  'A20NLX': {name:'Airbus A320neo (SWISS)', rows:30, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:11, we:19,
+    cabins:[{cls:'B',r1:1,r2:5},{cls:'E',r1:6,r2:30}],
+    blockedMiddle:true, wifi:true, screens:false, power:true,
+    note:'USB at all seats. Blocked middle Business. WiFi streaming.',
+    legroom:{1:'Business',12:'Exit row'}
+  },
+  // A321 — ~200 seats
+  'A321LX': {name:'Airbus A321 (SWISS)', rows:33, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:6, ws:12, we:21,
+    cabins:[{cls:'B',r1:1,r2:6},{cls:'E',r1:7,r2:33}],
+    blockedMiddle:true, wifi:true, screens:false, power:false,
+    note:'Blocked middle Business. WiFi streaming. USB partial.',
+    legroom:{1:'Business',13:'Exit row'}
+  },
+  // A321neo — ~215 seats
+  'A21NLX': {name:'Airbus A321neo (SWISS)', rows:36, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:6, ws:13, we:22,
+    cabins:[{cls:'B',r1:1,r2:6},{cls:'E',r1:7,r2:36}],
+    blockedMiddle:true, wifi:true, screens:false, power:true,
+    note:'USB all seats. Blocked middle Business. WiFi streaming.',
+    legroom:{1:'Business',14:'Exit row'}
+  },
+  // A330-300 — 8F+45J+28W+155Y
+  'A333LX': {name:'Airbus A330-300 (SWISS)', rows:48, cols:['A','B','C','D','E','F','G','H'], aisleAfter:[1,5], biz:12, ws:19, we:31,
+    cabins:[{cls:'F',r1:1,r2:2},{cls:'B',r1:3,r2:14},{cls:'PE',r1:15,r2:18},{cls:'E',r1:19,r2:48}],
+    wifi:true, screens:true, power:true,
+    note:'First 1-2-1 ~200cm, Business 1-2-1 lie-flat, PE 2-3-2, Economy 2-4-2. Full WiFi+IFE.',
+    legroom:{1:'First Class 1-2-1',3:'Business 1-2-1',15:'Premium Economy 2-3-2',19:'Economy'}
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // LOT Polish Airlines (LO)
+  // ══════════════════════════════════════════════════════════════
+  // E170 — 2-2, ~70 seats
+  'E170LO': {name:'Embraer E170 (LOT)', rows:18, cols:['A','C','D','F'], aisleAfter:[1], biz:3, ws:6, we:12,
+    cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:18}],
+    wifi:false, screens:false, power:false,
+    note:'2-2 layout throughout. No middle seat anywhere. No WiFi or IFE.',
+    legroom:{1:'Business — extra legroom',6:'Overwing',18:'Last row'}
+  },
+  // E175 — 2-2, ~82 seats
+  'E175LO': {name:'Embraer E175 (LOT)', rows:21, cols:['A','C','D','F'], aisleAfter:[1], biz:3, ws:7, we:14,
+    cabins:[{cls:'B',r1:1,r2:3},{cls:'E',r1:4,r2:21}],
+    wifi:false, screens:false, power:false,
+    note:'2-2 layout. No middle seat. No WiFi or IFE.',
+    legroom:{1:'Business'}
+  },
+  // E190 — 2-2, ~106 seats
+  'E190LO': {name:'Embraer E190 (LOT)', rows:27, cols:['A','C','D','F'], aisleAfter:[1], biz:4, ws:9, we:17,
+    cabins:[{cls:'B',r1:1,r2:4},{cls:'E',r1:5,r2:27}],
+    wifi:false, screens:false, power:false,
+    note:'2-2 throughout. No middle seat. No WiFi/IFE.',
+    legroom:{1:'Business',9:'Exit row'}
+  },
+  // E195 — 2-2, ~118 seats
+  'E195LO': {name:'Embraer E195 (LOT)', rows:30, cols:['A','C','D','F'], aisleAfter:[1], biz:4, ws:10, we:19,
+    cabins:[{cls:'B',r1:1,r2:4},{cls:'E',r1:5,r2:30}],
+    wifi:false, screens:false, power:false,
+    note:'2-2 throughout. No middle seat. No WiFi/IFE.',
+    legroom:{1:'Business',10:'Exit row'}
+  },
+  // 737-800 — ~186 seats
+  'B738LO': {name:'Boeing 737-800 (LOT)', rows:31, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:11, we:21,
+    cabins:[{cls:'B',r1:1,r2:5},{cls:'E',r1:6,r2:31}],
+    blockedMiddle:true, wifi:false, screens:false, power:false,
+    note:'No WiFi, no IFE. Business: blocked middle in 3-3. Economy standard.',
+    legroom:{1:'Business',13:'Exit row',14:'Exit row'}
+  },
+  // 737 MAX 8 — ~186 seats
+  'B38MLO': {name:'Boeing 737 MAX 8 (LOT)', rows:31, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:11, we:21,
+    cabins:[{cls:'B',r1:1,r2:5},{cls:'E',r1:6,r2:31}],
+    blockedMiddle:true, wifi:false, screens:false, power:false,
+    note:'No WiFi, no IFE. Business: blocked middle. Economy standard.',
+    legroom:{1:'Business',13:'Exit row'}
+  },
+  // 787-8 — 18J+21W+213Y
+  'B788LO': {name:'Boeing 787-8 (LOT)', rows:44, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:6, ws:16, we:28,
+    cabins:[{cls:'B',r1:1,r2:6},{cls:'PE',r1:7,r2:10},{cls:'E',r1:11,r2:44}],
+    wifi:true, screens:true, power:true,
+    note:'2-2-2 Business ~198cm lie-flat, 2-3-2 Premium Economy, 3-3-3 Economy. WiFi+IFE.',
+    legroom:{1:'Business 2-2-2 lie-flat',7:'Premium Economy',11:'Economy'}
+  },
+  // 787-9 — 24J+21W+249Y
+  'B789LO': {name:'Boeing 787-9 (LOT)', rows:50, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:18, we:31,
+    cabins:[{cls:'B',r1:1,r2:8},{cls:'PE',r1:9,r2:12},{cls:'E',r1:13,r2:50}],
+    wifi:true, screens:true, power:true,
+    note:'2-2-2 Business lie-flat, 2-3-2 Premium Economy, 3-3-3 Economy. Full WiFi+IFE.',
+    legroom:{1:'Business 2-2-2',9:'Premium Economy',13:'Economy'}
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // UNITED AIRLINES (UA)
+  // ══════════════════════════════════════════════════════════════
+  'A319UA': {name:'Airbus A319 (United)', rows:22, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:8, we:15,
+    cabins:[{cls:'F',r1:1,r2:3},{cls:'E',r1:4,r2:22}],
+    wifi:true, screens:false, power:true,
+    note:'2-2 First Class, 3-3 Economy Plus + Economy. WiFi streaming IFE.',
+    legroom:{1:'First Class 2-2, ~94cm pitch',4:'Economy Plus extra legroom',8:'Exit row'}
+  },
+  'A320UA': {name:'Airbus A320 (United)', rows:25, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:4, ws:9, we:17,
+    cabins:[{cls:'F',r1:1,r2:4},{cls:'E',r1:5,r2:25}],
+    wifi:true, screens:false, power:true,
+    note:'2-2 First, 3-3 Economy Plus + Economy. WiFi streaming IFE.',
+    legroom:{1:'First Class 2-2',5:'Economy Plus',11:'Exit row'}
+  },
+  'B737UA': {name:'Boeing 737-800 (United)', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:4, ws:10, we:18,
+    cabins:[{cls:'F',r1:1,r2:4},{cls:'E',r1:5,r2:28}],
+    wifi:true, screens:false, power:true,
+    note:'2-2 First Class, 3-3 Economy Plus + Main. WiFi streaming.',
+    legroom:{1:'First Class',12:'Exit row',13:'Exit row'}
+  },
+  'B739UA': {name:'Boeing 737-900 (United)', rows:30, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:11, we:19,
+    cabins:[{cls:'F',r1:1,r2:5},{cls:'E',r1:6,r2:30}],
+    wifi:true, screens:false, power:true,
+    note:'2-2 First, 3-3 Economy Plus + Economy.',
+    legroom:{1:'First Class',13:'Exit row'}
+  },
+  'B38MUA': {name:'Boeing 737 MAX 8 (United)', rows:28, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:4, ws:10, we:18,
+    cabins:[{cls:'F',r1:1,r2:4},{cls:'E',r1:5,r2:28}],
+    wifi:true, screens:true, power:true,
+    note:'Personal IFE screens + USB-C at all seats. First 2-2, Economy 3-3.',
+    legroom:{1:'First Class 2-2',12:'Exit row'}
+  },
+  'B777UA': {name:'Boeing 777-200ER (United)', rows:50, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:10, ws:18, we:32,
+    cabins:[{cls:'B',r1:1,r2:10},{cls:'PE',r1:11,r2:14},{cls:'E',r1:15,r2:50}],
+    wifi:true, screens:true, power:true,
+    note:'Polaris Business 1-2-1 lie-flat, Economy Plus, Economy 3-3-3. WiFi+IFE.',
+    legroom:{1:'Polaris Business 1-2-1',11:'Economy Plus',15:'Economy'}
+  },
+  'B787UA': {name:'Boeing 787-9 (United)', rows:48, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:10, ws:17, we:30,
+    cabins:[{cls:'B',r1:1,r2:10},{cls:'PE',r1:11,r2:14},{cls:'E',r1:15,r2:48}],
+    wifi:true, screens:true, power:true,
+    note:'Polaris 1-2-1 lie-flat, Prem Plus 2-3-2, Economy 3-3-3. USB-C + WiFi.',
+    legroom:{1:'Polaris Business',11:'Premium Plus',15:'Economy'}
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // DELTA AIR LINES (DL)
+  // ══════════════════════════════════════════════════════════════
+  'A221DL': {name:'Airbus A220-100 (Delta)', rows:22, cols:['A','B','C','D','E'], aisleAfter:[1], biz:3, ws:7, we:14,
+    cabins:[{cls:'F',r1:1,r2:3},{cls:'E',r1:4,r2:22}],
+    wifi:true, screens:true, power:true,
+    note:'2-2 First (no middle), 2-3 Comfort+ and Main. Personal IFE + USB.',
+    legroom:{1:'First Class 2-2',4:'Comfort+ extra legroom',7:'Exit row'}
+  },
+  'A223DL': {name:'Airbus A220-300 (Delta)', rows:26, cols:['A','B','C','D','E'], aisleAfter:[1], biz:3, ws:8, we:17,
+    cabins:[{cls:'F',r1:1,r2:3},{cls:'E',r1:4,r2:26}],
+    wifi:true, screens:true, power:true,
+    note:'2-2 First, 2-3 Comfort+ + Main Cabin. Personal IFE + USB.',
+    legroom:{1:'First Class',4:'Comfort+',8:'Exit row'}
+  },
+  'A319DL': {name:'Airbus A319 (Delta)', rows:22, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:8, we:15,
+    cabins:[{cls:'F',r1:1,r2:3},{cls:'E',r1:4,r2:22}],
+    wifi:true, screens:false, power:false,
+    note:'2-2 First, 3-3 Comfort+ + Main. WiFi streaming.',
+    legroom:{1:'First Class',4:'Comfort+'}
+  },
+  'A320DL': {name:'Airbus A320 (Delta)', rows:26, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:4, ws:9, we:17,
+    cabins:[{cls:'F',r1:1,r2:4},{cls:'E',r1:5,r2:26}],
+    wifi:true, screens:false, power:false,
+    note:'2-2 First, 3-3 Comfort+ + Main. WiFi streaming.',
+    legroom:{1:'First Class',5:'Comfort+',11:'Exit row'}
+  },
+  'A321DL': {name:'Airbus A321 (Delta)', rows:32, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:11, we:21,
+    cabins:[{cls:'F',r1:1,r2:5},{cls:'E',r1:6,r2:32}],
+    wifi:true, screens:false, power:true,
+    note:'2-2 First, 3-3 Comfort+ + Main. USB. WiFi.',
+    legroom:{1:'First Class',6:'Comfort+',13:'Exit row'}
+  },
+  'A21NDL': {name:'Airbus A321neo (Delta)', rows:32, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:11, we:21,
+    cabins:[{cls:'F',r1:1,r2:5},{cls:'E',r1:6,r2:32}],
+    wifi:true, screens:true, power:true,
+    note:'Personal IFE screens. USB+USB-C. 2-2 First, 3-3 Comfort+ + Main.',
+    legroom:{1:'First Class 2-2',6:'Comfort+',13:'Exit row'}
+  },
+  'B738DL': {name:'Boeing 737-800 (Delta)', rows:27, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:4, ws:10, we:18,
+    cabins:[{cls:'F',r1:1,r2:4},{cls:'E',r1:5,r2:27}],
+    wifi:true, screens:false, power:false,
+    note:'2-2 First, 3-3 Comfort+ + Main. WiFi streaming.',
+    legroom:{1:'First Class',5:'Comfort+',12:'Exit row'}
+  },
+  'B739DL': {name:'Boeing 737-900ER (Delta)', rows:30, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:11, we:20,
+    cabins:[{cls:'F',r1:1,r2:5},{cls:'E',r1:6,r2:30}],
+    wifi:true, screens:false, power:false,
+    note:'2-2 First, 3-3 Comfort+ + Main. WiFi streaming.',
+    legroom:{1:'First Class',6:'Comfort+',13:'Exit row'}
+  },
+  'B752DL': {name:'Boeing 757-200 (Delta)', rows:33, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:12, we:22,
+    cabins:[{cls:'F',r1:1,r2:5},{cls:'E',r1:6,r2:33}],
+    wifi:true, screens:false, power:false,
+    note:'2-2 First, 3-3 Comfort+ + Main. WiFi streaming.',
+    legroom:{1:'First Class',6:'Comfort+',14:'Exit row'}
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // AMERICAN AIRLINES (AA)
+  // ══════════════════════════════════════════════════════════════
+  'A319AA': {name:'Airbus A319 (American)', rows:22, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:3, ws:8, we:15,
+    cabins:[{cls:'F',r1:1,r2:3},{cls:'E',r1:4,r2:22}],
+    wifi:true, screens:false, power:false,
+    note:'2-2 First, 3-3 Main. WiFi streaming IFE.',
+    legroom:{1:'First Class 2-2',4:'Main Cabin Extra',8:'Exit row'}
+  },
+  'A320AA': {name:'Airbus A320 (American)', rows:25, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:4, ws:9, we:17,
+    cabins:[{cls:'F',r1:1,r2:4},{cls:'E',r1:5,r2:25}],
+    wifi:true, screens:false, power:false,
+    note:'2-2 First, 3-3 Main. WiFi streaming.',
+    legroom:{1:'First Class',5:'Main Cabin Extra',11:'Exit row'}
+  },
+  'A321AA': {name:'Airbus A321 (American)', rows:32, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:11, we:21,
+    cabins:[{cls:'F',r1:1,r2:5},{cls:'E',r1:6,r2:32}],
+    wifi:true, screens:false, power:false,
+    note:'2-2 First, 3-3 Main. WiFi.',
+    legroom:{1:'First Class',6:'Main Cabin Extra',13:'Exit row'}
+  },
+  'A21NAA': {name:'Airbus A321neo (American)', rows:33, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:5, ws:11, we:22,
+    cabins:[{cls:'F',r1:1,r2:5},{cls:'E',r1:6,r2:33}],
+    wifi:true, screens:true, power:true,
+    note:'Personal IFE + USB-C. 2-2 First, 3-3 Main.',
+    legroom:{1:'First Class 2-2',6:'Main Cabin Extra',14:'Exit row'}
+  },
+  'B738AA': {name:'Boeing 737-800 (American)', rows:29, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:4, ws:10, we:19,
+    cabins:[{cls:'F',r1:1,r2:4},{cls:'E',r1:5,r2:29}],
+    wifi:true, screens:false, power:false,
+    note:'2-2 First, 3-3 Main. WiFi.',
+    legroom:{1:'First Class',5:'Main Cabin Extra',13:'Exit row'}
+  },
+  'B38MAA': {name:'Boeing 737 MAX 8 (American)', rows:29, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:4, ws:10, we:19,
+    cabins:[{cls:'F',r1:1,r2:4},{cls:'E',r1:5,r2:29}],
+    wifi:true, screens:false, power:true,
+    note:'USB-C. 2-2 First, 3-3 Main. WiFi.',
+    legroom:{1:'First Class',5:'Main Cabin Extra',13:'Exit row'}
+  },
+  'B777AA': {name:'Boeing 777-300ER (American)', rows:52, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:11, ws:19, we:33,
+    cabins:[{cls:'B',r1:1,r2:11},{cls:'PE',r1:12,r2:15},{cls:'E',r1:16,r2:52}],
+    wifi:true, screens:true, power:true,
+    note:'Flagship Suite 1-2-1 Business, Premium Economy 2-3-2, Economy 3-4-3. WiFi+IFE.',
+    legroom:{1:'Flagship Business 1-2-1',12:'Premium Economy',16:'Economy'}
+  },
+  'B788AA': {name:'Boeing 787-8 (American)', rows:44, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:8, ws:16, we:28,
+    cabins:[{cls:'B',r1:1,r2:8},{cls:'PE',r1:9,r2:12},{cls:'E',r1:13,r2:44}],
+    wifi:true, screens:true, power:true,
+    note:'1-2-1 Flagship Business, 2-3-2 PE, 3-3-3 Economy. WiFi+IFE.',
+    legroom:{1:'Flagship Business',9:'Premium Economy',13:'Economy'}
+  },
+  'B789AA': {name:'Boeing 787-9 (American)', rows:50, cols:['A','B','C','D','E','F','G','H','J'], aisleAfter:[2,5], biz:10, ws:18, we:32,
+    cabins:[{cls:'B',r1:1,r2:10},{cls:'PE',r1:11,r2:14},{cls:'E',r1:15,r2:50}],
+    wifi:true, screens:true, power:true,
+    note:'1-2-1 Flagship Business, 2-3-2 PE, 3-3-3 Economy. WiFi+IFE.',
+    legroom:{1:'Flagship Business 1-2-1',11:'Premium Economy',15:'Economy'}
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // SPIRIT AIRLINES (NK) — ULCC
+  // ══════════════════════════════════════════════════════════════
+  'A319NK': {name:'Airbus A319 (Spirit)', rows:24, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:2, ws:9, we:17,
+    cabins:[{cls:'F',r1:1,r2:2},{cls:'E',r1:3,r2:24}],
+    wifi:false, screens:false, power:false,
+    note:'ULCC: Big Front Seat rows 1-2 (2-2), Economy 3-3 with 28in pitch. No WiFi, no IFE.',
+    legroom:{1:'Big Front Seat 2-2, ~91cm pitch',3:'Economy — 28in pitch, very tight'}
+  },
+  'A320NK': {name:'Airbus A320 (Spirit)', rows:30, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:2, ws:11, we:20,
+    cabins:[{cls:'F',r1:1,r2:2},{cls:'E',r1:3,r2:30}],
+    wifi:false, screens:false, power:false,
+    note:'ULCC: Big Front Seat 2-2, Economy 3-3 28in pitch. No WiFi/IFE.',
+    legroom:{1:'Big Front Seat 2-2',3:'Economy 28in — very tight',11:'Exit row'}
+  },
+  'A20NNK': {name:'Airbus A320neo (Spirit)', rows:31, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:2, ws:11, we:20,
+    cabins:[{cls:'F',r1:1,r2:2},{cls:'E',r1:3,r2:31}],
+    wifi:true, screens:false, power:true,
+    note:'Newer aircraft with WiFi + USB on some seats. Big Front Seat 2-2. Economy 28in.',
+    legroom:{1:'Big Front Seat 2-2',3:'Economy 28in'}
+  },
+  'A321NK': {name:'Airbus A321 (Spirit)', rows:36, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:2, ws:13, we:23,
+    cabins:[{cls:'F',r1:1,r2:2},{cls:'E',r1:3,r2:36}],
+    wifi:false, screens:false, power:false,
+    note:'ULCC high-density. Big Front Seat 2-2. Economy 28in pitch. No WiFi/IFE.',
+    legroom:{1:'Big Front Seat',3:'Economy 28in — very tight',14:'Exit row'}
+  },
+  'A21NNK': {name:'Airbus A321neo (Spirit)', rows:39, cols:['A','B','C','D','E','F'], aisleAfter:[2], biz:2, ws:14, we:25,
+    cabins:[{cls:'F',r1:1,r2:2},{cls:'E',r1:3,r2:39}],
+    wifi:true, screens:false, power:true,
+    note:'WiFi + USB at all seats. Big Front Seat 2-2. Economy 28in.',
+    legroom:{1:'Big Front Seat 2-2',3:'Economy 28in',14:'Exit row'}
   }
 };
 function getAcType(apiCode) {
@@ -1670,16 +2067,37 @@ var LCC_AIRLINES = {
 // Format: 'IATA+ACTYPE': 'specific_type'
 var AIRLINE_AC_MAP = {
   // Aegean Airlines
-  'A3+A320': 'A320A3',   'A3+A320N': 'A320A3',  'OA+A320': 'A320A3',
+  'A3+A320':'A320A3','A3+A320N':'A320A3','OA+A320':'A320A3','A3+A320T2':'A320A3T2',
   // Air Canada
-  'AC+A330': 'A330AC',   'AC+A333': 'A330AC',   'AC+A332': 'A330AC',
+  'AC+A330':'A330AC','AC+A333':'A330AC','AC+A332':'A330AC',
   // Aer Lingus
-  'EI+A330': 'A330EI',   'EI+A333': 'A330EI',
-  'EI+A321': 'A321XLREI','EI+A321XLR': 'A321XLREI',
+  'EI+A330':'A330EI','EI+A333':'A330EI','EI+A321':'A321XLREI','EI+A321XLR':'A321XLREI',
   // Alaska Airlines
-  'AS+B737': 'B737AS',   'AS+B737F': 'B737AS',
+  'AS+B737':'B737AS','AS+B737F':'B737AS',
   // Air France HOP
-  'A5+E190': 'E190AF',   'HOP+E190': 'E190AF',
+  'A5+E190':'E190AF','HOP+E190':'E190AF',
+  // Lufthansa
+  'LH+A319':'A319LH','LH+A320':'A320LH','LH+A20N':'A20NLH','LH+A321':'A321LH','LH+A21N':'A21NLH',
+  'LH+A333':'A333LH','LH+A343':'A343LH','LH+A346':'A346LH','LH+A359':'A359LH',
+  'LH+B748':'B748LH','LH+B789':'B789LH',
+  // SWISS
+  'LX+A221':'A221LX','LX+A223':'A223LX','LX+A320':'A320LX','LX+A20N':'A20NLX',
+  'LX+A321':'A321LX','LX+A21N':'A21NLX','LX+A333':'A333LX',
+  // LOT
+  'LO+E170':'E170LO','LO+E175':'E175LO','LO+E190':'E190LO','LO+E195':'E195LO',
+  'LO+B738':'B738LO','LO+B38M':'B38MLO','LO+B788':'B788LO','LO+B789':'B789LO',
+  // United Airlines
+  'UA+A319':'A319UA','UA+A320':'A320UA','UA+B738':'B737UA','UA+B739':'B739UA',
+  'UA+B38M':'B38MUA','UA+B777':'B777UA','UA+B789':'B787UA',
+  // Delta Air Lines
+  'DL+A221':'A221DL','DL+A223':'A223DL','DL+A319':'A319DL','DL+A320':'A320DL',
+  'DL+A321':'A321DL','DL+A21N':'A21NDL','DL+B738':'B738DL','DL+B739':'B739DL',
+  'DL+B752':'B752DL',
+  // American Airlines
+  'AA+A319':'A319AA','AA+A320':'A320AA','AA+A321':'A321AA','AA+A21N':'A21NAA',
+  'AA+B738':'B738AA','AA+B38M':'B38MAA','AA+B777':'B777AA','AA+B788':'B788AA','AA+B789':'B789AA',
+  // Spirit Airlines
+  'NK+A319':'A319NK','NK+A320':'A320NK','NK+A20N':'A20NNK','NK+A321':'A321NK','NK+A21N':'A21NNK',
 };
 
 function getAC(type, alIata) {
