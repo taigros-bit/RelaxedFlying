@@ -2438,44 +2438,79 @@ var TURB = [
 
 // Physics-based turbulence score
 // Wing = pivot point, amplification increases with lever arm distance
-function calcScore(r, ac, tlv, deck) {
+// ── Aircraft type damper ────────────────────────────────────
+// Wider/heavier aircraft dampen turbulence more than regional jets
+function getAcDamper(acName) {
+  if (!acName) return 1.0;
+  var n = acName.toLowerCase();
+  // Supertransport / very large widebody
+  if (n.indexOf('a380') >= 0 || n.indexOf('747-8') >= 0) return 0.65;
+  // Large widebody
+  if (n.indexOf('777') >= 0 || n.indexOf('747') >= 0) return 0.72;
+  // Modern widebody
+  if (n.indexOf('787') >= 0 || n.indexOf('a350') >= 0 || n.indexOf('a330') >= 0 || n.indexOf('a340') >= 0) return 0.80;
+  // Narrowbody
+  if (n.indexOf('a320') >= 0 || n.indexOf('a321') >= 0 || n.indexOf('a319') >= 0 ||
+      n.indexOf('737') >= 0 || n.indexOf('757') >= 0) return 1.0;
+  // A220 / E-series regional jets
+  if (n.indexOf('a220') >= 0 || n.indexOf('e190') >= 0 || n.indexOf('e175') >= 0 ||
+      n.indexOf('e170') >= 0 || n.indexOf('crj') >= 0) return 1.30;
+  // Turboprops
+  if (n.indexOf('atr') >= 0 || n.indexOf('q400') >= 0 || n.indexOf('dash') >= 0) return 1.75;
+  return 1.0;
+}
+
+function calcScore(r, ac, tlv, deck, turbData) {
   var ws = ac.ws, we = ac.we, totalRows = ac.rows;
-  
+  var acDamper = getAcDamper(ac.name || '');
+
   // Upper deck (A380/747): premium cabins always smoother
   if (deck === 'upper') {
-    return Math.max(0, Math.min(6, Math.round(Math.max(0, tlv - 1))));
+    return Math.max(0, Math.min(6, Math.round(Math.max(0, tlv - 1) * acDamper)));
   }
-  
-  // PHYSICS: Aircraft = beam fixed at wing root (center of lift/gravity)
-  // Displacement amplifies with distance from wing
-  // We use a 0-6 scale where:
-  //   Wing zone = absolute base (best seat on the plane)
-  //   Rear tail = worst (longest lever arm + fuselage flexibility)
-  //
-  // KEY INSIGHT: even on smooth routes (tlv=1), rear feels noticeably worse
-  // We add ABSOLUTE scores per zone, not just relative amplification
 
+  // ── Use phase-based turbulence if available ───────────────
+  // Cruise dominates seat feel (60%), climb/descent matter less
+  // This matters for seat scoring: climb = nose matters, descent = nose too
+  var effectiveTlv;
+  if (turbData && turbData.cruiseRaw !== undefined) {
+    // Convert raw 0-10 to 0-6 scale
+    var cruiseT  = turbData.cruiseRaw  * 0.6;
+    var climbT   = turbData.climbRaw   * 0.6;
+    var descentT = turbData.descentRaw * 0.6;
+    // Weighted effective turbulence: cruise is main factor for seat
+    effectiveTlv = cruiseT * 0.65 + climbT * 0.2 + descentT * 0.15;
+    effectiveTlv = Math.max(0, Math.min(6, effectiveTlv));
+  } else {
+    effectiveTlv = tlv;
+  }
+
+  // ── Apply aircraft damper to effective turbulence ─────────
+  effectiveTlv = effectiveTlv * acDamper;
+
+  // ── PHYSICS: lever arm model ──────────────────────────────
+  // Wing zone = fulcrum (zero displacement)
+  // Distance from wing → amplitude increases linearly
   var score;
   if (r >= ws && r <= we) {
-    // Wing zone: smooth regardless of route — this is the reference point
-    // Score = max(0, tlv - 1) so wing is always at least 1 better than base
-    score = Math.max(0, tlv - 1);
+    // Wing zone: always best — reference point
+    score = Math.max(0, effectiveTlv - 1);
   } else if (r < ws) {
-    // Forward of wing: moderate. Nose pitches but shorter lever arm.
-    var distFwd = (ws - r) / Math.max(1, ws); // 0=just fwd of wing, 1=row 1
-    // Absolute addition: 1-2 points above wing depending on how far forward
-    score = Math.max(0, tlv - 1) + 1 + distFwd * 1;
+    // Forward: nose pitches up/down — noticeable but less than rear
+    // Also: during climb (pitch up) nose bounces more
+    var distFwd = (ws - r) / Math.max(1, ws);
+    var climbPenalty = turbData ? (turbData.climbRaw || 0) * 0.08 : 0;
+    score = Math.max(0, effectiveTlv - 1) + 0.8 + distFwd * 1.0 + climbPenalty;
   } else {
-    // Rear of wing: strongest. Tail lever arm 2-3x longer than nose.
-    var distRear = (r - we) / Math.max(1, totalRows - we); // 0=just aft, 1=last row
-    // Absolute addition: 2-4 points above wing — clearly visible gradient
-    score = Math.max(0, tlv - 1) + 2 + distRear * 2.5;
+    // Rear: longest lever arm, fuselage flexibility adds yaw/roll
+    var distRear = (r - we) / Math.max(1, totalRows - we);
+    score = Math.max(0, effectiveTlv - 1) + 2.0 + distRear * 2.8;
   }
-  
-  // Tiny deterministic variation per row for realism (not random)
-  var rowVar = ((r * 13 + totalRows * 7) % 10) / 10 * 0.3 - 0.15;
+
+  // Tiny deterministic variation per row (not random — same every render)
+  var rowVar = ((r * 13 + totalRows * 7) % 10) / 10 * 0.25 - 0.12;
   score += rowVar;
-  
+
   return Math.max(0, Math.min(6, Math.round(score)));
 }
 
@@ -2997,6 +3032,25 @@ function buildMap(fl, deck) {
       }
     }
   }
+
+  // ── Apply Best Seat badges ────────────────────────────────
+  // After all rows are rendered, find best economy seats and badge them
+  var bestIds = findBestSeats(sdata, 4);
+  bestIds.forEach(function(id) {
+    var el = cabin.querySelector('[data-sid="' + id + '"]');
+    if (el) el.classList.add('best-seat');
+  });
+
+  // Show legend if we found any best seats
+  var legend = document.getElementById('best-seat-legend');
+  if (!legend) {
+    legend = document.createElement('div');
+    legend.id = 'best-seat-legend';
+    legend.style.cssText = 'padding:4px 12px 8px;font-size:11px;color:#FFD60A;display:flex;align-items:center;gap:6px;opacity:.85;';
+    legend.innerHTML = '<span style="font-size:10px">★</span> Best seats for this flight — lowest turbulence score';
+    cabin.parentNode.insertBefore(legend, cabin);
+  }
+  legend.style.display = bestIds.size ? '' : 'none';
 }
 
 function guessAisleAfter(n) {
@@ -3009,6 +3063,39 @@ function guessAisleAfter(n) {
   if(n===9)return[2,5];
   if(n===10)return[2,6];
   return[Math.floor(n/2)-1];
+}
+
+
+// ── BEST SEAT FINDER ─────────────────────────────────────────
+// After all sdata is populated, find seats with lowest score
+// that are not blocked. Returns Set of seat IDs.
+function findBestSeats(sdata, maxBadges) {
+  var candidates = [];
+  Object.keys(sdata).forEach(function(id) {
+    var d = sdata[id];
+    if (d.isBlocked) return;          // skip blocked middle seats
+    if (d.isBiz || d.isFirst) return; // badge only in economy
+    candidates.push({ id: id, score: d.s, isW: d.isW, isExit: d.isExit, colType: d.colType });
+  });
+  if (!candidates.length) return new Set();
+
+  // Sort: lower score = better; prefer window (isW) then aisle ('W'/'A')
+  candidates.sort(function(a, b) {
+    if (a.score !== b.score) return a.score - b.score;
+    // Tie-break: window > aisle > middle
+    var rank = function(d) { return d.isW ? 0 : (d.colType === 'A' ? 1 : 2); };
+    return rank(a) - rank(b);
+  });
+
+  // Take top N, but spread across at least 2 different scores
+  var best = new Set();
+  var minScore = candidates[0].score;
+  var n = maxBadges || 3;
+  for (var i = 0; i < candidates.length && best.size < n; i++) {
+    // Only badge seats within 1 point of the absolute best
+    if (candidates[i].score <= minScore + 1) best.add(candidates[i].id);
+  }
+  return best;
 }
 
 function mkRow(r, displayRow, cols, aisleAfter, fl, ws, we, isBiz, isFirst, deck) {
@@ -3025,7 +3112,7 @@ function mkRow(r, displayRow, cols, aisleAfter, fl, ws, we, isBiz, isFirst, deck
   var h='<div class="srow"><span class="rn'+(isW?' wr':'')+'">'+displayRow+rnExtra+'</span>';
   for(var i=0;i<cols.length;i++){
     if(aisleAfter.indexOf(i-1)>=0) h+='<div class="aisle"></div>';
-    var c=cols[i], s=calcScore(r,fl,fl.tlv,deck), id=displayRow+c;
+    var c=cols[i], s=calcScore(r,fl,fl.tlv,deck,fl.turb), id=displayRow+c;
     var colType='M';
     if(i===0||i===cols.length-1) colType='W';
     else if(aisleAfter.indexOf(i-1)>=0||aisleAfter.indexOf(i)>=0) colType='A';
@@ -3077,6 +3164,10 @@ function showDet(id) {
   var ct=d.colType==='W'?'Window':d.colType==='A'?'Aisle':'Middle';
 
   var pct=Math.round((d.s/6)*100);
+  var isBestSeat = (typeof findBestSeats === 'function') && (function(){
+    var best = findBestSeats(sdata, 4);
+    return best.has(id);
+  }());
 
   // Turbulence tip
   var turbTip;
@@ -3160,7 +3251,7 @@ function showDet(id) {
   }
 
   document.getElementById('detbody').innerHTML=
-    '<div class="shero"><div class="shn" style="color:'+t.col+'">'+ id +'</div><div class="shs">'+zone+' \xB7 '+ct+' \xB7 Row '+d.displayRow+'</div></div>'
+    '<div class="shero">'    +'<div class="shn" style="color:'+t.col+'">'+ id +'</div>'    +'<div class="shs">'+zone+' \xB7 '+ct+' \xB7 Row '+d.displayRow+'</div>'    +(isBestSeat?'<div style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,214,10,.1);border:1px solid rgba(255,214,10,.3);border-radius:6px;padding:4px 10px;font-size:11px;color:#FFD60A;margin-top:6px;font-weight:600">&#9733; Best seat on this flight</div>':'')    +'</div>'
     +'<div class="mw"><div class="mt"><span>Turbulence score</span><span style="color:'+t.col+';font-weight:700">'+t.l+'</span></div><div class="mbar"><div class="mfill" style="width:'+pct+'%;background:'+t.col+'"></div></div></div>'
     +'<div class="sg">'
     +'<div class="st"><div class="stl">Score</div><div class="stv" style="color:'+t.col+'">'+d.s+'/6</div></div>'
@@ -3187,18 +3278,401 @@ document.getElementById('clear-btn').addEventListener('click', function(){
 
 // ── TURBULENCE FORECAST ───────────────────────────────────────
 function buildFcast(fl) {
-  var base={0:[0,0,1,0,0,1,0],1:[1,1,2,1,1,2,1],2:[2,2,3,2,2,3,2],3:[3,3,4,3,3,4,3],4:[4,4,5,4,4,5,4],5:[5,5,6,5,5,6,5],6:[6,6,6,6,6,6,6]};
-  var scores=base[Math.min(fl.tlv,6)]||base[2];
-  var ph=['Dep','+20m','+45m','+1h','+80m','+100m','Arr'];
-  var html='';
-  for(var i=0;i<7;i++){
-    var s=scores[i],t=TURB[Math.min(s,6)],h=Math.max(3,Math.round((s/6)*26));
-    html+='<div class="fp '+(i===0?'on':'')+'" data-fp="1">'
-      +'<div class="fpt">'+ph[i]+'</div>'
-      +'<div class="fpbar"><div class="fpfill" style="height:'+h+'px;background:'+t.col+'"></div></div>'
-      +'<div class="fpw" style="color:'+t.col+'">'+(s===0?'Calm':s<=2?'Smooth':s<=3?'Light':s<=4?'Mod':'Rough')+'</div></div>';
+  // Use real per-phase profile from fetchWeather if available
+  // Otherwise fall back to static pattern from tlv
+  var profile;
+  if (fl.turb && fl.turb.profile) {
+    profile = fl.turb.profile;
+  } else {
+    var base = {0:[0,0,1,0,0,1,0],1:[1,1,2,1,1,2,1],2:[2,2,3,2,2,3,2],
+                3:[3,3,4,3,3,4,3],4:[4,4,5,4,4,5,4],5:[5,5,6,5,5,6,5],6:[6,6,6,6,6,6,6]};
+    profile = base[Math.min(fl.tlv || 2, 6)] || base[2];
   }
-  document.getElementById('fcast').innerHTML=html;
+  var ph = ['Dep','+20m','+45m','+1h','+80m','+100m','Arr'];
+  var html = '';
+  for (var i = 0; i < 7; i++) {
+    var s = profile[i] || 0;
+    var t = TURB[Math.min(s, 6)];
+    var h = Math.max(3, Math.round((s / 6) * 26));
+    html += '<div class="fp ' + (i === 0 ? 'on' : '') + '" data-fp="1">'
+          + '<div class="fpt">' + ph[i] + '</div>'
+          + '<div class="fpbar"><div class="fpfill" style="height:' + h + 'px;background:' + t.col + '"></div></div>'
+          + '<div class="fpw" style="color:' + t.col + '">' + (s === 0 ? 'Calm' : s <= 2 ? 'Smooth' : s <= 3 ? 'Light' : s <= 4 ? 'Mod' : 'Rough') + '</div></div>';
+  }
+  document.getElementById('fcast').innerHTML = html;
+}
+document.getElementById('fcast').addEventListener('click',function(e){
+  var fp=e.target.closest('[data-fp]');if(!fp)return;
+  document.querySelectorAll('[data-fp]').forEach(function(f){f.classList.remove('on');});fp.classList.add('on');
+});
+
+// ── ROUTE MAP ────────────────────────────────────────────────
+// Simplified continent outlines (key coastline points, equirectangular)
+var COASTLINES = [
+  // Europe
+  'M-10,36 L-9,39 L-8,38 L-9,43 L-2,44 L3,43 L5,48 L3,51 L4,52 L8,53 L10,55 L12,56 L18,57 L20,60 L25,65 L28,70 L30,68 L27,62 L30,60 L25,55 L22,54 L18,54 L14,54 L12,53 L8,51 L3,46 L8,44 L5,43 L3,44 L0,43 L-2,44 L-5,40 L-8,37 L-10,36Z',
+  // Balkan/Italy/Greece  
+  'M8,44 L12,44 L14,42 L15,38 L16,38 L18,40 L20,38 L24,36 L26,38 L28,36 L26,36 L22,38 L18,38 L16,40 L14,40 L12,42 L8,44Z',
+  // North Africa outline
+  'M-6,36 L0,37 L5,37 L10,37 L15,37 L20,37 L25,37 L30,37 L35,36 L36,31 L33,27 L25,20 L20,15 L15,12 L10,12 L5,14 L0,16 L-5,20 L-10,28 L-10,32 L-6,36Z',
+  // British Isles
+  'M-5,50 L-3,51 L0,51 L2,52 L1,54 L-1,57 L-3,58 L-5,57 L-4,55 L-5,54 L-4,52 L-5,50Z',
+  // Scandinavia
+  'M5,57 L8,58 L10,58 L12,58 L14,56 L18,56 L22,58 L25,62 L28,70 L24,68 L20,63 L18,62 L15,60 L12,58 L8,58 L5,57Z',
+  // Middle East
+  'M28,37 L33,35 L36,30 L42,30 L45,25 L50,22 L55,23 L58,22 L60,24 L57,25 L55,27 L52,30 L50,30 L46,30 L43,32 L40,36 L36,37 L33,36 L28,37Z',
+  // Americas West coast  
+  'M-80,0 L-77,1 L-75,2 L-72,5 L-70,10 L-67,12 L-65,18 L-64,23 L-67,28 L-70,32 L-72,34 L-74,40 L-71,42 L-70,46 L-67,47 L-64,45 L-61,47 L-60,47',
+  // Americas East coast
+  'M-60,47 L-63,46 L-65,43 L-68,42 L-70,40 L-72,38 L-75,35 L-77,34 L-80,32 L-81,28 L-80,25 L-82,24 L-83,20 L-85,16 L-87,15 L-90,15 L-92,16 L-95,20 L-100,20',
+].map(function(pathStr) {
+  // Convert the simplified lon/lat path to equirectangular SVG coords  
+  // Each M/L command has lon,lat values that we convert
+  return pathStr;
+}); // Note: these are in lon,lat format for conversion
+
+function drawRouteMap(depAP, arrAP) {
+  if (!depAP || !arrAP) return;
+  var wrap = document.getElementById('route-map-wrap');
+  var svg  = document.getElementById('route-map-svg');
+  wrap.style.display = 'block';
+  document.getElementById('route-map-title').textContent = depAP.c + ' \u2192 ' + arrAP.c;
+  document.getElementById('route-map-sub').textContent   = depAP.city + ' \u2192 ' + arrAP.city + ' \xB7 ' + minsToStr(calcFlightMins(depAP.c, arrAP.c));
+
+  var W = 400, H = 200;
+
+  // Geographic bounds — center on route with generous padding
+  var cLat = (depAP.lat + arrAP.lat) / 2;
+  var cLon = (depAP.lon + arrAP.lon) / 2;
+  var dLat = Math.abs(depAP.lat - arrAP.lat);
+  var dLon = Math.abs(depAP.lon - arrAP.lon);
+
+  // Ensure MINIMUM spread so airports aren't on top of each other
+  var spanLat = Math.max(dLat * 2.5, 18);
+  var spanLon = Math.max(dLon * 2.5, spanLat * 2.2);
+
+  var minLat = cLat - spanLat / 2;
+  var maxLat = cLat + spanLat / 2;
+  var minLon = cLon - spanLon / 2;
+  var maxLon = cLon + spanLon / 2;
+
+  function proj(lat, lon) {
+    return {
+      x: (lon - minLon) / (maxLon - minLon) * W,
+      y: (maxLat - lat) / (maxLat - minLat) * H
+    };
+  }
+
+  var p1 = proj(depAP.lat, depAP.lon); // departure = GREEN
+  var p2 = proj(arrAP.lat, arrAP.lon); // arrival   = ORANGE
+
+  // Great circle midpoint with poleward bulge
+  var gc  = Math.sqrt(Math.pow(arrAP.lat-depAP.lat,2)+Math.pow(arrAP.lon-depAP.lon,2));
+  var pm  = proj((depAP.lat+arrAP.lat)/2 + Math.min(gc*0.12, 8), (depAP.lon+arrAP.lon)/2);
+
+  var out = '';
+
+  // Background
+  out += '<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#0d1117"/>';
+
+  // Grid
+  var gStep = spanLon > 60 ? 20 : spanLon > 20 ? 10 : 5;
+  for (var lo = Math.ceil(minLon/gStep)*gStep; lo <= maxLon; lo += gStep) {
+    var gx = (lo-minLon)/(maxLon-minLon)*W;
+    out += '<line x1="'+gx.toFixed(1)+'" y1="0" x2="'+gx.toFixed(1)+'" y2="'+H+'" stroke="rgba(74,144,226,.06)" stroke-width="0.5"/>';
+  }
+  for (var la = Math.ceil(minLat/gStep)*gStep; la <= maxLat; la += gStep) {
+    var gy = (maxLat-la)/(maxLat-minLat)*H;
+    out += '<line x1="0" y1="'+gy.toFixed(1)+'" x2="'+W+'" y2="'+gy.toFixed(1)+'" stroke="rgba(74,144,226,.06)" stroke-width="0.5"/>';
+  }
+
+  // Land polygons
+  var LANDS = [
+    [[-9,44],[-1,44],[3,43],[8,44],[8,48],[6,49],[3,51],[0,51],[-2,49],[-2,44],[-9,44]],
+    [[-5,50],[0,51],[2,52],[0,55],[-2,58],[-4,58],[-5,57],[-4,55],[-5,54],[-4,52],[-5,50]],
+    [[5,57],[8,58],[12,57],[18,56],[22,58],[28,70],[24,68],[18,62],[12,58],[8,58],[5,57]],
+    [[8,48],[15,49],[18,50],[24,50],[24,54],[18,54],[15,54],[12,54],[8,53],[8,51],[8,48]],
+    [[8,44],[13,44],[15,38],[16,37],[14,38],[14,42],[12,46],[8,46],[8,44]],
+    [[14,46],[22,48],[26,48],[28,44],[26,40],[24,38],[22,36],[20,38],[18,38],[15,40],[14,42],[14,46]],
+    [[26,40],[28,41],[32,42],[36,38],[32,36],[28,36],[26,38],[26,40]],
+    [[-6,36],[0,37],[10,37],[15,37],[25,37],[35,36],[35,30],[30,20],[20,15],[10,12],[0,16],[-5,20],[-6,26],[-6,36]],
+    [[28,37],[36,37],[40,36],[43,32],[46,30],[50,30],[55,23],[50,20],[45,22],[40,20],[36,22],[34,28],[33,30],[32,32],[32,35],[30,34],[28,37]],
+    [[28,41],[32,42],[36,42],[42,42],[44,44],[40,46],[36,44],[32,44],[28,41]],
+    [[14,50],[18,50],[24,50],[24,54],[18,54],[14,54],[12,51],[14,50]],
+    [[22,48],[30,47],[34,47],[36,48],[34,52],[28,52],[24,50],[22,48]],
+    [[-10,52],[-6,52],[-6,54],[-8,56],[-10,54],[-10,52]],
+    [[20,54],[24,54],[28,56],[24,58],[20,58],[18,56],[18,54],[20,54]],
+    [[15,56],[18,56],[20,58],[24,60],[28,62],[26,60],[22,58],[18,56],[15,56]],
+    // North America
+    [[-140,60],[-120,55],[-100,50],[-80,45],[-70,42],[-60,47],[-55,50],[-60,55],[-80,60],[-100,65],[-120,65],[-140,60]],
+    [[-80,25],[-70,20],[-65,18],[-60,10],[-70,5],[-80,5],[-90,15],[-95,20],[-90,25],[-80,25]],
+    // Central Asia
+    [[40,36],[48,36],[60,36],[70,35],[80,30],[75,25],[65,22],[55,22],[45,25],[38,32],[40,36]],
+    [[60,36],[70,40],[80,42],[90,45],[100,50],[105,52],[100,55],[90,55],[80,50],[70,45],[60,36]],
+    // East Asia
+    [[100,20],[110,18],[120,20],[125,25],[125,30],[120,35],[115,40],[105,40],[100,35],[100,20]],
+    // Australia
+    [[114,-22],[125,-14],[136,-12],[140,-18],[148,-20],[153,-27],[150,-38],[140,-38],[130,-32],[115,-32],[114,-22]],
+  ];
+
+  for (var li = 0; li < LANDS.length; li++) {
+    var poly = LANDS[li], pts = '', vis = false;
+    for (var pi = 0; pi < poly.length; pi++) {
+      var pp = proj(poly[pi][1], poly[pi][0]);
+      pts += (pi===0?'M':'L') + pp.x.toFixed(1)+','+pp.y.toFixed(1);
+      if (pp.x>-30&&pp.x<W+30&&pp.y>-30&&pp.y<H+30) vis=true;
+    }
+    if (vis) out += '<path d="'+pts+'Z" fill="#1a2e1a" stroke="rgba(60,100,60,.45)" stroke-width="0.7"/>';
+  }
+
+  // Route arc
+  out += '<path d="M'+p1.x.toFixed(1)+','+p1.y.toFixed(1)+' Q'+pm.x.toFixed(1)+','+pm.y.toFixed(1)+' '+p2.x.toFixed(1)+','+p2.y.toFixed(1)+'" fill="none" stroke="rgba(74,144,226,.25)" stroke-width="2.5" stroke-dasharray="8,4"/>';
+  out += '<path d="M'+p1.x.toFixed(1)+','+p1.y.toFixed(1)+' Q'+pm.x.toFixed(1)+','+pm.y.toFixed(1)+' '+p2.x.toFixed(1)+','+p2.y.toFixed(1)+'" fill="none" stroke="#4A90E2" stroke-width="1.5" opacity="0.8"/>';
+
+  // Dots + labels — smart placement to avoid overlap
+  var angle = Math.atan2(p2.y-p1.y, p2.x-p1.x) * 180/Math.PI;
+  var dist  = Math.sqrt(Math.pow(p2.x-p1.x,2)+Math.pow(p2.y-p1.y,2));
+
+  function airportLabel(px, py, iata, city, color, isDep) {
+    var r = 5.5;
+    // Label always goes AWAY from the other airport
+    var dx = isDep ? (px - p2.x) : (px - p1.x);
+    var onRight = dx >= 0 ? true : false;
+    // Edge clipping
+    if (px < W * 0.2) onRight = true;
+    if (px > W * 0.8) onRight = false;
+    var lx = onRight ? px + r + 5 : px - r - 5;
+    var anchor = onRight ? 'start' : 'end';
+    var bgX = onRight ? lx - 2 : lx - 64;
+
+    return '<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+r+'" fill="'+color+'" stroke="#fff" stroke-width="1.5"/>'
+      + '<rect x="'+bgX.toFixed(1)+'" y="'+(py-13).toFixed(1)+'" width="66" height="24" rx="4" fill="rgba(10,18,40,0.82)"/>'
+      + '<text x="'+lx.toFixed(1)+'" y="'+(py-1).toFixed(1)+'" font-family="Inter,sans-serif" font-size="10.5" font-weight="800" fill="'+color+'" text-anchor="'+anchor+'">'+iata+'</text>'
+      + '<text x="'+lx.toFixed(1)+'" y="'+(py+10).toFixed(1)+'" font-family="Inter,sans-serif" font-size="7.5" fill="rgba(255,255,255,.55)" text-anchor="'+anchor+'">'+city+'</text>';
+  }
+
+  out += airportLabel(p1.x, p1.y, depAP.c, depAP.city, '#34C759', true);
+  out += airportLabel(p2.x, p2.y, arrAP.c, arrAP.city, '#FF9F0A', false);
+
+  // Plane at midpoint, rotated toward destination
+  out += '<text x="'+pm.x.toFixed(1)+'" y="'+pm.y.toFixed(1)+'" font-family="Arial" font-size="14" fill="#4A90E2" text-anchor="middle" dominant-baseline="middle" transform="rotate('+angle.toFixed(0)+','+pm.x.toFixed(1)+','+pm.y.toFixed(1)+')">&#9992;</text>';
+
+  svg.setAttribute('viewBox', '0 0 '+W+' '+H);
+  svg.innerHTML = out;
+}
+
+// ── WEATHER ───────────────────────────────────────────────────
+function fetchWeather(dep, arr, date) {
+  var dc = AP_COORDS[dep], ac = AP_COORDS[arr];
+  if (!dc || !ac) return;
+
+  // ── 5 waypoints along the great-circle route ──────────────
+  // Point 0 = dep (climb start)
+  // Point 1 = 25%  (early cruise)
+  // Point 2 = 50%  (mid cruise)
+  // Point 3 = 75%  (late cruise)
+  // Point 4 = arr  (descent)
+  var pts = [0, 0.167, 0.333, 0.5, 0.667, 0.833, 1].map(function(t) {
+    return {
+      lat: dc.lat + (ac.lat - dc.lat) * t,
+      lon: dc.lon + (ac.lon - dc.lon) * t,
+      t: t
+    };
+  });
+
+  // ── Open-Meteo URL builder ─────────────────────────────────
+  // For each waypoint: fetch cruise-level winds (250/300hPa for shear),
+  // mid-level (500hPa for climb/descent), and CAPE + lifted_index for convection
+  function omUrl(lat, lon) {
+    return 'https://api.open-meteo.com/v1/forecast'
+      + '?latitude=' + lat.toFixed(3)
+      + '&longitude=' + lon.toFixed(3)
+      + '&hourly=windspeed_250hPa,windspeed_300hPa,windspeed_500hPa,cape'
+      + '&wind_speed_unit=kmh&timezone=UTC'
+      + '&start_date=' + date + '&end_date=' + date;
+  }
+
+  // Surface weather at dep and arr airports
+  function surfUrl(lat, lon) {
+    return 'https://api.open-meteo.com/v1/forecast'
+      + '?latitude=' + lat.toFixed(3)
+      + '&longitude=' + lon.toFixed(3)
+      + '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max'
+      + '&timezone=auto&start_date=' + date + '&end_date=' + date;
+  }
+
+  // ── Helper: extract average of an hourly array ─────────────
+  function avg(arr) {
+    if (!arr || !arr.length) return 0;
+    var s = arr.reduce(function(a, b) { return a + (b || 0); }, 0);
+    return s / arr.length;
+  }
+
+  // ── Fetch all 5 waypoints + dep/arr surface in parallel ────
+  var urls = pts.map(function(p) { return omUrl(p.lat, p.lon); });
+  urls.push(surfUrl(dc.lat, dc.lon)); // index 5 = dep surface
+  urls.push(surfUrl(ac.lat, ac.lon)); // index 6 = arr surface
+
+  Promise.all(urls.map(function(u) {
+    return fetch(u).then(function(r) { return r.json(); }).catch(function() { return null; });
+  })).then(function(ds) {
+
+    // ── Extract per-waypoint averages ────────────────────────
+    var waypoints = pts.map(function(p, i) {
+      var d = ds[i];
+      if (!d || !d.hourly) return { w250: 80, w300: 70, w500: 50, cape: 100, t: p.t };
+      return {
+        w250: avg(d.hourly.windspeed_250hPa),  // jet stream (cruise)
+        w300: avg(d.hourly.windspeed_300hPa),  // just below cruise
+        w500: avg(d.hourly.windspeed_500hPa),  // mid-level (climb/descent)
+        cape: avg(d.hourly.cape),               // convective energy
+        t: p.t
+      };
+    });
+
+    // ── calcTurbulence: per-waypoint scoring ─────────────────
+    function scorePt(wp) {
+      // 1. Jet stream intensity (0-4)
+      var jet = wp.w250;
+      var jetScore = jet > 220 ? 4 : jet > 180 ? 3.5 : jet > 140 ? 3 :
+                     jet > 100 ? 2 : jet > 70  ? 1.2 : jet > 50 ? 0.6 : 0.2;
+
+      // 2. Wind shear between 250hPa and 300hPa (0-3)
+      // Shear = speed difference between adjacent levels → main CAT cause
+      var shear = Math.abs(wp.w250 - wp.w300);
+      var shearScore = shear > 80 ? 3 : shear > 50 ? 2.2 : shear > 30 ? 1.5 :
+                       shear > 15 ? 0.8 : 0.2;
+
+      // 3. Convective instability CAPE (0-3)
+      // CAPE > 1500 J/kg = severe thunderstorm possible
+      var cape = wp.cape;
+      var capeScore = cape > 2000 ? 3 : cape > 1000 ? 2 : cape > 400 ? 1.2 :
+                      cape > 100  ? 0.5 : 0;
+
+      return jetScore + shearScore + capeScore; // 0-10 raw
+    }
+
+    // Score each waypoint
+    var wpScores = waypoints.map(scorePt); // array of 5 raw scores
+
+    // ── Phase breakdown (7 waypoints) ────────────────────────
+    // pt0=dep, pt1=16.7%, pt2=33%, pt3=50%, pt4=66.7%, pt5=83%, pt6=arr
+    // Climb   = pt0+pt1 (500hPa dominant, aircraft ascending)
+    // Cruise  = pt2+pt3+pt4 (250hPa dominant, jet stream zone)
+    // Descent = pt5+pt6 (500hPa again, aircraft descending)
+    function scoreClimbPt(wp) {
+      var midWind = wp.w500;
+      var midScore = midWind > 120 ? 3 : midWind > 80 ? 2 : midWind > 50 ? 1 : 0.4;
+      var capeScore = wp.cape > 1000 ? 2.5 : wp.cape > 400 ? 1.2 : wp.cape > 100 ? 0.5 : 0;
+      return midScore + capeScore;
+    }
+
+    var climbRaw   = (scoreClimbPt(waypoints[0]) + scoreClimbPt(waypoints[1])) / 2;
+    var cruiseRaw  = (wpScores[2] + wpScores[3] + wpScores[4]) / 3;
+    var descentRaw = (scoreClimbPt(waypoints[5]) + scoreClimbPt(waypoints[6])) / 2;
+
+    // ── Route static baseline (climate memory) ────────────────
+    var routeBase = getRouteTurb(dep, arr); // 0-6, kept as minor factor
+    var baseAdj   = (routeBase / 6) * 2;   // convert to 0-2 additive
+
+    // ── Blend: 70% live weather, 30% route baseline ───────────
+    var climbFinal   = Math.min(10, climbRaw   * 0.7 + baseAdj * 0.3);
+    var cruiseFinal  = Math.min(10, cruiseRaw  * 0.7 + baseAdj * 0.3);
+    var descentFinal = Math.min(10, descentRaw * 0.7 + baseAdj * 0.3);
+
+    // Overall = weighted (climb 20%, cruise 60%, descent 20%)
+    var overallRaw = climbFinal * 0.2 + cruiseFinal * 0.6 + descentFinal * 0.2;
+
+    // ── Convert 0-10 → 0-6 for TURB array ────────────────────
+    function to6(v) { return Math.max(0, Math.min(6, Math.round(v * 0.6))); }
+
+    var turbResult = {
+      overall: to6(overallRaw),
+      climb:   to6(climbFinal),
+      cruise:  to6(cruiseFinal),
+      descent: to6(descentFinal),
+      // Store raw for seat scoring (0-10 scale, more granular)
+      overallRaw: overallRaw,
+      climbRaw:   climbFinal,
+      cruiseRaw:  cruiseFinal,
+      descentRaw: descentFinal,
+      // Store jet stream speed at midpoint for display
+      jetSpeed: Math.round(waypoints[3].w250),
+      shear:    Math.round(Math.abs(waypoints[3].w250 - waypoints[3].w300)),
+      cape:     Math.round(waypoints[3].cape),
+      // 7-point timeline matching waypoints
+      profile: [
+        to6(climbFinal * 1.1),                      // Dep (rougher — engines, initial climb)
+        to6(climbFinal),                              // pt1 ~16%
+        to6((climbFinal * 0.4 + cruiseFinal * 0.6)), // pt2 ~33% (transitioning)
+        to6(cruiseFinal),                             // pt3 mid-cruise
+        to6((cruiseFinal * 0.6 + descentFinal * 0.4)),// pt4 ~66%
+        to6(descentFinal),                            // pt5 ~83%
+        to6(descentFinal * 1.05)                      // Arr (approach turbulence)
+      ]
+    };
+
+    // ── Apply to all flights ──────────────────────────────────
+    for (var i = 0; i < flights.length; i++) {
+      flights[i].tlv = turbResult.overall;
+      flights[i].turb = turbResult;
+    }
+    if (active) {
+      active.tlv  = turbResult.overall;
+      active.turb = turbResult;
+      buildFcast(active);
+    }
+
+    // ── Update forecast bar ───────────────────────────────────
+    var items = document.querySelectorAll('[data-fp]');
+    for (var i = 0; i < items.length && i < turbResult.profile.length; i++) {
+      var s = turbResult.profile[i];
+      var tObj = TURB[Math.min(s, 6)];
+      var h = Math.max(3, Math.round((s / 6) * 26));
+      var bar = items[i].querySelector('.fpfill');
+      var lbl = items[i].querySelector('.fpw');
+      if (bar) { bar.style.height = h + 'px'; bar.style.background = tObj.col; }
+      if (lbl) { lbl.textContent = (s === 0 ? 'Calm' : s <= 2 ? 'Smooth' : s <= 3 ? 'Light' : s <= 4 ? 'Mod' : 'Rough'); lbl.style.color = tObj.col; }
+    }
+
+    // ── Show weather panel ────────────────────────────────────
+    showWeatherPanel({
+      turbulenceScore: turbResult.overall,
+      turb: turbResult,
+      jetStreamSpeed: turbResult.jetSpeed,
+      departure: ds[5],
+      arrival:   ds[6]
+    }, dep, arr);
+
+  }).catch(function(e) {
+    console.warn('[Weather] fetch failed:', e);
+  });
+}
+
+
+function buildFcast(fl) {
+  // Use real per-phase profile from fetchWeather if available
+  // Otherwise fall back to static pattern from tlv
+  var profile;
+  if (fl.turb && fl.turb.profile) {
+    profile = fl.turb.profile;
+  } else {
+    var base = {0:[0,0,1,0,0,1,0],1:[1,1,2,1,1,2,1],2:[2,2,3,2,2,3,2],
+                3:[3,3,4,3,3,4,3],4:[4,4,5,4,4,5,4],5:[5,5,6,5,5,6,5],6:[6,6,6,6,6,6,6]};
+    profile = base[Math.min(fl.tlv || 2, 6)] || base[2];
+  }
+  var ph = ['Dep','+20m','+45m','+1h','+80m','+100m','Arr'];
+  var html = '';
+  for (var i = 0; i < 7; i++) {
+    var s = profile[i] || 0;
+    var t = TURB[Math.min(s, 6)];
+    var h = Math.max(3, Math.round((s / 6) * 26));
+    html += '<div class="fp ' + (i === 0 ? 'on' : '') + '" data-fp="1">'
+          + '<div class="fpt">' + ph[i] + '</div>'
+          + '<div class="fpbar"><div class="fpfill" style="height:' + h + 'px;background:' + t.col + '"></div></div>'
+          + '<div class="fpw" style="color:' + t.col + '">' + (s === 0 ? 'Calm' : s <= 2 ? 'Smooth' : s <= 3 ? 'Light' : s <= 4 ? 'Mod' : 'Rough') + '</div></div>';
+  }
+  document.getElementById('fcast').innerHTML = html;
 }
 document.getElementById('fcast').addEventListener('click',function(e){
   var fp=e.target.closest('[data-fp]');if(!fp)return;
@@ -3423,7 +3897,7 @@ function showWeatherPanel(data,dep,arr){
     +'<div style="font-size:22px;margin-bottom:5px">'+wx(arrRain,g(da,'windspeed_10m_max'))+'</div>'
     +'<div style="font-size:16px;font-weight:700">'+g(da,'temperature_2m_max','\xB0')+' / '+g(da,'temperature_2m_min','\xB0')+'C</div>'
     +'<div style="font-size:11px;color:var(--muted);margin-top:4px">Wind '+g(da,'windspeed_10m_max')+' km/h &middot; Rain '+arrRain+'mm</div></div></div>'
-    +'<div style="padding:10px 13px 13px;font-size:12px;color:var(--muted)">Jet stream at cruise altitude: <strong style="color:#fff">'+(data.jetStreamSpeed||'?')+' km/h</strong> <span style="font-size:11px;color:var(--dim)">(primary turbulence driver)</span></div>'
+    +'<div style="padding:10px 13px 13px;">'    +'<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Jet stream at cruise altitude: <strong style="color:#fff">'+(data.jetStreamSpeed||'?')+' km/h</strong>'    +(data.turb&&data.turb.shear?' &nbsp;·&nbsp; Wind shear: <strong style="color:#fff">'+data.turb.shear+' km/h</strong>':'')    +(data.turb&&data.turb.cape?' &nbsp;·&nbsp; CAPE: <strong style="color:#fff">'+data.turb.cape+' J/kg</strong>':'')    +'</div>'    +(function(){      if(!data.turb||data.turb.climb===undefined)return '';      function pLabel(s){return s===0?'Calm':s<=2?'Smooth':s<=3?'Light Chop':s<=4?'Moderate':'Bumpy';}      function pCol(s){return s<=1?'#34C759':s<=2?'#A8D938':s<=3?'#FFD60A':s<=4?'#FF9F0A':'#FF453A';}      var c=data.turb.climb,cr=data.turb.cruise,d=data.turb.descent;      return '<div style="display:flex;gap:8px;margin-top:2px">'        +'<div style="flex:1;background:rgba(255,255,255,.05);border-radius:8px;padding:8px;text-align:center">'        +'<div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:4px">Climb</div>'        +'<div style="font-size:11px;font-weight:700;color:'+pCol(c)+'">'+pLabel(c)+'</div></div>'        +'<div style="flex:1;background:rgba(255,255,255,.05);border-radius:8px;padding:8px;text-align:center">'        +'<div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:4px">Cruise</div>'        +'<div style="font-size:11px;font-weight:700;color:'+pCol(cr)+'">'+pLabel(cr)+'</div></div>'        +'<div style="flex:1;background:rgba(255,255,255,.05);border-radius:8px;padding:8px;text-align:center">'        +'<div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:4px">Descent</div>'        +'<div style="font-size:11px;font-weight:700;color:'+pCol(d)+'">'+pLabel(d)+'</div></div>'        +'</div>';    }())    +'</div>'
     +'</div></div></div>';
   document.getElementById('msec').insertAdjacentHTML('beforebegin',html);
 }
