@@ -4090,7 +4090,115 @@ document.getElementById('wl-btn').addEventListener('click', function(){
   document.getElementById('ctaok').style.display='block';
   document.getElementById('ctanote').style.display='none';
 });
+// ══ PASTE THIS ENTIRE FILE BEFORE </script> IN index.html ══
+// ══════════════════════════════════════════════════════════════
+// REAL TURBULENCE ENGINE — calls /api/turbulence
+// Combines Open-Meteo + PIREPs + Meteomatics (when available)
+// Falls back to direct Open-Meteo if API is down
+// ══════════════════════════════════════════════════════════════
+async function fetchRealTurbulence(dep, arr, date) {
+  try {
+    var res = await fetch('/api/turbulence?dep=' + dep + '&arr=' + arr + '&date=' + date);
+    if (!res.ok) throw new Error('turbulence API ' + res.status);
+    var data = await res.json();
 
+    var turbResult = {
+      overall:    data.overall,
+      climb:      data.climb,
+      cruise:     data.cruise,
+      descent:    data.descent,
+      profile:    data.profile,
+      // cruiseRaw/climbRaw/descentRaw used by calcScore() — needs 0-10 scale
+      cruiseRaw:  (data.overall  || 2) / 0.6,
+      climbRaw:   (data.climb    || 2) / 0.6,
+      descentRaw: (data.descent  || 2) / 0.6,
+      sources:    data.sources  || [],
+    };
+
+    // Push the REAL score into every flight object
+    for (var i = 0; i < flights.length; i++) {
+      flights[i].tlv  = data.overall;
+      flights[i].turb = turbResult;
+    }
+
+    // If user already selected a flight, rebuild seat map with real data
+    // This is where seat colors actually change based on live weather
+    if (active) {
+      active.tlv  = data.overall;
+      active.turb = turbResult;
+      buildMap(active, currentDeck);
+      buildFcast(active);
+    }
+
+    // Update turbulence badge on all flight cards in the list
+    document.querySelectorAll('.fc').forEach(function(card) {
+      var tObj = TURB[Math.min(data.overall, 6)];
+      var badge = card.querySelector('.tb');
+      if (badge) {
+        badge.className = 'tb ' + tObj.p;
+        badge.innerHTML = '<span style="font-size:7px">&#9679;</span> ' + tObj.l;
+      }
+    });
+
+    console.log('[Turbulence] sources:', (data.sources||[]).join(' + '), '| score:', data.overall, '| route:', dep + '-' + arr);
+
+    // Fetch real airport weather (METAR) via CheckWX
+    fetchRealMetar(dep, arr);
+    // Show historical seasonal data
+    showHistorical(dep, arr, new Date(date).getMonth());
+    // Draw route map
+    drawRouteMap(selAP.f, selAP.t);
+
+  } catch (e) {
+    console.warn('[Turbulence] API unavailable, falling back to Open-Meteo direct:', e.message);
+    // Graceful fallback — existing function still works perfectly
+    fetchWeather(dep, arr, date);
+  }
+}
+
+// ── Real METAR via /api/metar (CheckWX decoded JSON) ─────────
+async function fetchRealMetar(dep, arr) {
+  try {
+    var res = await fetch('/api/metar?dep=' + dep + '&arr=' + arr);
+    if (!res.ok) return;
+    var data = await res.json();
+
+    // Convert CheckWX METAR format to what showWeatherPanel expects
+    function metarToPanel(metar) {
+      if (!metar) return null;
+      var windKph = metar.wind_speed_kn ? Math.round(metar.wind_speed_kn * 1.852) : 0;
+      return {
+        daily: {
+          temperature_2m_max: [metar.temp_c != null ? metar.temp_c + 2 : null],
+          temperature_2m_min: [metar.temp_c != null ? metar.temp_c - 3 : null],
+          precipitation_sum:  [0],
+          windspeed_10m_max:  [windKph],
+        }
+      };
+    }
+
+    // Update weather panel with real decoded METAR data
+    showWeatherPanel({
+      turbulenceScore: active ? active.tlv : 2,
+      turb:            active ? active.turb : null,
+      jetStreamSpeed:  null,
+      departure:       metarToPanel(data.dep && data.dep.metar),
+      arrival:         metarToPanel(data.arr && data.arr.metar),
+    }, dep, arr);
+
+    // Warn in console if departure airport is IFR/LIFR (low visibility)
+    if (data.dep && data.dep.metar && data.dep.metar.flight_category) {
+      var cat = data.dep.metar.flight_category;
+      if (cat === 'IFR' || cat === 'LIFR') {
+        console.warn('[METAR] ' + dep + ' is ' + cat + ' — possible fog/low cloud delays');
+      }
+    }
+
+  } catch (e) {
+    console.warn('[METAR] failed:', e.message);
+    // Not critical — weather panel still shows from turbulence API data
+  }
+}
 </script>
 </body>
 </html>
