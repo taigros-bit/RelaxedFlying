@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "index.html",  "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)",     "dest": "/index.html" }
+  ],
+  "env": {
+    "AERODATABOX_KEY":        "@aerodatabox_key",
+    "OPENSKY_CLIENT_ID":      "@opensky_client_id",
+    "OPENSKY_CLIENT_SECRET":  "@opensky_client_secret",
+    "CHECKWX_KEY":            "@checkwx_key",
+    "METEOMATICS_USER":       "@meteomatics_user",
+    "METEOMATICS_PASS":       "@meteomatics_pass"
+  }
+}
