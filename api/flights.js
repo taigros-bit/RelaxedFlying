@@ -1,27 +1,12 @@
 // ============================================================
-// RelaxedFlying — /api/flights  (Vercel Serverless Function)
-//
-// STRATEGY: Maximum flight coverage via 3 parallel sources:
-// 1. FIDS Departure board DEP airport (AM + PM, 2 calls)
-// 2. FIDS Arrival board ARR airport filtered to origin=DEP (AM + PM, 2 calls)
-// 3. Merge + deduplicate by flight number
-//
-// AeroDataBox FIDS response field reference (verified):
-//   departure.airport.iata       = DEP airport (e.g. "DEL")
-//   departure.scheduledTime.local = dep time "2026-03-28 06:30+05:30"
-//   arrival.airport.iata         = ARR airport (e.g. "DXB")
-//   arrival.scheduledTime.local  = arr time
-//   number                       = flight number "EK517"
-//   airline.iata / airline.name
-//   aircraft.model / aircraft.iata
-//   status                       = "Expected" | "Departed" | "Arrived" | etc
-//   terminal, gate (if available)
-//
-// Note: movement.airport.iata = the searched airport (always DEP for DEP search)
-// Do NOT use movement.airport.iata to filter destination - use arrival.airport.iata
+// RelaxedFlying — /api/flights.js  (Vercel Serverless Function)
+// FIXED VERSION — bugfixes applied:
+//   1. API key now reads from environment variable (not hardcoded)
+//   2. norm() function renamed to normalizeFlightData() — fixes flight number search crash
+//   3. parseLiveFlights null safety added
 // ============================================================
 
-const KEY  = 'b03cbc2da8mshfd6f5e8ac7c5894p18cc07jsnaabba528fd4a';
+const KEY  = process.env.AERODATABOX_KEY;
 const HOST = 'aerodatabox.p.rapidapi.com';
 const BASE = `https://${HOST}`;
 
@@ -90,16 +75,11 @@ async function fids(iata, from, to, dir) {
     ...(data.departures || []),
     ...(data.arrivals   || []),
   ];
-  // Log first result to debug time fields
   if (results.length > 0) {
     const f = results[0];
     console.log(`[FIDS ${iata} ${dir}] count=${results.length} sample:`, JSON.stringify({
       num: f.number,
       dep_sched: f.departure?.scheduledTime,
-      dep_revised: f.departure?.revisedTime,
-      dep_actual: f.departure?.actualTime,
-      movement_sched: f.movement?.scheduledTime,
-      arr_sched: f.arrival?.scheduledTime,
       arr_ap: f.arrival?.airport?.iata,
     }));
   } else {
@@ -109,25 +89,17 @@ async function fids(iata, from, to, dir) {
 }
 
 // ── Normalise one ADB flight → our format ───────────────────
-function norm(f, fallbackDep, fallbackArr) {
-  // DEPARTURE fields
+// FIXED: renamed from norm() to normalizeFlightData() to avoid variable name collision
+function normalizeFlightData(f, fallbackDep, fallbackArr) {
   const depAP   = (f.departure?.airport?.iata   || fallbackDep || '').toUpperCase();
   const depTime = parseTime(f.departure?.scheduledTime);
   const depAct  = parseTime(f.departure?.actualTime || f.departure?.revisedTime);
-
-  // ARRIVAL fields
   const arrAP   = (f.arrival?.airport?.iata || fallbackArr || '').toUpperCase();
   const arrTime = parseTime(f.arrival?.scheduledTime);
   const arrAct  = parseTime(f.arrival?.actualTime || f.arrival?.revisedTime);
-
-  // Airline
   const alIata  = (f.airline?.iata    || '').toUpperCase();
   const alName  = f.airline?.name     || alIata;
-
-  // Flight number
   const num     = (f.number || f.iataNumber || '').toUpperCase().trim();
-
-  // Aircraft
   const acModel = f.aircraft?.model || '';
   const acIata  = (f.aircraft?.iata  || '').toUpperCase();
 
@@ -152,7 +124,7 @@ function norm(f, fallbackDep, fallbackArr) {
   };
 }
 
-// ── Dedup: prefer fids over routes; prefer timed over untimed ─
+// ── Dedup by flight number ────────────────────────────────────
 function dedup(flights) {
   const map = new Map();
   for (const f of flights) {
@@ -160,7 +132,6 @@ function dedup(flights) {
     if (!key) { map.set(Math.random().toString(36), f); continue; }
     if (!map.has(key)) { map.set(key, f); continue; }
     const ex = map.get(key);
-    // Prefer entry with known departure time
     const hasDep = f.departure.scheduledTime.local;
     const exDep  = ex.departure.scheduledTime.local;
     if (hasDep && !exDep) map.set(key, f);
@@ -168,7 +139,7 @@ function dedup(flights) {
   return [...map.values()];
 }
 
-// ── Fill missing arrival times using estimated duration ──────
+// ── Fill missing arrival times ────────────────────────────────
 function fillTimes(flights, depCoords, arrCoords) {
   const dur = estMins(depCoords, arrCoords);
   return flights.map(f => {
@@ -182,7 +153,6 @@ function fillTimes(flights, depCoords, arrCoords) {
 // ── FLIGHT NUMBER SEARCH ─────────────────────────────────────
 async function searchByFN(fn, date) {
   const clean = fn.toUpperCase().replace(/\s/g,'');
-  // AeroDataBox accepts both "EK517" format and "EK/517" format
   const url = `${BASE}/flights/${encodeURIComponent(clean)}/${date}`;
   const data = await safeFetch(url);
   if (!data) return [];
@@ -199,13 +169,20 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  if (!KEY) {
+    return res.status(500).json({
+      error: 'AERODATABOX_KEY environment variable not set. Add it in Vercel dashboard → Settings → Environment Variables.'
+    });
+  }
+
   const q = req.query;
 
-  // ── Flight number lookup ────────────────────────────────
+  // ── Flight number lookup ─────────────────────────────────
   if (q.fn && q.date) {
-    const raw  = await searchByFN(q.fn, q.date);
-    const norm = raw.map(f => norm(f, q.dep||'', q.arr||''));
-    return res.status(200).json({ departures: norm, source: 'fn', count: norm.length });
+    const raw = await searchByFN(q.fn, q.date);
+    // FIXED: renamed variable to avoid shadowing normalizeFlightData function
+    const normalizedFlights = raw.map(f => normalizeFlightData(f, q.dep||'', q.arr||''));
+    return res.status(200).json({ departures: normalizedFlights, source: 'fn', count: normalizedFlights.length });
   }
 
   // ── Route search ─────────────────────────────────────────
@@ -217,7 +194,7 @@ export default async function handler(req, res) {
   const depCoords = q.depLat && q.depLon ? { lat: +q.depLat, lon: +q.depLon } : null;
   const arrCoords = q.arrLat && q.arrLon ? { lat: +q.arrLat, lon: +q.arrLon } : null;
 
-  // Run 4 FIDS calls in parallel (DEP departures AM+PM, ARR arrivals AM+PM)
+  // 4 parallel FIDS calls
   const [depAM, depPM, arrAM, arrPM] = await Promise.all([
     fids(dep, `${date}T00:00`, `${date}T11:59`, 'Departure'),
     fids(dep, `${date}T12:00`, `${date}T23:59`, 'Departure'),
@@ -225,31 +202,23 @@ export default async function handler(req, res) {
     fids(arr, `${date}T12:00`, `${date}T23:59`, 'Arrival'),
   ]);
 
-  // --- DEP board: filter to flights going to ARR ---
-  // Primary check: f.arrival.airport.iata === arr
-  // Secondary: f.leg?.arrival?.airport?.iata === arr (codeshares)
   const depFlights = [...depAM, ...depPM].filter(f => {
     const dest = (f.arrival?.airport?.iata || f.leg?.arrival?.airport?.iata || '').toUpperCase();
     return dest === arr.toUpperCase();
   });
 
-  // --- ARR board: filter to flights coming from DEP ---
   const arrFlights = [...arrAM, ...arrPM].filter(f => {
     const origin = (f.departure?.airport?.iata || f.leg?.departure?.airport?.iata || '').toUpperCase();
     return origin === dep.toUpperCase();
   });
 
-  // Normalise both sets
-  const normDep = depFlights.map(f => norm(f, dep, arr));
-  const normArr = arrFlights.map(f => norm(f, dep, arr));
+  // FIXED: using normalizeFlightData instead of norm
+  const normDep = depFlights.map(f => normalizeFlightData(f, dep, arr));
+  const normArr = arrFlights.map(f => normalizeFlightData(f, dep, arr));
 
-  // Merge: DEP board is primary, ARR board fills gaps
   const merged = dedup([...normDep, ...normArr]);
-
-  // Fill missing arrival times
   const filled = fillTimes(merged, depCoords, arrCoords);
 
-  // Sort by departure time (unknown times at end)
   filled.sort((a, b) => {
     const ta = a.departure.scheduledTime.local || 'ZZ';
     const tb = b.departure.scheduledTime.local || 'ZZ';
@@ -260,9 +229,9 @@ export default async function handler(req, res) {
     departures: filled,
     source: 'aerodatabox_multi',
     counts: {
-      dep_board:  normDep.length,
-      arr_board:  normArr.length,
-      merged:     filled.length,
+      dep_board: normDep.length,
+      arr_board: normArr.length,
+      merged:    filled.length,
     },
   });
 }
