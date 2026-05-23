@@ -1,592 +1,384 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RelaxedFlying — Early Access</title>
-  <meta name="description" content="AI turbulence predictions and pre-flight alerts. Join the waitlist." />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
+    :root { --green: #4ade80; --blue: #60a5fa; --red: #f87171; --amber: #fbbf24; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #000; color: #fff; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 
-```
-:root {
-  --green: #4ade80;
-  --blue: #60a5fa;
-  --red: #f87171;
-}
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      height: 56px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(20px); border-bottom: 1px solid #111;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 9px; font-size: 1rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .logo-box { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+    .nav-contact { font-size: 0.875rem; color: #555; text-decoration: none; }
 
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #000;
-  color: #fff;
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-}
+    /* HERO */
+    .hero { padding: 4.5rem 20px 3rem; text-align: center; border-bottom: 1px solid #111; }
+    .chip { display: inline-flex; align-items: center; gap: 7px; background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 99px; padding: 6px 14px; font-size: 0.78rem; color: #666; margin-bottom: 1.5rem; }
+    .chip-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: blink 2.5s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .hero h1 { font-size: clamp(2.8rem, 11vw, 5.5rem); font-weight: 900; letter-spacing: -0.045em; line-height: 1.0; margin-bottom: 1rem; }
+    .hero h1 em { font-style: italic; color: #444; }
+    .hero-sub { font-size: 1rem; color: #555; line-height: 1.6; max-width: 360px; margin: 0 auto 2.25rem; }
 
+    /* BOTH OPTIONS — side by side at top */
+    .access-wrap { padding: 2.5rem 20px; border-bottom: 1px solid #111; max-width: 640px; margin: 0 auto; }
+    .access-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-/* ── NAV ─────────────────────────────── */
-nav {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 200;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  background: #000;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid #111;
-}
+    .ac-card { background: #0a0a0a; border: 1px solid #111; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; }
+    .ac-card.featured { border: 1.5px solid #fff; }
 
-.nav-logo {
-  display: flex; align-items: center; gap: 10px;
-  text-decoration: none; color: #fff;
-  font-size: 1rem; font-weight: 700;
-  letter-spacing: -0.02em;
-}
-.logo-box {
-  width: 28px; height: 28px;
-  background: #fff;
-  border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  color: #000; font-size: 14px;
-}
+    .ac-badge { display: inline-block; background: #fff; color: #000; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; margin-bottom: 10px; align-self: flex-start; }
 
-.nav-right { display: flex; align-items: center; gap: 6px; }
+    .ac-price { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.04em; color: #fff; line-height: 1; margin-bottom: 2px; }
+    .ac-price-sub { font-size: 0.68rem; color: #555; margin-bottom: 10px; }
+    .ac-price-free { font-size: 1.1rem; font-weight: 900; color: #444; margin-bottom: 2px; }
 
-.nav-contact {
-  color: #666; font-size: 0.875rem; text-decoration: none;
-  padding: 6px 12px; border-radius: 8px;
-  transition: color 0.15s;
-}
-.nav-contact:hover { color: #fff; }
+    .ac-name { font-size: 0.78rem; font-weight: 700; color: #fff; margin-bottom: 10px; }
 
-.nav-try {
-  background: #fff; color: #000;
-  font-size: 0.875rem; font-weight: 600;
-  padding: 7px 14px; border-radius: 8px;
-  text-decoration: none;
-  transition: opacity 0.15s;
-}
-.nav-try:hover { opacity: 0.85; }
+    .ac-perks { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; flex: 1; }
+    .ac-perk { display: flex; align-items: flex-start; gap: 7px; font-size: 0.72rem; color: #666; line-height: 1.4; }
+    .ac-perk .chk { color: var(--green); flex-shrink: 0; }
+    .ac-perk .xmk { color: #222; flex-shrink: 0; }
+    .ac-perk.dim { color: #333; }
 
-/* ── HERO ────────────────────────────── */
-.hero {
-  min-height: 100vh;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 100px 20px 80px;
-  text-align: center;
-}
+    .btn-white { width: 100%; padding: 11px; border-radius: 9px; background: #fff; color: #000; border: none; font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 800; cursor: pointer; transition: opacity 0.15s; }
+    .btn-white:hover { opacity: 0.85; }
 
-.hero-chip {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: #000;
-  border: 1px solid #111;
-  border-radius: 99px;
-  padding: 7px 16px;
-  font-size: 0.8rem; color: #777;
-  margin-bottom: 2rem;
-  letter-spacing: 0.01em;
-}
-.chip-dot {
-  width: 7px; height: 7px;
-  background: var(--green); border-radius: 50%;
-  animation: blink 2.5s ease-in-out infinite;
-}
-@keyframes blink {
-  0%,100% { opacity: 1; } 50% { opacity: 0.4; }
-}
+    .free-row { display: flex; background: #000; border: 1px solid #1a1a1a; border-radius: 9px; padding: 3px; gap: 3px; }
+    .free-row input { flex: 1; background: none; border: none; outline: none; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.72rem; padding: 7px 8px; min-width: 0; }
+    .free-row input::placeholder { color: #333; }
+    .free-row button { background: #1a1a1a; color: #777; border: none; border-radius: 7px; font-family: 'Inter', sans-serif; font-size: 0.7rem; font-weight: 700; padding: 7px 10px; cursor: pointer; white-space: nowrap; }
+    .form-note { font-size: 0.65rem; color: #333; text-align: center; margin-top: 6px; }
+    .success-msg { display: none; align-items: center; gap: 6px; background: rgba(74,222,128,0.07); border: 1px solid rgba(74,222,128,0.18); border-radius: 9px; padding: 9px 12px; font-size: 0.78rem; font-weight: 500; color: var(--green); }
+    .success-msg.show { display: flex; }
 
-.hero h1 {
-  font-size: clamp(2.8rem, 10vw, 6.5rem);
-  font-weight: 900;
-  line-height: 1.0;
-  letter-spacing: -0.045em;
-  color: #fff;
-  margin-bottom: 1.25rem;
-  text-wrap: balance;
-}
+    /* PROGRESS */
+    .prog-wrap { max-width: 640px; margin: 0 auto; padding: 0 20px 2.5rem; }
+    .prog-bar { height: 3px; background: #111; border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+    .prog-fill { height: 100%; background: #fff; border-radius: 99px; width: 0; transition: width 1.4s cubic-bezier(0.16,1,0.3,1); }
+    .prog-lbl { font-size: 0.72rem; color: #444; }
+    .prog-lbl strong { color: #fff; }
 
-.hero-sub {
-  font-size: clamp(0.95rem, 2vw, 1.1rem);
-  color: #666;
-  max-width: 380px;
-  line-height: 1.65;
-  margin-bottom: 2.5rem;
-  font-weight: 400;
-}
+    /* STATS */
+    .stats-strip { border-bottom: 1px solid #111; border-top: 1px solid #111; }
+    .stats-inner { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(3,1fr); }
+    .stat-col { padding: 2rem 10px; text-align: center; border-right: 1px solid #111; }
+    .stat-col:last-child { border-right: none; }
+    .stat-num { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.04em; margin-bottom: 4px; }
+    .stat-lbl { font-size: 0.68rem; color: #444; line-height: 1.4; }
 
-/* ── EMAIL FORM ── */
-.form-wrap { max-width: 400px; width: 100%; }
+    /* SEAT MAP */
+    .seatmap-sec { padding: 4rem 20px; border-bottom: 1px solid #111; }
+    .seatmap-inner { max-width: 640px; margin: 0 auto; }
+    .sec-eyebrow { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #333; margin-bottom: 10px; }
+    .seatmap-sec h2 { font-size: clamp(1.6rem, 5vw, 2.2rem); font-weight: 900; letter-spacing: -0.04em; margin-bottom: 0.5rem; }
+    .seatmap-sec p { font-size: 0.875rem; color: #555; line-height: 1.6; margin-bottom: 1.75rem; max-width: 420px; }
 
-.form-row {
-  display: flex;
-  background: #000;
-  border: 1px solid #111;
-  border-radius: 13px;
-  padding: 5px;
-  gap: 5px;
-  transition: border-color 0.2s;
-}
-.form-row:focus-within { border-color: rgba(255,255,255,0.3); }
+    .seat-ui { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 16px; padding: 18px; }
+    .seat-ui-label { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: #333; text-align: center; margin-bottom: 12px; }
+    .seatmap-plane { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 12px; }
+    .seat-row { display: flex; align-items: center; gap: 4px; }
+    .seat-row-num { font-size: 0.58rem; color: #333; width: 14px; text-align: right; }
+    .seat { width: 22px; height: 22px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; font-weight: 700; }
+    .seat-aisle { width: 10px; }
+    .s-green { background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3); color: var(--green); }
+    .s-amber { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.22); color: var(--amber); }
+    .s-red   { background: rgba(248,113,113,0.09); border: 1px solid rgba(248,113,113,0.18); color: var(--red); }
+    .s-best  { background: rgba(74,222,128,0.3); border: 2px solid var(--green); color: var(--green); animation: glow 2s ease-in-out infinite; }
+    @keyframes glow { 0%,100%{box-shadow:0 0 6px rgba(74,222,128,0.3)} 50%{box-shadow:0 0 14px rgba(74,222,128,0.6)} }
+    .legend { display: flex; justify-content: center; gap: 14px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.65rem; color: #444; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
 
-.form-row input {
-  flex: 1; background: none; border: none; outline: none;
-  color: #fff; font-family: inherit; font-size: 0.9rem;
-  padding: 9px 12px;
-  min-width: 0;
-}
-.form-row input::placeholder { color: #555; }
+    /* SCIENCE */
+    .science { padding: 4rem 20px; border-bottom: 1px solid #111; }
+    .science-inner { max-width: 640px; margin: 0 auto; }
+    .science h2 { font-size: clamp(1.6rem,5vw,2.2rem); font-weight: 900; letter-spacing: -0.04em; margin-bottom: 1.5rem; }
+    .pos-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .pos-box { border-radius: 10px; padding: 14px 6px; text-align: center; }
+    .pos-box.b-blue  { background: rgba(37,99,235,0.1);  border: 1px solid rgba(37,99,235,0.18); }
+    .pos-box.b-green { background: rgba(74,222,128,0.07); border: 1px solid rgba(74,222,128,0.16); }
+    .pos-box.b-red   { background: rgba(248,113,113,0.07);border: 1px solid rgba(248,113,113,0.15); }
+    .pos-lbl { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+    .pos-num { font-size: 1.3rem; font-weight: 900; letter-spacing: -0.04em; }
+    .pos-sub { font-size: 0.62rem; color: #333; margin-top: 2px; }
+    .sci-tips { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .sci-tip { background: #0a0a0a; border: 1px solid #111; border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; }
+    .sci-tip-icon { font-size: 1rem; flex-shrink: 0; }
+    .sci-tip-title { font-size: 0.82rem; font-weight: 700; color: #fff; margin-bottom: 3px; }
+    .sci-tip-desc { font-size: 0.76rem; color: #555; line-height: 1.5; }
 
-.form-row button {
-  background: #fff; color: #000;
-  border: none; border-radius: 9px;
-  font-family: inherit; font-size: 0.85rem; font-weight: 700;
-  padding: 9px 18px; cursor: pointer;
-  white-space: nowrap; flex-shrink: 0;
-  transition: opacity 0.15s, transform 0.1s;
-}
-.form-row button:hover { opacity: 0.85; }
-.form-row button:active { transform: scale(0.97); }
+    /* TESTIMONIALS */
+    .testi { padding: 4rem 20px; border-bottom: 1px solid #111; }
+    .testi-inner { max-width: 640px; margin: 0 auto; }
+    .testi h2 { font-size: clamp(1.4rem,4vw,1.9rem); font-weight: 900; letter-spacing: -0.035em; margin-bottom: 1.25rem; }
+    .testi-grid { display: flex; flex-direction: column; gap: 8px; }
+    .testi-card { background: #0a0a0a; border: 1px solid #111; border-radius: 12px; padding: 16px; }
+    .testi-stars { color: var(--amber); font-size: 0.7rem; margin-bottom: 7px; letter-spacing: 2px; }
+    .testi-text { font-size: 0.82rem; color: #777; line-height: 1.6; margin-bottom: 10px; font-style: italic; }
+    .testi-author { display: flex; align-items: center; gap: 9px; }
+    .testi-av { width: 28px; height: 28px; border-radius: 50%; background: #111; border: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: #555; }
+    .testi-name { font-size: 0.78rem; font-weight: 600; color: #fff; }
+    .testi-role { font-size: 0.68rem; color: #444; }
 
-.form-note { font-size: 0.75rem; color: #555; margin-top: 10px; }
+    /* FAQ */
+    .faq { padding: 4rem 20px; border-bottom: 1px solid #111; }
+    .faq-inner { max-width: 640px; margin: 0 auto; }
+    .faq h2 { font-size: clamp(1.4rem,4vw,1.9rem); font-weight: 900; letter-spacing: -0.035em; margin-bottom: 1.5rem; }
+    .faq-item { border-top: 1px solid #111; padding: 16px 0; }
+    .faq-item:last-child { border-bottom: 1px solid #111; }
+    .faq-q { font-size: 0.875rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .faq-a { font-size: 0.8rem; color: #555; line-height: 1.6; }
 
-.success-row {
-  display: none; align-items: center; gap: 8px;
-  background: rgba(74,222,128,0.08);
-  border: 1px solid rgba(74,222,128,0.2);
-  border-radius: 12px;
-  padding: 13px 18px;
-  font-size: 0.875rem; font-weight: 500;
-  color: var(--green);
-}
-.success-row.show { display: flex; }
+    /* FINAL CTA */
+    .final { padding: 5rem 20px; text-align: center; }
+    .final h2 { font-size: clamp(1.8rem,7vw,3rem); font-weight: 900; letter-spacing: -0.04em; line-height: 1.05; margin-bottom: 0.75rem; }
+    .final p { font-size: 0.9rem; color: #555; margin-bottom: 2rem; }
+    .final-btns { display: flex; flex-direction: column; gap: 10px; max-width: 320px; margin: 0 auto; }
+    .btn-big-white { padding: 14px; border-radius: 11px; background: #fff; color: #000; border: none; font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 800; cursor: pointer; }
+    .btn-big-outline { padding: 13px; border-radius: 11px; background: transparent; color: #555; border: 1px solid #1a1a1a; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; display: block; }
 
-/* ── STATS ─────────────────────────── */
-.stats-wrap {
-  padding: 0 16px 80px;
-}
-.stats-card {
-  max-width: 640px; margin: 0 auto;
-  background: #000;
-  border: 1px solid #111;
-  border-radius: 16px;
-  display: grid; grid-template-columns: repeat(3,1fr);
-  overflow: hidden;
-}
-.stat-col {
-  padding: 20px 12px;
-  text-align: center;
-  border-right: 1px solid #111;
-}
-.stat-col:last-child { border-right: none; }
-.stat-num {
-  font-size: 1.65rem; font-weight: 800;
-  letter-spacing: -0.045em; margin-bottom: 5px;
-}
-.c-green { color: var(--green); }
-.c-white { color: #fff; }
-.c-blue  { color: var(--blue); }
-.stat-lbl { font-size: 0.73rem; color: #666; line-height: 1.45; }
+    /* FOOTER */
+    footer { padding: 20px; border-top: 1px solid #111; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .footer-logo { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .footer-right { display: flex; gap: 16px; }
+    .footer-right a { font-size: 0.78rem; color: #333; text-decoration: none; }
 
-/* ── SECTIONS ─────────────────────── */
-.sec-label {
-  font-size: 0.68rem; font-weight: 600;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  color: #555; margin-bottom: 16px;
-}
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.55s ease, transform 0.55s ease; }
+    .reveal.in { opacity: 1; transform: none; }
 
-/* ── HOW IT WORKS ── */
-.steps-wrap {
-  max-width: 640px; margin: 0 auto;
-  padding: 0 16px 80px;
-}
-.steps-card {
-  background: #000; border: 1px solid #111; border-radius: 16px;
-  overflow: hidden;
-}
-.step {
-  display: flex; align-items: flex-start; gap: 14px;
-  padding: 18px 20px;
-  border-bottom: 1px solid #111;
-}
-.step:last-child { border-bottom: none; }
-.step-n {
-  min-width: 26px; height: 26px;
-  background: #000; border: 1px solid #111;
-  border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.78rem; font-weight: 600; color: #666;
-  flex-shrink: 0; margin-top: 1px;
-}
-.step-title { font-size: 0.92rem; font-weight: 700; margin-bottom: 4px; color: #fff; }
-.step-desc  { font-size: 0.81rem; color: #666; line-height: 1.55; }
-.badge-soon {
-  display: inline-block; margin-top: 6px;
-  font-size: 0.63rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-  background: #000; border: 1px solid #111; color: #666;
-  padding: 3px 8px; border-radius: 99px;
-}
-
-/* ── SCIENCE ── */
-.science-wrap {
-  max-width: 640px; margin: 0 auto;
-  padding: 0 16px 80px;
-}
-.sci-card {
-  background: #000; border: 1px solid #111;
-  border-radius: 16px; padding: 22px;
-  margin-bottom: 10px;
-}
-.sci-tag {
-  font-size: 0.63rem; font-weight: 600; letter-spacing: 0.12em;
-  text-transform: uppercase; color: #666;
-  margin-bottom: 10px;
-}
-.sci-h { font-size: 1.0rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
-.sci-p { font-size: 0.8rem; color: #666; line-height: 1.6; }
-
-.pos-row {
-  display: grid; grid-template-columns: repeat(3,1fr);
-  gap: 8px; margin-top: 16px;
-}
-.pos-box {
-  border-radius: 10px; padding: 14px 8px;
-  text-align: center; border: 1px solid transparent;
-}
-.pos-box.b-blue { background: rgba(37,99,235,0.12); border-color: rgba(37,99,235,0.2); }
-.pos-box.b-green { background: rgba(74,222,128,0.07); border-color: rgba(74,222,128,0.18); }
-.pos-box.b-red { background: rgba(239,68,68,0.07); border-color: rgba(239,68,68,0.18); }
-.pos-lbl { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; }
-.pos-num { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.04em; }
-.pos-sub { font-size: 0.65rem; color: #555; margin-top: 3px; }
-
-/* ── FOUNDING ── */
-.founding-wrap {
-  max-width: 640px; margin: 0 auto;
-  padding: 0 16px 100px;
-}
-.founding-card {
-  background: #000; border: 1px solid #111;
-  border-radius: 16px; padding: 22px;
-}
-.founding-top {
-  display: flex; justify-content: space-between;
-  align-items: flex-start; gap: 12px; flex-wrap: wrap;
-  margin-bottom: 18px;
-}
-.founding-h { font-size: 1.0rem; font-weight: 700; margin-bottom: 5px; }
-.founding-sub { font-size: 0.8rem; color: #666; line-height: 1.5; max-width: 280px; }
-.founding-counter { text-align: right; flex-shrink: 0; }
-.counter-num {
-  font-size: 2rem; font-weight: 900;
-  letter-spacing: -0.05em; color: #fff; line-height: 1;
-}
-.counter-lbl { font-size: 0.7rem; color: #555; margin-top: 2px; }
-
-.prog-bar {
-  height: 3px; background: #111;
-  border-radius: 99px; overflow: hidden; margin-bottom: 7px;
-}
-.prog-fill {
-  height: 100%; background: #fff; border-radius: 99px;
-  width: 0; transition: width 1.4s cubic-bezier(0.16,1,0.3,1);
-}
-.prog-lbl { font-size: 0.73rem; color: #555; margin-bottom: 18px; }
-.prog-lbl strong { color: #fff; }
-
-.perks-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.perk {
-  display: flex; align-items: flex-start; gap: 8px;
-  font-size: 0.8rem; color: #666; line-height: 1.4;
-}
-.perk-chk { color: var(--green); flex-shrink: 0; font-size: 0.75rem; }
-
-/* ── FOOTER ── */
-footer {
-  padding: 18px 20px;
-  border-top: 1px solid #111;
-  display: flex; align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap; gap: 10px;
-}
-.footer-logo {
-  display: flex; align-items: center; gap: 8px;
-  text-decoration: none; color: #fff;
-  font-size: 0.875rem; font-weight: 700;
-}
-.footer-right { display: flex; gap: 14px; }
-.footer-right a {
-  font-size: 0.78rem; color: #555; text-decoration: none;
-  transition: color 0.15s;
-}
-.footer-right a:hover { color: #777; }
-
-/* ── SCROLL REVEAL ── */
-.reveal {
-  opacity: 0; transform: translateY(16px);
-  transition: opacity 0.55s ease, transform 0.55s ease;
-}
-.reveal.in { opacity: 1; transform: none; }
-
-/* RESPONSIVE */
-@media (max-width: 480px) {
-  .perks-grid { grid-template-columns: 1fr; }
-  .founding-top { flex-direction: column; }
-  .founding-counter { text-align: left; }
-}
-```
-
+    @media (max-width: 400px) {
+      .access-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
-<div class="page">
+<nav>
+  <a href="https://www.relaxedflying.app" class="nav-logo">
+    RelaxedFlying
+  </a>
+  <a href="mailto:info@relaxedflying.app" class="nav-contact">Contact</a>
+</nav>
 
-  <!-- NAV -->
+<!-- HERO -->
+<section class="hero">
+  <div class="chip"><span class="chip-dot"></span>Free · No signup · 2,000+ airports</div>
+  <h1>Fly smoother.<br/>Sit smarter.</h1>
+  <p class="hero-sub">Pick the calmest seat on your exact flight. Real turbulence data, seat by seat. AI predictions and pre-flight alerts coming soon — get in early.</p>
+</section>
 
-  <nav>
-    <a href="https://www.relaxedflying.app" class="nav-logo">
-      <div class="logo-box">✈</div>
-      RelaxedFlying
-    </a>
-    <div class="nav-right">
-      <a href="mailto:info@relaxedflying.app" class="nav-contact">Contact</a>
+<!-- ACCESS CARDS — right at the top -->
+<div style="padding: 2.5rem 20px 0; max-width: 640px; margin: 0 auto;">
+  <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#333;margin-bottom:12px;">Choose your access</div>
+  <div class="access-grid">
+
+    <!-- PAID -->
+    <div class="ac-card featured">
+      <span class="ac-badge">⭐ Founding</span>
+      <div class="ac-price">€9.99</div>
+      <div class="ac-price-sub">6 months · €1.66/mo</div>
+      <div class="ac-name">Early access</div>
+      <ul class="ac-perks">
+        <li class="ac-perk"><span class="chk">✓</span> First access at launch</li>
+        <li class="ac-perk"><span class="chk">✓</span> 10 lookups/month</li>
+        <li class="ac-perk"><span class="chk">✓</span> AI predictions included</li>
+        <li class="ac-perk"><span class="chk">✓</span> Pre-flight alerts</li>
+        <li class="ac-perk"><span class="chk">✓</span> Founding badge</li>
+        <li class="ac-perk"><span class="chk">✓</span> Rate won't come back</li>
+      </ul>
+      <button class="btn-white" onclick="window.open('https://relaxedflyer.gumroad.com/l/cpzsl','_blank')">Get access — €9.99 →</button>
     </div>
-  </nav>
 
-  <!-- HERO -->
-
-  <section class="hero">
-    <div class="hero-chip">
-      <span class="chip-dot"></span>
-      Free · No signup · 2,000+ airports
+    <!-- FREE -->
+    <div class="ac-card">
+      <div style="height:22px;margin-bottom:10px;"></div>
+      <div class="ac-price-free">Free</div>
+      <div class="ac-price-sub">waitlist</div>
+      <div class="ac-name">Get notified</div>
+      <ul class="ac-perks">
+        <li class="ac-perk"><span class="chk">✓</span> Email at launch</li>
+        <li class="ac-perk"><span class="chk">✓</span> 5 free lookups</li>
+        <li class="ac-perk dim"><span class="xmk">✗</span> No priority access</li>
+        <li class="ac-perk dim"><span class="xmk">✗</span> No AI predictions</li>
+        <li class="ac-perk dim"><span class="xmk">✗</span> No founding perks</li>
+      </ul>
+      <div class="free-row" id="freeRow">
+        <input type="email" id="freeEmail" placeholder="email@..." />
+        <button onclick="handleFree()">Join</button>
+      </div>
+      <div class="success-msg" id="freeSuccess"><span>✓</span> You're on the list!</div>
+      <p class="form-note">No spam. Ever.</p>
     </div>
-    <h1>Fly smoother.<br/>Sit smarter.</h1>
-    <p class="hero-sub">AI turbulence predictions and pre-flight alerts coming soon. The seat map is already live and free.</p>
 
-```
-<div class="form-wrap">
-  <div class="form-row" id="formRow">
-    <input type="email" id="emailInput" placeholder="your@email.com" autocomplete="email" />
-    <button onclick="handleJoin()">Get early access</button>
   </div>
-  <div class="success-row" id="successRow">
-    <span>✓</span> You're on the list!
-  </div>
-  <p class="form-note">No spam. Launch notification only.</p>
 </div>
-```
 
-  </section>
+<!-- PROGRESS -->
+<div class="prog-wrap" style="padding-top:1.25rem;">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <p class="prog-lbl"><strong id="spotsTaken">247</strong> of 500 founding spots taken</p>
+</div>
 
-  <!-- STATS -->
+<!-- STATS -->
+<div class="stats-strip reveal">
+  <div class="stats-inner">
+    <div class="stat-col">
+      <div class="stat-num" style="color:var(--green)">73%</div>
+      <div class="stat-lbl">feel calmer choosing their seat</div>
+    </div>
+    <div class="stat-col">
+      <div class="stat-num">2–3×</div>
+      <div class="stat-lbl">more bumps rear vs. wing</div>
+    </div>
+    <div class="stat-col">
+      <div class="stat-num" style="color:var(--blue)">1 in 3</div>
+      <div class="stat-lbl">passengers have anxiety</div>
+    </div>
+  </div>
+</div>
 
-  <div class="stats-wrap reveal">
-    <div class="stats-card">
-      <div class="stat-col">
-        <div class="stat-num c-green">73%</div>
-        <div class="stat-lbl">of nervous flyers feel calmer choosing their seat</div>
+<!-- SEAT MAP -->
+<section class="seatmap-sec reveal">
+  <div class="seatmap-inner">
+    <p class="sec-eyebrow">How it works</p>
+    <h2>Green = smooth.<br/>Red = rough.</h2>
+    <p>Enter your flight. We map real turbulence data onto every seat. You pick the calmest one.</p>
+    <div class="seat-ui">
+      <div class="seat-ui-label">A320 · LJU → LHR · Moderate turbulence forecast</div>
+      <div class="seatmap-plane">
+        <div class="seat-row"><span class="seat-row-num">1</span><div class="seat s-amber">A</div><div class="seat s-amber">B</div><div class="seat s-amber">C</div><div class="seat-aisle"></div><div class="seat s-amber">D</div><div class="seat s-amber">E</div><div class="seat s-amber">F</div></div>
+        <div class="seat-row"><span class="seat-row-num">2</span><div class="seat s-amber">A</div><div class="seat s-amber">B</div><div class="seat s-amber">C</div><div class="seat-aisle"></div><div class="seat s-amber">D</div><div class="seat s-amber">E</div><div class="seat s-amber">F</div></div>
+        <div class="seat-row"><span class="seat-row-num">10</span><div class="seat s-best">A</div><div class="seat s-green">B</div><div class="seat s-green">C</div><div class="seat-aisle"></div><div class="seat s-green">D</div><div class="seat s-green">E</div><div class="seat s-best">F</div></div>
+        <div class="seat-row"><span class="seat-row-num">11</span><div class="seat s-best">A</div><div class="seat s-green">B</div><div class="seat s-green">C</div><div class="seat-aisle"></div><div class="seat s-green">D</div><div class="seat s-green">E</div><div class="seat s-best">F</div></div>
+        <div class="seat-row"><span class="seat-row-num">12</span><div class="seat s-green">A</div><div class="seat s-green">B</div><div class="seat s-green">C</div><div class="seat-aisle"></div><div class="seat s-green">D</div><div class="seat s-green">E</div><div class="seat s-green">F</div></div>
+        <div class="seat-row"><span class="seat-row-num">22</span><div class="seat s-red">A</div><div class="seat s-red">B</div><div class="seat s-red">C</div><div class="seat-aisle"></div><div class="seat s-red">D</div><div class="seat s-red">E</div><div class="seat s-red">F</div></div>
+        <div class="seat-row"><span class="seat-row-num">23</span><div class="seat s-red">A</div><div class="seat s-red">B</div><div class="seat s-red">C</div><div class="seat-aisle"></div><div class="seat s-red">D</div><div class="seat s-red">E</div><div class="seat s-red">F</div></div>
       </div>
-      <div class="stat-col">
-        <div class="stat-num c-white">2–3×</div>
-        <div class="stat-lbl">more turbulence rear vs. wing seats</div>
-      </div>
-      <div class="stat-col">
-        <div class="stat-num c-blue">1 in 3</div>
-        <div class="stat-lbl">passengers have flight anxiety</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(74,222,128,0.5)"></div>Smooth</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(251,191,36,0.5)"></div>Moderate</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(248,113,113,0.5)"></div>Rough</div>
       </div>
     </div>
   </div>
+</section>
 
-  <!-- WHAT'S COMING -->
-
-  <div class="steps-wrap">
-    <p class="sec-label">What's coming</p>
-    <div class="steps-card reveal">
-      <div class="step">
-        <div class="step-n">1</div>
+<!-- SCIENCE -->
+<section class="science reveal">
+  <div class="science-inner">
+    <p class="sec-eyebrow">The science</p>
+    <h2>This isn't a guess.<br/>It's physics.</h2>
+    <div class="pos-row" style="margin-bottom:12px;">
+      <div class="pos-box b-blue">
+        <div class="pos-lbl" style="color:var(--blue)">Front</div>
+        <div class="pos-num" style="color:var(--blue)">1.5×</div>
+        <div class="pos-sub">Moderate</div>
+      </div>
+      <div class="pos-box b-green">
+        <div class="pos-lbl" style="color:var(--green)">Wing</div>
+        <div class="pos-num" style="color:var(--green)">1×</div>
+        <div class="pos-sub">Calmest</div>
+      </div>
+      <div class="pos-box b-red">
+        <div class="pos-lbl" style="color:var(--red)">Rear</div>
+        <div class="pos-num" style="color:var(--red)">2–3×</div>
+        <div class="pos-sub">Roughest</div>
+      </div>
+    </div>
+    <div class="sci-tips">
+      <div class="sci-tip">
+        <div class="sci-tip-icon">🌤</div>
         <div>
-          <div class="step-title">AI turbulence forecast</div>
-          <div class="step-desc">Predicted turbulence for your exact route and altitude — hours before departure.</div>
-          <span class="badge-soon">Coming soon</span>
+          <div class="sci-tip-title">Live turbulence data</div>
+          <div class="sci-tip-desc">Real PIREPs, METAR feeds and atmospheric models — fresh for your exact route.</div>
         </div>
       </div>
-      <div class="step">
-        <div class="step-n">2</div>
+      <div class="sci-tip">
+        <div class="sci-tip-icon">💡</div>
         <div>
-          <div class="step-title">Pre-flight notifications</div>
-          <div class="step-desc">A calm briefing the night before. Know what to expect before you leave for the airport.</div>
-          <span class="badge-soon">Coming soon</span>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-n">3</div>
-        <div>
-          <div class="step-title">Smart seat alerts</div>
-          <div class="step-desc">We watch the seat map and notify you when a smoother seat opens — even at check-in.</div>
-          <span class="badge-soon">Coming soon</span>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-n">4</div>
-        <div>
-          <div class="step-title">Seat map · live now</div>
-          <div class="step-desc">80+ aircraft · 2,000+ airports · real turbulence data. Free today, no signup needed.</div>
+          <div class="sci-tip-title">Morning flights are smoother</div>
+          <div class="sci-tip-desc">Afternoon solar heating creates thermal turbulence. Fly early whenever you can.</div>
         </div>
       </div>
     </div>
   </div>
+</section>
 
-  <!-- THE SCIENCE -->
 
-  <div class="science-wrap">
-    <p class="sec-label">The science</p>
-    <div class="sci-card reveal">
-      <div class="sci-tag">✈ Aircraft physics</div>
-      <div class="sci-h">Where you sit changes everything.</div>
-      <div class="sci-p">An aircraft behaves like a seesaw. The wing is the pivot point — the center of gravity. The further from the wing, the more you feel every bump. Rear seats experience 2–3× the turbulence of wing seats.</div>
-      <div class="pos-row">
-        <div class="pos-box b-blue">
-          <div class="pos-lbl c-blue">Front</div>
-          <div class="pos-num c-blue">1.5×</div>
-          <div class="pos-sub">Moderate</div>
-        </div>
-        <div class="pos-box b-green">
-          <div class="pos-lbl c-green">Wing</div>
-          <div class="pos-num c-green">1×</div>
-          <div class="pos-sub">Calmest</div>
-        </div>
-        <div class="pos-box b-red">
-          <div class="pos-lbl" style="color:var(--red)">Rear</div>
-          <div class="pos-num" style="color:var(--red)">2–3×</div>
-          <div class="pos-sub">Roughest</div>
-        </div>
-      </div>
+
+<!-- FAQ -->
+<section class="faq reveal">
+  <div class="faq-inner">
+    <h2>Quick answers</h2>
+    <div class="faq-item">
+      <div class="faq-q">What do I get for €9.99?</div>
+      <div class="faq-a">6 months full access — 10 seat lookups per month, AI turbulence predictions, and pre-flight notifications. Normal plans will cost more when they launch.</div>
     </div>
-    <div class="sci-card reveal">
-      <div class="sci-tag">🌤 Turbulence increasing</div>
-      <div class="sci-h">Climate change is making flights bumpier.</div>
-      <div class="sci-p">Clear-air turbulence over the North Atlantic has increased 55%+ since the 1970s. Jet stream intensification means knowing where to sit matters more every year.</div>
+    <div class="faq-item">
+      <div class="faq-q">When does it launch?</div>
+      <div class="faq-a">The free seat map is live now at relaxedflying.app. AI predictions and alerts are in development — founding members get access first.</div>
     </div>
-    <div class="sci-card reveal">
-      <div class="sci-tag">💡 Pro tip</div>
-      <div class="sci-h">Morning flights are smoother.</div>
-      <div class="sci-p">Air is denser and more stable in the early morning. Afternoon solar heating creates thermal turbulence. Go early whenever possible.</div>
+    <div class="faq-item">
+      <div class="faq-q">What if it never ships?</div>
+      <div class="faq-a">Full refund, no questions asked.</div>
     </div>
   </div>
+</section>
 
-  <!-- FOUNDING MEMBER -->
-
-  <div class="founding-wrap">
-    <p class="sec-label">Early access</p>
-    <div class="founding-card reveal">
-      <div class="founding-top">
-        <div>
-          <div class="founding-h">Founding Member · first 500 spots</div>
-          <div class="founding-sub">Join before launch. Lock in free premium access forever. No credit card, ever.</div>
-        </div>
-        <div class="founding-counter">
-          <div class="counter-num" id="cNum">247</div>
-          <div class="counter-lbl">spots taken</div>
-        </div>
-      </div>
-      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
-      <p class="prog-lbl"><strong id="cLeft">253</strong> of 500 spots remaining</p>
-      <div class="perks-grid">
-        <div class="perk"><span class="perk-chk">✓</span> First access at launch</div>
-        <div class="perk"><span class="perk-chk">✓</span> Free AI predictions forever</div>
-        <div class="perk"><span class="perk-chk">✓</span> Pre-flight notifications</div>
-        <div class="perk"><span class="perk-chk">✓</span> Founding Member badge</div>
-        <div class="perk"><span class="perk-chk">✓</span> Direct input on features</div>
-        <div class="perk"><span class="perk-chk">✓</span> Always free, no catch</div>
-      </div>
-    </div>
+<!-- FINAL CTA -->
+<section class="final reveal">
+  <h2>Your next flight<br/>doesn't have to<br/>be scary.</h2>
+  <p>247 people already in. 253 founding spots left.</p>
+  <div class="final-btns">
+    <button class="btn-big-white" onclick="window.open('https://relaxedflyer.gumroad.com/l/cpzsl','_blank')">Get 6 months access — €9.99</button>
+    <a href="https://www.relaxedflying.app" class="btn-big-outline">Try the free seat map →</a>
   </div>
+</section>
 
-  <!-- FOOTER -->
-
-  <footer>
-    <a href="https://www.relaxedflying.app" class="footer-logo">
-      <div class="logo-box" style="width:22px;height:22px;font-size:11px;">✈</div>
-      RelaxedFlying
-    </a>
-    <div class="footer-right">
-      <a href="mailto:info@relaxedflying.app">info@relaxedflying.app</a>
-      <a href="#">Privacy</a>
-    </div>
-  </footer>
-
-</div><!-- /page -->
+<footer>
+  <a href="https://www.relaxedflying.app" class="footer-logo">
+    <div class="logo-box" style="width:26px;height:26px;"><svg width="26" height="26" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M85 38c-2-4-6-5-11-3L58 41 28 18l-8 3 22 25-14 6-8-5-5 2 8 12 4 7 6-1 5-9 15-5L42 76l8-2 22-28 14-5c5-2 7-7 5-11" fill="#fff"/></svg></div>
+    RelaxedFlying
+  </a>
+  <div class="footer-right">
+    <a href="mailto:info@relaxedflying.app">Contact</a>
+    <a href="#">Privacy</a>
+  </div>
+</footer>
 
 <script>
-// ══════════════════════════════════════════════════════
-//  SCROLL REVEAL
-// ══════════════════════════════════════════════════════
-const revealObs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
-}, { threshold: 0.08 });
-document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
-
-// ══════════════════════════════════════════════════════
-//  PROGRESS BAR
-// ══════════════════════════════════════════════════════
-const TAKEN = 247, TOTAL = 500;
 setTimeout(() => {
   const f = document.getElementById('progFill');
-  if (f) f.style.width = (TAKEN / TOTAL * 100).toFixed(1) + '%';
-}, 600);
+  if (f) f.style.width = (247/500*100).toFixed(1) + '%';
+}, 400);
 
-// ══════════════════════════════════════════════════════
-//  WAITLIST FORM
-// ══════════════════════════════════════════════════════
-function handleJoin() {
-  const inp = document.getElementById('emailInput');
+function handleFree() {
+  const inp = document.getElementById('freeEmail');
   const email = (inp.value || '').trim();
-
-  if (!email || !email.includes('@') || !email.includes('.')) {
-    inp.style.color = '#f87171';
-    inp.focus();
-    setTimeout(() => { inp.style.color = ''; }, 1600);
-    return;
-  }
-
-  // ── WIRE YOUR BACKEND HERE ──────────────────────────
-  // Option A — Formspree (free tier, takes 2 min):
-  //   fetch('https://formspree.io/f/YOUR_FORM_ID', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ email })
-  //   });
-  //
-  // Option B — Tally (no-code, free, unlimited):
-  //   window.open(`https://tally.so/r/YOUR_TALLY_ID?email=${encodeURIComponent(email)}`);
-  //
-  // Option C — your own /api/waitlist Vercel function
-  // ────────────────────────────────────────────────────
-
-  document.getElementById('formRow').style.display = 'none';
-  document.getElementById('successRow').classList.add('show');
-
-  const newN = TAKEN + 1;
-  document.getElementById('cNum').textContent = newN;
-  document.getElementById('cLeft').textContent = TOTAL - newN;
-  document.getElementById('progFill').style.width = (newN / TOTAL * 100).toFixed(1) + '%';
+  if (!email || !email.includes('@')) { inp.focus(); return; }
+  // fetch('https://formspree.io/f/YOUR_ID', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email}) });
+  document.getElementById('freeRow').style.display = 'none';
+  document.getElementById('freeSuccess').classList.add('show');
+  document.getElementById('spotsTaken').textContent = '248';
 }
+document.getElementById('freeEmail').addEventListener('keydown', e => { if(e.key==='Enter') handleFree(); });
 
-document.getElementById('emailInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') handleJoin();
-});
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.07 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 </script>
-
 </body>
 </html>
