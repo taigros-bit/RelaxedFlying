@@ -7,6 +7,7 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/early-access.html", "dest": "/early-access.html" },
     { "src": "/early-access", "dest": "/early-access.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
