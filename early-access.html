@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RelaxedFlying — Early Access</title>
+  <title>RelaxedFlying — Join the Waitlist</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,56 +19,56 @@
       backdrop-filter: blur(20px); border-bottom: 1px solid #111;
     }
     .nav-logo { display: flex; align-items: center; gap: 9px; font-size: 1rem; font-weight: 700; color: #fff; text-decoration: none; }
-    .logo-box { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
     .nav-contact { font-size: 0.875rem; color: #555; text-decoration: none; }
 
     /* HERO */
-    .hero { padding: 4.5rem 20px 3rem; text-align: center; border-bottom: 1px solid #111; }
+    .hero { padding: 5rem 20px 3.5rem; text-align: center; border-bottom: 1px solid #111; }
     .chip { display: inline-flex; align-items: center; gap: 7px; background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 99px; padding: 6px 14px; font-size: 0.78rem; color: #666; margin-bottom: 1.5rem; }
     .chip-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: blink 2.5s ease-in-out infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
     .hero h1 { font-size: clamp(2.8rem, 11vw, 5.5rem); font-weight: 900; letter-spacing: -0.045em; line-height: 1.0; margin-bottom: 1rem; }
     .hero h1 em { font-style: italic; color: #444; }
-    .hero-sub { font-size: 1rem; color: #555; line-height: 1.6; max-width: 360px; margin: 0 auto 2.25rem; }
+    .hero-sub { font-size: 1rem; color: #555; line-height: 1.6; max-width: 360px; margin: 0 auto 2.5rem; }
 
-    /* BOTH OPTIONS — side by side at top */
-    .access-wrap { padding: 2.5rem 20px; border-bottom: 1px solid #111; max-width: 640px; margin: 0 auto; }
-    .access-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    /* WAITLIST FORM */
+    .waitlist-wrap { max-width: 480px; margin: 0 auto; padding: 3rem 20px; border-bottom: 1px solid #111; }
+    .waitlist-card { background: #0a0a0a; border: 1.5px solid #1a1a1a; border-radius: 20px; padding: 32px 28px; text-align: center; }
+    .waitlist-title { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 8px; }
+    .waitlist-sub { font-size: 0.82rem; color: #555; line-height: 1.6; margin-bottom: 24px; }
 
-    .ac-card { background: #0a0a0a; border: 1px solid #111; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; }
-    .ac-card.featured { border: 1.5px solid #fff; }
+    .form-group { display: flex; flex-direction: column; gap: 10px; }
+    .email-input { width: 100%; background: #000; border: 1px solid #222; border-radius: 11px; padding: 14px 16px; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+    .email-input::placeholder { color: #333; }
+    .email-input:focus { border-color: #444; }
+    .email-input.error { border-color: var(--red); }
 
-    .ac-badge { display: inline-block; background: #fff; color: #000; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; margin-bottom: 10px; align-self: flex-start; }
+    .btn-join { width: 100%; padding: 14px; border-radius: 11px; background: #fff; color: #000; border: none; font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 800; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+    .btn-join:hover { opacity: 0.88; }
+    .btn-join:active { transform: scale(0.98); }
+    .btn-join:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .ac-price { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.04em; color: #fff; line-height: 1; margin-bottom: 2px; }
-    .ac-price-sub { font-size: 0.68rem; color: #555; margin-bottom: 10px; }
-    .ac-price-free { font-size: 1.1rem; font-weight: 900; color: #444; margin-bottom: 2px; }
+    .form-note { font-size: 0.68rem; color: #333; margin-top: 10px; }
 
-    .ac-name { font-size: 0.78rem; font-weight: 700; color: #fff; margin-bottom: 10px; }
-
-    .ac-perks { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; flex: 1; }
-    .ac-perk { display: flex; align-items: flex-start; gap: 7px; font-size: 0.72rem; color: #666; line-height: 1.4; }
-    .ac-perk .chk { color: var(--green); flex-shrink: 0; }
-    .ac-perk .xmk { color: #222; flex-shrink: 0; }
-    .ac-perk.dim { color: #333; }
-
-    .btn-white { width: 100%; padding: 11px; border-radius: 9px; background: #fff; color: #000; border: none; font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 800; cursor: pointer; transition: opacity 0.15s; }
-    .btn-white:hover { opacity: 0.85; }
-
-    .free-row { display: flex; background: #000; border: 1px solid #1a1a1a; border-radius: 9px; padding: 3px; gap: 3px; }
-    .free-row input { flex: 1; background: none; border: none; outline: none; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.72rem; padding: 7px 8px; min-width: 0; }
-    .free-row input::placeholder { color: #333; }
-    .free-row button { background: #1a1a1a; color: #777; border: none; border-radius: 7px; font-family: 'Inter', sans-serif; font-size: 0.7rem; font-weight: 700; padding: 7px 10px; cursor: pointer; white-space: nowrap; }
-    .form-note { font-size: 0.65rem; color: #333; text-align: center; margin-top: 6px; }
-    .success-msg { display: none; align-items: center; gap: 6px; background: rgba(74,222,128,0.07); border: 1px solid rgba(74,222,128,0.18); border-radius: 9px; padding: 9px 12px; font-size: 0.78rem; font-weight: 500; color: var(--green); }
-    .success-msg.show { display: flex; }
+    .success-card { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 8px 0; }
+    .success-card.show { display: flex; }
+    .success-icon { width: 48px; height: 48px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+    .success-title { font-size: 1rem; font-weight: 800; color: #fff; }
+    .success-sub { font-size: 0.8rem; color: #555; text-align: center; line-height: 1.5; }
 
     /* PROGRESS */
-    .prog-wrap { max-width: 640px; margin: 0 auto; padding: 0 20px 2.5rem; }
-    .prog-bar { height: 3px; background: #111; border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+    .prog-wrap { max-width: 480px; margin: 0 auto; padding: 0 20px 2.5rem; text-align: center; }
+    .prog-bar { height: 3px; background: #111; border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
     .prog-fill { height: 100%; background: #fff; border-radius: 99px; width: 0; transition: width 1.4s cubic-bezier(0.16,1,0.3,1); }
     .prog-lbl { font-size: 0.72rem; color: #444; }
     .prog-lbl strong { color: #fff; }
+
+    /* PERKS */
+    .perks-wrap { max-width: 480px; margin: 0 auto; padding: 0 20px 3rem; }
+    .perks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .perk-item { background: #0a0a0a; border: 1px solid #111; border-radius: 12px; padding: 14px; display: flex; align-items: flex-start; gap: 10px; }
+    .perk-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+    .perk-text { font-size: 0.75rem; color: #666; line-height: 1.4; }
+    .perk-text strong { color: #fff; display: block; margin-bottom: 2px; font-size: 0.78rem; }
 
     /* STATS */
     .stats-strip { border-bottom: 1px solid #111; border-top: 1px solid #111; }
@@ -84,7 +84,6 @@
     .sec-eyebrow { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #333; margin-bottom: 10px; }
     .seatmap-sec h2 { font-size: clamp(1.6rem, 5vw, 2.2rem); font-weight: 900; letter-spacing: -0.04em; margin-bottom: 0.5rem; }
     .seatmap-sec p { font-size: 0.875rem; color: #555; line-height: 1.6; margin-bottom: 1.75rem; max-width: 420px; }
-
     .seat-ui { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 16px; padding: 18px; }
     .seat-ui-label { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: #333; text-align: center; margin-bottom: 12px; }
     .seatmap-plane { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 12px; }
@@ -105,7 +104,7 @@
     .science { padding: 4rem 20px; border-bottom: 1px solid #111; }
     .science-inner { max-width: 640px; margin: 0 auto; }
     .science h2 { font-size: clamp(1.6rem,5vw,2.2rem); font-weight: 900; letter-spacing: -0.04em; margin-bottom: 1.5rem; }
-    .pos-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .pos-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
     .pos-box { border-radius: 10px; padding: 14px 6px; text-align: center; }
     .pos-box.b-blue  { background: rgba(37,99,235,0.1);  border: 1px solid rgba(37,99,235,0.18); }
     .pos-box.b-green { background: rgba(74,222,128,0.07); border: 1px solid rgba(74,222,128,0.16); }
@@ -113,24 +112,11 @@
     .pos-lbl { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
     .pos-num { font-size: 1.3rem; font-weight: 900; letter-spacing: -0.04em; }
     .pos-sub { font-size: 0.62rem; color: #333; margin-top: 2px; }
-    .sci-tips { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .sci-tips { display: flex; flex-direction: column; gap: 8px; }
     .sci-tip { background: #0a0a0a; border: 1px solid #111; border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; }
     .sci-tip-icon { font-size: 1rem; flex-shrink: 0; }
     .sci-tip-title { font-size: 0.82rem; font-weight: 700; color: #fff; margin-bottom: 3px; }
     .sci-tip-desc { font-size: 0.76rem; color: #555; line-height: 1.5; }
-
-    /* TESTIMONIALS */
-    .testi { padding: 4rem 20px; border-bottom: 1px solid #111; }
-    .testi-inner { max-width: 640px; margin: 0 auto; }
-    .testi h2 { font-size: clamp(1.4rem,4vw,1.9rem); font-weight: 900; letter-spacing: -0.035em; margin-bottom: 1.25rem; }
-    .testi-grid { display: flex; flex-direction: column; gap: 8px; }
-    .testi-card { background: #0a0a0a; border: 1px solid #111; border-radius: 12px; padding: 16px; }
-    .testi-stars { color: var(--amber); font-size: 0.7rem; margin-bottom: 7px; letter-spacing: 2px; }
-    .testi-text { font-size: 0.82rem; color: #777; line-height: 1.6; margin-bottom: 10px; font-style: italic; }
-    .testi-author { display: flex; align-items: center; gap: 9px; }
-    .testi-av { width: 28px; height: 28px; border-radius: 50%; background: #111; border: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: #555; }
-    .testi-name { font-size: 0.78rem; font-weight: 600; color: #fff; }
-    .testi-role { font-size: 0.68rem; color: #444; }
 
     /* FAQ */
     .faq { padding: 4rem 20px; border-bottom: 1px solid #111; }
@@ -157,78 +143,68 @@
 
     .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.55s ease, transform 0.55s ease; }
     .reveal.in { opacity: 1; transform: none; }
-
-    @media (max-width: 400px) {
-      .access-grid { grid-template-columns: 1fr; }
-    }
   </style>
 </head>
 <body>
 
 <nav>
-  <a href="https://www.relaxedflying.app" class="nav-logo">
-    RelaxedFlying
-  </a>
+  <a href="https://www.relaxedflying.app" class="nav-logo">RelaxedFlying</a>
   <a href="mailto:info@relaxedflying.app" class="nav-contact">Contact</a>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="chip"><span class="chip-dot"></span>Free · No signup · 2,000+ airports</div>
-  <h1>Fly smoother.<br/>Sit smarter.</h1>
-  <p class="hero-sub">Pick the calmest seat on your exact flight. Real turbulence data, seat by seat. AI predictions and pre-flight alerts coming soon — get in early.</p>
+  <div class="chip"><span class="chip-dot"></span>Launching soon · Free to join</div>
+  <h1>Fly smoother.<br/><em>Sit smarter.</em></h1>
+  <p class="hero-sub">Know exactly which seat will feel the calmest on your specific flight. Real turbulence data, every route, every aircraft.</p>
 </section>
 
-<!-- ACCESS CARDS — right at the top -->
-<div style="padding: 2.5rem 20px 0; max-width: 640px; margin: 0 auto;">
-  <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#333;margin-bottom:12px;">Choose your access</div>
-  <div class="access-grid">
-
-    <!-- PAID -->
-    <div class="ac-card featured">
-      <span class="ac-badge">⭐ Founding</span>
-      <div class="ac-price">€9.99</div>
-      <div class="ac-price-sub">6 months · €1.66/mo</div>
-      <div class="ac-name">Early access</div>
-      <ul class="ac-perks">
-        <li class="ac-perk"><span class="chk">✓</span> First access at launch</li>
-        <li class="ac-perk"><span class="chk">✓</span> 10 lookups/month</li>
-        <li class="ac-perk"><span class="chk">✓</span> AI predictions included</li>
-        <li class="ac-perk"><span class="chk">✓</span> Pre-flight alerts</li>
-        <li class="ac-perk"><span class="chk">✓</span> Founding badge</li>
-        <li class="ac-perk"><span class="chk">✓</span> Rate won't come back</li>
-      </ul>
-      <button class="btn-white" onclick="window.open('https://relaxedflyer.gumroad.com/l/muwztb','_blank')">Get access — €9.99 →</button>
-    </div>
-
-    <!-- FREE -->
-    <div class="ac-card">
-      <div style="height:22px;margin-bottom:10px;"></div>
-      <div class="ac-price-free">Free</div>
-      <div class="ac-price-sub">waitlist</div>
-      <div class="ac-name">Get notified</div>
-      <ul class="ac-perks">
-        <li class="ac-perk"><span class="chk">✓</span> Email at launch</li>
-        <li class="ac-perk"><span class="chk">✓</span> 5 free lookups</li>
-        <li class="ac-perk dim"><span class="xmk">✗</span> No priority access</li>
-        <li class="ac-perk dim"><span class="xmk">✗</span> No AI predictions</li>
-        <li class="ac-perk dim"><span class="xmk">✗</span> No founding perks</li>
-      </ul>
-      <div class="free-row" id="freeRow">
-        <input type="email" id="freeEmail" placeholder="email@..." />
-        <button onclick="handleFree()">Join</button>
+<!-- WAITLIST FORM -->
+<div class="waitlist-wrap">
+  <div class="waitlist-card">
+    <div id="formArea">
+      <div class="waitlist-title">Join the waitlist</div>
+      <div class="waitlist-sub">Be the first to know when we launch. Free seat map available now at relaxedflying.app</div>
+      <div class="form-group">
+        <input type="email" id="emailInput" class="email-input" placeholder="your@email.com" />
+        <button class="btn-join" id="joinBtn" onclick="handleJoin()">Get early access →</button>
       </div>
-      <div class="success-msg" id="freeSuccess"><span>✓</span> You're on the list!</div>
-      <p class="form-note">No spam. Ever.</p>
+      <p class="form-note">No spam. Ever. Unsubscribe anytime.</p>
     </div>
-
+    <div class="success-card" id="successCard">
+      <div class="success-icon">✓</div>
+      <div class="success-title">You're on the list!</div>
+      <div class="success-sub">We'll email you the moment we launch.<br/>Try the free seat map now at relaxedflying.app</div>
+    </div>
   </div>
 </div>
 
 <!-- PROGRESS -->
-<div class="prog-wrap" style="padding-top:1.25rem;">
+<div class="prog-wrap">
   <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
-  <p class="prog-lbl"><strong id="spotsTaken">247</strong> of 500 founding spots taken</p>
+  <p class="prog-lbl"><strong id="spotsTaken">247</strong> people already joined</p>
+</div>
+
+<!-- PERKS -->
+<div class="perks-wrap reveal">
+  <div class="perks-grid">
+    <div class="perk-item">
+      <div class="perk-icon">✈️</div>
+      <div class="perk-text"><strong>Free seat map</strong>Live now at relaxedflying.app</div>
+    </div>
+    <div class="perk-item">
+      <div class="perk-icon">🌤</div>
+      <div class="perk-text"><strong>Real weather data</strong>PIREPs & live forecasts</div>
+    </div>
+    <div class="perk-item">
+      <div class="perk-icon">🔔</div>
+      <div class="perk-text"><strong>Pre-flight alerts</strong>Turbulence notifications</div>
+    </div>
+    <div class="perk-item">
+      <div class="perk-icon">🤖</div>
+      <div class="perk-text"><strong>AI predictions</strong>Coming at launch</div>
+    </div>
+  </div>
 </div>
 
 <!-- STATS -->
@@ -244,7 +220,7 @@
     </div>
     <div class="stat-col">
       <div class="stat-num" style="color:var(--blue)">1 in 3</div>
-      <div class="stat-lbl">passengers have anxiety</div>
+      <div class="stat-lbl">passengers have flight anxiety</div>
     </div>
   </div>
 </div>
@@ -280,7 +256,7 @@
   <div class="science-inner">
     <p class="sec-eyebrow">The science</p>
     <h2>This isn't a guess.<br/>It's physics.</h2>
-    <div class="pos-row" style="margin-bottom:12px;">
+    <div class="pos-row">
       <div class="pos-box b-blue">
         <div class="pos-lbl" style="color:var(--blue)">Front</div>
         <div class="pos-num" style="color:var(--blue)">1.5×</div>
@@ -316,23 +292,25 @@
   </div>
 </section>
 
-
-
 <!-- FAQ -->
 <section class="faq reveal">
   <div class="faq-inner">
     <h2>Quick answers</h2>
     <div class="faq-item">
-      <div class="faq-q">What do I get for €9.99?</div>
-      <div class="faq-a">6 months full access — 10 seat lookups per month, AI turbulence predictions, and pre-flight notifications. Normal plans will cost more when they launch.</div>
+      <div class="faq-q">Is it free?</div>
+      <div class="faq-a">Yes. The seat map at relaxedflying.app is completely free, no account needed. AI predictions and alerts are coming soon — waitlist members get first access.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q">When does it launch?</div>
-      <div class="faq-a">The free seat map is live now at relaxedflying.app. AI predictions and alerts are in development — founding members get access first.</div>
+      <div class="faq-q">When does the full app launch?</div>
+      <div class="faq-a">We're targeting September 2026. Join the waitlist and you'll be the first to know.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q">What if it never ships?</div>
-      <div class="faq-a">Full refund, no questions asked.</div>
+      <div class="faq-q">How does the turbulence data work?</div>
+      <div class="faq-a">We pull live PIREPs, METAR and weather forecast data for your specific route, then map expected turbulence intensity onto each seat position based on aircraft physics.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Which airlines and aircraft are supported?</div>
+      <div class="faq-a">We support 2,000+ airports and all major commercial aircraft types. Enter your flight number and we handle the rest.</div>
     </div>
   </div>
 </section>
@@ -340,16 +318,16 @@
 <!-- FINAL CTA -->
 <section class="final reveal">
   <h2>Your next flight<br/>doesn't have to<br/>be scary.</h2>
-  <p>247 people already in. 253 founding spots left.</p>
+  <p>Join <strong id="finalCount">247</strong> people already on the list.</p>
   <div class="final-btns">
-    <button class="btn-big-white" onclick="window.open('https://relaxedflyer.gumroad.com/l/muwztb','_blank')">Get 6 months access — €9.99</button>
+    <button class="btn-big-white" onclick="scrollToForm()">Join the waitlist — it's free</button>
     <a href="https://www.relaxedflying.app" class="btn-big-outline">Try the free seat map →</a>
   </div>
 </section>
 
 <footer>
   <a href="https://www.relaxedflying.app" class="footer-logo">
-    <div class="logo-box" style="width:26px;height:26px;"><svg width="26" height="26" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M85 38c-2-4-6-5-11-3L58 41 28 18l-8 3 22 25-14 6-8-5-5 2 8 12 4 7 6-1 5-9 15-5L42 76l8-2 22-28 14-5c5-2 7-7 5-11" fill="#fff"/></svg></div>
+    <svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M85 38c-2-4-6-5-11-3L58 41 28 18l-8 3 22 25-14 6-8-5-5 2 8 12 4 7 6-1 5-9 15-5L42 76l8-2 22-28 14-5c5-2 7-7 5-11" fill="#fff"/></svg>
     RelaxedFlying
   </a>
   <div class="footer-right">
@@ -359,26 +337,71 @@
 </footer>
 
 <script>
-setTimeout(() => {
-  const f = document.getElementById('progFill');
-  if (f) f.style.width = (247/500*100).toFixed(1) + '%';
-}, 400);
+  // Progress bar
+  setTimeout(() => {
+    const f = document.getElementById('progFill');
+    if (f) f.style.width = (247/500*100).toFixed(1) + '%';
+  }, 400);
 
-function handleFree() {
-  const inp = document.getElementById('freeEmail');
-  const email = (inp.value || '').trim();
-  if (!email || !email.includes('@')) { inp.focus(); return; }
-  // fetch('https://formspree.io/f/YOUR_ID', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email}) });
-  document.getElementById('freeRow').style.display = 'none';
-  document.getElementById('freeSuccess').classList.add('show');
-  document.getElementById('spotsTaken').textContent = '248';
-}
-document.getElementById('freeEmail').addEventListener('keydown', e => { if(e.key==='Enter') handleFree(); });
+  // Scroll to form
+  function scrollToForm() {
+    document.querySelector('.waitlist-wrap').scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => document.getElementById('emailInput').focus(), 600);
+  }
 
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
-}, { threshold: 0.07 });
-document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  // Handle join with real Formspree integration
+  async function handleJoin() {
+    const inp = document.getElementById('emailInput');
+    const btn = document.getElementById('joinBtn');
+    const email = (inp.value || '').trim();
+
+    if (!email || !email.includes('@')) {
+      inp.classList.add('error');
+      inp.focus();
+      setTimeout(() => inp.classList.remove('error'), 1500);
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Joining...';
+
+    try {
+      const res = await fetch('https://formspree.io/f/xeedrknd', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email: email })
+      });
+
+      if (res.ok) {
+        document.getElementById('formArea').style.display = 'none';
+        document.getElementById('successCard').classList.add('show');
+        // Update counter
+        const count = parseInt(document.getElementById('spotsTaken').textContent) + 1;
+        document.getElementById('spotsTaken').textContent = count;
+        document.getElementById('finalCount').textContent = count;
+        // Update progress bar
+        document.getElementById('progFill').style.width = (count/500*100).toFixed(1) + '%';
+      } else {
+        throw new Error('Failed');
+      }
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = 'Try again →';
+      inp.classList.add('error');
+      setTimeout(() => { inp.classList.remove('error'); btn.textContent = 'Get early access →'; }, 2000);
+    }
+  }
+
+  // Enter key support
+  document.getElementById('emailInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleJoin();
+  });
+
+  // Scroll reveal
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.07 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 </script>
 </body>
 </html>
