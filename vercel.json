@@ -9,6 +9,9 @@
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/early-access.html", "dest": "/early-access.html" },
     { "src": "/early-access", "dest": "/early-access.html" },
+    { "src": "/app", "dest": "/index.html" },
+    { "src": "/demo", "dest": "/index.html" },
+    { "src": "/", "dest": "/early-access.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
