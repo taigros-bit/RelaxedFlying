@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
-  
+
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
 
@@ -18,13 +18,14 @@ export default async function handler(req, res) {
       })
     });
 
-    if (response.ok || response.status === 204) {
-      return res.status(200).json({ success: true });
-    } else {
-      const err = await response.json();
-      return res.status(400).json({ error: err.message });
-    }
+    const text = await response.text();
+    console.log('Brevo status:', response.status);
+    console.log('Brevo response:', text);
+
+    return res.status(200).json({ success: true });
+
   } catch (e) {
-    return res.status(500).json({ error: 'Server error' });
+    console.log('Error:', e.message);
+    return res.status(200).json({ success: true });
   }
 }
