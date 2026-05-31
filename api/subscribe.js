@@ -1,7 +1,11 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { email } = req.body;
+  let email;
+  try {
+    email = req.body?.email;
+  } catch(e) {}
+  
   if (!email) return res.status(400).json({ error: 'Email required' });
 
   try {
