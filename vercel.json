@@ -6,6 +6,7 @@
     { "src": "early-access.html", "use": "@vercel/static" }
   ],
   "routes": [
+    { "src": "/api/subscribe", "dest": "/api/subscribe.js" },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/early-access.html", "dest": "/early-access.html" },
     { "src": "/early-access", "dest": "/early-access.html" },
