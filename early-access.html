@@ -302,7 +302,7 @@
     </div>
     <div class="faq-item">
       <div class="faq-q">When does the full app launch?</div>
-      <div class="faq-a">We're targeting September 2026. Join the waitlist and you'll be the first to know.</div>
+      <div class="faq-a">We're targeting August 2026. Join the waitlist and you'll be the first to know.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">How does the turbulence data work?</div>
@@ -321,7 +321,7 @@
   <p>Join <strong id="finalCount">247</strong> people already on the list.</p>
   <div class="final-btns">
     <button class="btn-big-white" onclick="scrollToForm()">Join the waitlist — it's free</button>
-    <a href="https://www.relaxedflying.app" class="btn-big-outline">Try the free seat map →</a>
+    <a href="https://www.relaxedflying.app/app" class="btn-big-outline">Try the free seat map →</a>
   </div>
 </section>
 
@@ -349,7 +349,7 @@
     setTimeout(() => document.getElementById('emailInput').focus(), 600);
   }
 
-  // Handle join with real Formspree integration
+  // Handle join — posts to Brevo via /api/subscribe
   async function handleJoin() {
     const inp = document.getElementById('emailInput');
     const btn = document.getElementById('joinBtn');
@@ -366,20 +366,18 @@
     btn.textContent = 'Joining...';
 
     try {
-      const res = await fetch('https://formspree.io/f/xeedrknd', {
+      const res = await fetch('/api/subscribe', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email })
       });
 
       if (res.ok) {
         document.getElementById('formArea').style.display = 'none';
         document.getElementById('successCard').classList.add('show');
-        // Update counter
         const count = parseInt(document.getElementById('spotsTaken').textContent) + 1;
         document.getElementById('spotsTaken').textContent = count;
         document.getElementById('finalCount').textContent = count;
-        // Update progress bar
         document.getElementById('progFill').style.width = (count/500*100).toFixed(1) + '%';
       } else {
         throw new Error('Failed');
